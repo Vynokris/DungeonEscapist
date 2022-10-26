@@ -21,9 +21,14 @@ ABrawlerPlayer::ABrawlerPlayer() {
 	CharacterMovementComponent = GetCharacterMovement();
 	CharacterMovementComponent->bUseControllerDesiredRotation = false;
 	CharacterMovementComponent->bOrientRotationToMovement = true;
+
+	ParticleSystemComponent = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("ParticleSystemComponent"));
+	ParticleSystemComponent->SetupAttachment(CastChecked<USceneComponent, UCapsuleComponent>(GetCapsuleComponent()));
 }
 
 void ABrawlerPlayer::BeginPlay() {
+	ParticleSystemComponent->DeactivateSystem();
+	
 	Super::BeginPlay();
 
 	{
@@ -59,20 +64,28 @@ void ABrawlerPlayer::SetupPlayerInputComponent(class UInputComponent* _InputComp
 
 
 void ABrawlerPlayer::MoveRight(float _Value) {
+	if(IsDead()) return;
+
+	MoveRightDelta = _Value;
 	const FVector Direction = FRotationMatrix(Controller->GetControlRotation()).GetScaledAxis(EAxis::Y);
-	AddMovementInput(Direction, _Value);
+	AddMovementInput(Direction, MoveRightDelta);
 }
 
 
 void ABrawlerPlayer::MoveForward(float _Value) {
-	const FVector Direction = FRotationMatrix(Controller->GetControlRotation()).GetScaledAxis(EAxis::X) + FRotationMatrix(Controller->GetControlRotation()).GetScaledAxis(EAxis::Z);
-	AddMovementInput(Direction, _Value);
+	if(IsDead()) return;
+
+	MoveForwardDelta = _Value;
+	const FVector Direction = FRotationMatrix(Controller->GetControlRotation()).GetScaledAxis(EAxis::X)
+							+ FRotationMatrix(Controller->GetControlRotation()).GetScaledAxis(EAxis::Z);
+	AddMovementInput(Direction, MoveForwardDelta);
 }
 
 void ABrawlerPlayer::TakeDamage(int _Value) {
 	playerLife -= _Value;
 
-	if (IsAlive()) {
+	if (playerLife <= 0) {
+		PlayerDeathEvent();
 		Debug("Player is dead!", _Value);
 	}
 	else {
@@ -80,6 +93,45 @@ void ABrawlerPlayer::TakeDamage(int _Value) {
 	}
 }
 
-bool ABrawlerPlayer::IsAlive() {
-	return playerLife <= 0;
+bool ABrawlerPlayer::IsDead() {
+	return playerDead;
 }
+
+void ABrawlerPlayer::PlayerDeathEvent() {
+	playerDead = true;
+}
+
+void ABrawlerPlayer::ParticleDisplay() {
+	if(IsDead()) return;
+	
+	if(GetMoveForward() == 0 && GetMoveRight() == 0) return ShouldActivateParticle(false);
+	if(CharacterMovementComponent->IsFalling() && CharacterMovementComponent->JumpZVelocity >= 0) ShouldActivateParticle(false);
+
+	return ShouldActivateParticle(true);
+}
+
+float ABrawlerPlayer::GetMoveForward()
+{
+	return MoveForwardDelta;
+}
+
+float ABrawlerPlayer::GetMoveRight()
+{
+	return MoveRightDelta;
+}
+
+void ABrawlerPlayer::ShouldActivateParticle(bool _Active)
+{
+	if(_Active) {
+		if(ParticleSystemComponent->bWasDeactivated) {
+			ParticleSystemComponent->ActivateSystem();
+		}
+		return;
+	}
+	
+	if(!ParticleSystemComponent->bWasDeactivated) {
+		ParticleSystemComponent->DeactivateSystem();
+	}
+}
+
+

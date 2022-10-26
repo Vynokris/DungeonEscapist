@@ -8,6 +8,8 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
+#include "Particles/ParticleSystemComponent.h"
+
 #include "Camera/CameraComponent.h"
 
 #include "Components/CapsuleComponent.h"
@@ -23,15 +25,22 @@ private:
 	UCameraComponent* CameraComponent = nullptr;
 	USpringArmComponent* SpringArmComponent = nullptr;
 	UCharacterMovementComponent* CharacterMovementComponent = nullptr;
+
+	float MoveForwardDelta = 0;
+	float MoveRightDelta = 0;
 	
 protected:
 	
 public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite) UParticleSystemComponent* ParticleSystemComponent = nullptr;
+	
 	UPROPERTY(EditAnywhere) float cameraLag = 15.f;
 	UPROPERTY(EditAnywhere) float cameraDistance = 300.f;
 	
 	UPROPERTY(EditAnywhere) int playerLife = 5;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite) bool playerDead = false;
 private:
+	void ShouldActivateParticle(bool _Active);
 	
 protected:
 	virtual void BeginPlay() override;
@@ -45,8 +54,13 @@ public:
 	void MoveRight(float _Value);
 	void MoveForward(float _Value);
 
-	void TakeDamage(int _Value);
-	bool IsAlive();
+	float GetMoveRight();
+	float GetMoveForward();
 
-	UFUNCTION(BlueprintImplementableEvent, Category = "Brawler VFX") void ParticleDisplay();
+	void TakeDamage(int _Value);
+	bool IsDead();
+
+	void PlayerDeathEvent();
+	
+	UFUNCTION() void ParticleDisplay();
 };
