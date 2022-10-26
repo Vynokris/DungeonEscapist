@@ -39,7 +39,6 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite) bool isPlayerDead = false;
 
 private:
-	void DisplayParticle() const;
 	void ShouldDisplay(bool _Active) const;
 	
 	void MoveRight(float _Value);
@@ -60,4 +59,6 @@ public:
 	void PlayerDeathEvent();
 	
 	bool IsDead() const;
+
+	UFUNCTION() void DisplayParticle() const;
 };

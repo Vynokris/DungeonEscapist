@@ -36,7 +36,7 @@ void ABrawlerPlayer::BeginPlay()
 	{
 		FTimerHandle FootStepParticles;
 		FTimerDelegate Delegate;
-		Delegate.BindUFunction(this, "ParticleDisplay");
+		Delegate.BindUFunction(this, "DisplayParticle");
 		GetWorld()->GetTimerManager().SetTimer(FootStepParticles, Delegate, 0.2, true);
 	}
 	
