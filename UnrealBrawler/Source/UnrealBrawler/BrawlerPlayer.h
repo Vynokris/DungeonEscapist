@@ -26,10 +26,8 @@ private:
 	USpringArmComponent* SpringArmComponent = nullptr;
 	UCharacterMovementComponent* CharacterMovementComponent = nullptr;
 
-	float MoveForwardDelta = 0;
-	float MoveRightDelta = 0;
-	
-protected:
+	float moveForwardDelta = 0;
+	float moveRightDelta = 0;
 	
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite) UParticleSystemComponent* ParticleSystemComponent = nullptr;
@@ -38,29 +36,28 @@ public:
 	UPROPERTY(EditAnywhere) float cameraDistance = 300.f;
 	
 	UPROPERTY(EditAnywhere) int playerLife = 5;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite) bool playerDead = false;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite) bool isPlayerDead = false;
+
 private:
-	void ShouldActivateParticle(bool _Active);
+	void DisplayParticle() const;
+	void ShouldDisplay(bool _Active) const;
 	
-protected:
-	virtual void BeginPlay() override;
-	
-public:
-	ABrawlerPlayer();
-
-	virtual void Tick(float _DeltaTime) override;
-	virtual void SetupPlayerInputComponent(class UInputComponent* _InputComponent) override;
-
 	void MoveRight(float _Value);
 	void MoveForward(float _Value);
 
-	float GetMoveRight();
-	float GetMoveForward();
+	float GetMoveRight() const;
+	float GetMoveForward() const;
 
+protected:
+	virtual void BeginPlay() override;
+	virtual void Tick(float _DeltaTime) override;
+	virtual void SetupPlayerInputComponent(UInputComponent* _InputComponent) override;
+	
+public:
+	ABrawlerPlayer();
+	
 	void TakeDamage(int _Value);
-	bool IsDead();
-
 	void PlayerDeathEvent();
 	
-	UFUNCTION() void ParticleDisplay();
+	bool IsDead() const;
 };

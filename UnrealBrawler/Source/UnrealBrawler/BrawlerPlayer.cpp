@@ -4,7 +4,8 @@
 #include "BrawlerPlayer.h"
 #include "DebugUtils.h"
 
-ABrawlerPlayer::ABrawlerPlayer() {
+ABrawlerPlayer::ABrawlerPlayer()
+{
 	bUseControllerRotationYaw = false;
 
 	SpringArmComponent = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArmComponent"));
@@ -26,7 +27,8 @@ ABrawlerPlayer::ABrawlerPlayer() {
 	ParticleSystemComponent->SetupAttachment(CastChecked<USceneComponent, UCapsuleComponent>(GetCapsuleComponent()));
 }
 
-void ABrawlerPlayer::BeginPlay() {
+void ABrawlerPlayer::BeginPlay()
+{
 	ParticleSystemComponent->DeactivateSystem();
 	
 	Super::BeginPlay();
@@ -41,11 +43,13 @@ void ABrawlerPlayer::BeginPlay() {
 	DebugWarning("Using ABrawlerPlayer");
 }
 
-void ABrawlerPlayer::Tick(float _DeltaTime) {
+void ABrawlerPlayer::Tick(float _DeltaTime)
+{
 	Super::Tick(_DeltaTime);
 }
 
-void ABrawlerPlayer::SetupPlayerInputComponent(class UInputComponent* _InputComponent) {
+void ABrawlerPlayer::SetupPlayerInputComponent(UInputComponent* _InputComponent)
+{
 	Super::SetupPlayerInputComponent(_InputComponent);
 
 	_InputComponent->BindAxis("MoveForward", this, &ABrawlerPlayer::MoveForward);
@@ -63,25 +67,38 @@ void ABrawlerPlayer::SetupPlayerInputComponent(class UInputComponent* _InputComp
 }
 
 
-void ABrawlerPlayer::MoveRight(float _Value) {
+void ABrawlerPlayer::MoveRight(float _Value)
+{
 	if(IsDead()) return;
 
-	MoveRightDelta = _Value;
+	moveRightDelta = _Value;
 	const FVector Direction = FRotationMatrix(Controller->GetControlRotation()).GetScaledAxis(EAxis::Y);
-	AddMovementInput(Direction, MoveRightDelta);
+	AddMovementInput(Direction, moveRightDelta);
 }
 
-
-void ABrawlerPlayer::MoveForward(float _Value) {
+void ABrawlerPlayer::MoveForward(float _Value)
+{
 	if(IsDead()) return;
 
-	MoveForwardDelta = _Value;
-	const FVector Direction = FRotationMatrix(Controller->GetControlRotation()).GetScaledAxis(EAxis::X)
-							+ FRotationMatrix(Controller->GetControlRotation()).GetScaledAxis(EAxis::Z);
-	AddMovementInput(Direction, MoveForwardDelta);
+	moveForwardDelta = _Value;
+	const FVector Direction = FRotationMatrix(Controller->GetControlRotation()).GetScaledAxis(EAxis::X) + FRotationMatrix(Controller->GetControlRotation()).GetScaledAxis(EAxis::Z);
+	AddMovementInput(Direction, moveForwardDelta);
 }
 
-void ABrawlerPlayer::TakeDamage(int _Value) {
+
+float ABrawlerPlayer::GetMoveForward() const
+{
+	return moveForwardDelta;
+}
+
+float ABrawlerPlayer::GetMoveRight() const
+{
+	return moveRightDelta;
+}
+
+
+void ABrawlerPlayer::TakeDamage(int _Value)
+{
 	playerLife -= _Value;
 
 	if (playerLife <= 0) {
@@ -93,34 +110,29 @@ void ABrawlerPlayer::TakeDamage(int _Value) {
 	}
 }
 
-bool ABrawlerPlayer::IsDead() {
-	return playerDead;
+
+bool ABrawlerPlayer::IsDead() const
+{
+	return isPlayerDead;
 }
 
-void ABrawlerPlayer::PlayerDeathEvent() {
-	playerDead = true;
+void ABrawlerPlayer::PlayerDeathEvent()
+{
+	isPlayerDead = true;
 }
 
-void ABrawlerPlayer::ParticleDisplay() {
+
+void ABrawlerPlayer::DisplayParticle() const
+{
 	if(IsDead()) return;
 	
-	if(GetMoveForward() == 0 && GetMoveRight() == 0) return ShouldActivateParticle(false);
-	if(CharacterMovementComponent->IsFalling() && CharacterMovementComponent->JumpZVelocity >= 0) ShouldActivateParticle(false);
+	if(GetMoveForward() == 0 && GetMoveRight() == 0) return ShouldDisplay(false);
+	if(CharacterMovementComponent->IsFalling() && CharacterMovementComponent->JumpZVelocity >= 0) return ShouldDisplay(false);
 
-	return ShouldActivateParticle(true);
+	ShouldDisplay(true);
 }
 
-float ABrawlerPlayer::GetMoveForward()
-{
-	return MoveForwardDelta;
-}
-
-float ABrawlerPlayer::GetMoveRight()
-{
-	return MoveRightDelta;
-}
-
-void ABrawlerPlayer::ShouldActivateParticle(bool _Active)
+void ABrawlerPlayer::ShouldDisplay(bool _Active) const
 {
 	if(_Active) {
 		if(ParticleSystemComponent->bWasDeactivated) {
