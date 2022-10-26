@@ -12,8 +12,6 @@
 
 #include "Camera/CameraComponent.h"
 
-#include "Components/CapsuleComponent.h"
-
 #include "BrawlerPlayer.generated.h"
 
 UCLASS()
@@ -38,6 +36,8 @@ public:
 	UPROPERTY(EditAnywhere) int playerLife = 5;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite) bool isPlayerDead = false;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite) int killedEnemy = 0;
+
 private:
 	void ShouldDisplay(bool _Active) const;
 	
@@ -57,6 +57,7 @@ public:
 	
 	void TakeDamage(int _Value);
 	void PlayerDeathEvent();
+	UFUNCTION(BlueprintNativeEvent) void EnemyKilledEvent();
 	
 	bool IsDead() const;
 

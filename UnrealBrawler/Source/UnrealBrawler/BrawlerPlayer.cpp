@@ -3,6 +3,7 @@
 
 #include "BrawlerPlayer.h"
 #include "DebugUtils.h"
+#include "Components/CapsuleComponent.h"
 
 ABrawlerPlayer::ABrawlerPlayer()
 {
@@ -61,7 +62,7 @@ void ABrawlerPlayer::SetupPlayerInputComponent(UInputComponent* _InputComponent)
 	// _inputComponent->BindAction("TakeDamage", IE_Pressed, this, &ABrawlerPlayer::TakeDamage);
 	{
 		FInputActionBinding TakeDamageBinding("TestKey", IE_Pressed);
-		TakeDamageBinding.ActionDelegate.GetDelegateForManualSet().BindLambda([this] { TakeDamage(1); });
+		TakeDamageBinding.ActionDelegate.GetDelegateForManualSet().BindLambda([this] { EnemyKilledEvent(); });
 		_InputComponent->AddActionBinding(TakeDamageBinding);
 	}
 }
@@ -118,6 +119,7 @@ bool ABrawlerPlayer::IsDead() const
 
 void ABrawlerPlayer::PlayerDeathEvent()
 {
+	ParticleSystemComponent->DeactivateSystem();
 	isPlayerDead = true;
 }
 
@@ -145,5 +147,13 @@ void ABrawlerPlayer::ShouldDisplay(bool _Active) const
 		ParticleSystemComponent->DeactivateSystem();
 	}
 }
+
+
+void ABrawlerPlayer::EnemyKilledEvent_Implementation()
+{
+	killedEnemy++;
+	Debug("Killed Enemy: ", killedEnemy);
+}
+
 
 
