@@ -1,6 +1,7 @@
 # Visual Studio user specific files
 **/.vs/
 **/.vscode/
+**/.idea/
 
 # Compiled Object files
 *.slo
