@@ -4,8 +4,7 @@
 #include "BrawlerPlayer.h"
 #include "DebugUtils.h"
 
-ABrawlerPlayer::ABrawlerPlayer() 
-{
+ABrawlerPlayer::ABrawlerPlayer() {
 	bUseControllerRotationYaw = false;
 
 	SpringArmComponent = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArmComponent"));
@@ -22,64 +21,65 @@ ABrawlerPlayer::ABrawlerPlayer()
 	CharacterMovementComponent = GetCharacterMovement();
 	CharacterMovementComponent->bUseControllerDesiredRotation = false;
 	CharacterMovementComponent->bOrientRotationToMovement = true;
-
 }
 
-void ABrawlerPlayer::BeginPlay()
-{
+void ABrawlerPlayer::BeginPlay() {
 	Super::BeginPlay();
 
+	{
+		FTimerHandle FootStepParticles;
+		FTimerDelegate Delegate;
+		Delegate.BindUFunction(this, "ParticleDisplay");
+		GetWorld()->GetTimerManager().SetTimer(FootStepParticles, Delegate, 0.2, true);
+	}
+	
 	DebugWarning("Using ABrawlerPlayer");
 }
 
-void ABrawlerPlayer::Tick(float _deltaTime)
-{
-	Super::Tick(_deltaTime);
+void ABrawlerPlayer::Tick(float _DeltaTime) {
+	Super::Tick(_DeltaTime);
 }
 
-void ABrawlerPlayer::SetupPlayerInputComponent(class UInputComponent* _inputComponent)
-{
-	Super::SetupPlayerInputComponent(_inputComponent);
+void ABrawlerPlayer::SetupPlayerInputComponent(class UInputComponent* _InputComponent) {
+	Super::SetupPlayerInputComponent(_InputComponent);
 
-	_inputComponent->BindAxis("MoveForward", this, &ABrawlerPlayer::MoveForward);
-	_inputComponent->BindAxis("MoveRight", this, &ABrawlerPlayer::MoveRight);
+	_InputComponent->BindAxis("MoveForward", this, &ABrawlerPlayer::MoveForward);
+	_InputComponent->BindAxis("MoveRight", this, &ABrawlerPlayer::MoveRight);
 
-	_inputComponent->BindAxis("LookRight", this, &ABrawlerPlayer::AddControllerYawInput);
-	_inputComponent->BindAxis("LookUp", this, &ABrawlerPlayer::AddControllerPitchInput);
+	_InputComponent->BindAxis("LookRight", this, &ABrawlerPlayer::AddControllerYawInput);
+	_InputComponent->BindAxis("LookUp", this, &ABrawlerPlayer::AddControllerPitchInput);
 
 	// _inputComponent->BindAction("TakeDamage", IE_Pressed, this, &ABrawlerPlayer::TakeDamage);
 	{
 		FInputActionBinding TakeDamageBinding("TestKey", IE_Pressed);
-		TakeDamageBinding.ActionDelegate.GetDelegateForManualSet().BindLambda([this]() { TakeDamage(1); });
-		_inputComponent->AddActionBinding(TakeDamageBinding);
+		TakeDamageBinding.ActionDelegate.GetDelegateForManualSet().BindLambda([this] { TakeDamage(1); });
+		_InputComponent->AddActionBinding(TakeDamageBinding);
 	}
 }
 
 
-void ABrawlerPlayer::MoveRight(float _value) 
-{
-	FVector Direction = FRotationMatrix(Controller->GetControlRotation()).GetScaledAxis(EAxis::Y);
-	AddMovementInput(Direction, _value);
+void ABrawlerPlayer::MoveRight(float _Value) {
+	const FVector Direction = FRotationMatrix(Controller->GetControlRotation()).GetScaledAxis(EAxis::Y);
+	AddMovementInput(Direction, _Value);
 }
 
 
-void ABrawlerPlayer::MoveForward(float _value) 
-{
-	FVector Direction = FRotationMatrix(Controller->GetControlRotation()).GetScaledAxis(EAxis::X) + FRotationMatrix(Controller->GetControlRotation()).GetScaledAxis(EAxis::Z);
-	AddMovementInput(Direction, _value);
+void ABrawlerPlayer::MoveForward(float _Value) {
+	const FVector Direction = FRotationMatrix(Controller->GetControlRotation()).GetScaledAxis(EAxis::X) + FRotationMatrix(Controller->GetControlRotation()).GetScaledAxis(EAxis::Z);
+	AddMovementInput(Direction, _Value);
 }
 
-void ABrawlerPlayer::TakeDamage(int _value) {
-	playerLife -= _value;
+void ABrawlerPlayer::TakeDamage(int _Value) {
+	playerLife -= _Value;
 
-	if (isAlive()) {
-		Debug("Player is dead!", _value);
+	if (IsAlive()) {
+		Debug("Player is dead!", _Value);
 	}
 	else {
-		Debug("Player hit, lost: %d HP", _value);
+		Debug("Player hit, lost: %d HP", _Value);
 	}
 }
 
-bool ABrawlerPlayer::isAlive() {
+bool ABrawlerPlayer::IsAlive() {
 	return playerLife <= 0;
 }
