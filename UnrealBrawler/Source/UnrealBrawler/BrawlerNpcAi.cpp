@@ -27,6 +27,9 @@ void ABrawlerNpcAi::BeginPlay()
         RunBehaviorTree(BehaviorTree);
         BehaviorTreeComponent->StartTree(*BehaviorTree);
     }
+
+    // Get a random strafe direction.
+    StrafeDir = FMath::RandRange(0, 1) == 0 ? 1 : -1;
 }
 
 void ABrawlerNpcAi::OnPossess(APawn* InPawn)
@@ -35,12 +38,30 @@ void ABrawlerNpcAi::OnPossess(APawn* InPawn)
 
     // Initialize the blackboard.
     if (Blackboard && BehaviorTree)
-    {
         Blackboard->InitializeBlackboard(*BehaviorTree->BlackboardAsset);
-    }
 }
 
 UBlackboardComponent* ABrawlerNpcAi::GetBlackboard() const
 {
     return Blackboard;
+}
+
+int ABrawlerNpcAi::GetStrafeDir() const
+{
+    return StrafeDir;
+}
+
+void ABrawlerNpcAi::ChangeStrafeDir()
+{
+    StrafeDir *= -1;
+}
+
+float ABrawlerNpcAi::GetTargetDistFromPlayer()
+{
+    return TargetDistFromPlayer;
+}
+
+float ABrawlerNpcAi::GetPlayerRangeSize()
+{
+    return PlayerRangeSize;
 }
