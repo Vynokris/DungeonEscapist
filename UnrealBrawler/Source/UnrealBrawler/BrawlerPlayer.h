@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GameHUD.h"
 
 #include "GameFramework/Character.h"
 #include "GameFramework/SpringArmComponent.h"
@@ -23,21 +24,27 @@ private:
 	UCameraComponent* CameraComponent = nullptr;
 	USpringArmComponent* SpringArmComponent = nullptr;
 	UCharacterMovementComponent* CharacterMovementComponent = nullptr;
+	UGameHUD* GameHudComponent = nullptr;
 
 	float moveForwardDelta = 0;
 	float moveRightDelta = 0;
 	
+	int killedEnemy = 0;
+	
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite) UParticleSystemComponent* ParticleSystemComponent = nullptr;
 	
-	UPROPERTY(EditAnywhere) float cameraLag = 15.f;
-	UPROPERTY(EditAnywhere) float cameraDistance = 300.f;
+	UPROPERTY(EditAnywhere, Category = "Brawler View") float cameraLag = 15.f;
+	UPROPERTY(EditAnywhere, Category = "Brawler View") float cameraDistance = 300.f;
 	
-	UPROPERTY(EditAnywhere) int playerLife = 5;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite) bool isPlayerDead = false;
+	UPROPERTY(EditAnywhere, Category = "Brawler Stats") int playerLife = 5;
+	UPROPERTY(EditAnywhere, Category = "Brawler Stats") int playerStamina = 10;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite) int killedEnemy = 0;
+	UPROPERTY(EditAnywhere, Category = "Brawler VFX") float stepsParticlesRate = 0.2f;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Brawler State") bool isPlayerDead = false;
 
+	
 private:
 	void ShouldDisplay(bool _Active) const;
 	
@@ -54,10 +61,14 @@ protected:
 	
 public:
 	ABrawlerPlayer();
+
+	UFUNCTION(BlueprintCallable) int GetHealth() const;
+	UFUNCTION(BlueprintCallable) int GetStamina() const;
+	UFUNCTION(BlueprintCallable) int GetKilledEnemy() const;
 	
-	void TakeDamage(int _Value);
-	void PlayerDeathEvent();
-	UFUNCTION(BlueprintNativeEvent) void EnemyKilledEvent();
+	void TakeDamageEvent(int _Value);
+	void DeathEvent();
+	void EnemyKilledEvent();
 	
 	bool IsDead() const;
 

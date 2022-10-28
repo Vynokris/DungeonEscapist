@@ -4,6 +4,9 @@
 #include "BrawlerPlayer.h"
 #include "DebugUtils.h"
 #include "Components/CapsuleComponent.h"
+#include "Blueprint/WidgetTree.h"
+#include "Kismet/GameplayStatics.h"
+#include "GameFramework/PlayerController.h"
 
 ABrawlerPlayer::ABrawlerPlayer()
 {
@@ -32,16 +35,16 @@ void ABrawlerPlayer::BeginPlay()
 {
 	ParticleSystemComponent->DeactivateSystem();
 	
-	Super::BeginPlay();
-
 	{
 		FTimerHandle FootStepParticles;
 		FTimerDelegate Delegate;
 		Delegate.BindUFunction(this, "DisplayParticle");
-		GetWorld()->GetTimerManager().SetTimer(FootStepParticles, Delegate, 0.2, true);
+		GetWorld()->GetTimerManager().SetTimer(FootStepParticles, Delegate, stepsParticlesRate, true);
 	}
 	
 	DebugWarning("Using ABrawlerPlayer");
+	
+	Super::BeginPlay();
 }
 
 void ABrawlerPlayer::Tick(float _DeltaTime)
@@ -98,12 +101,12 @@ float ABrawlerPlayer::GetMoveRight() const
 }
 
 
-void ABrawlerPlayer::TakeDamage(int _Value)
+void ABrawlerPlayer::TakeDamageEvent(int _Value)
 {
 	playerLife -= _Value;
 
 	if (playerLife <= 0) {
-		PlayerDeathEvent();
+		DeathEvent();
 		Debug("Player is dead!", _Value);
 	}
 	else {
@@ -117,7 +120,7 @@ bool ABrawlerPlayer::IsDead() const
 	return isPlayerDead;
 }
 
-void ABrawlerPlayer::PlayerDeathEvent()
+void ABrawlerPlayer::DeathEvent()
 {
 	ParticleSystemComponent->DeactivateSystem();
 	isPlayerDead = true;
@@ -149,11 +152,23 @@ void ABrawlerPlayer::ShouldDisplay(bool _Active) const
 }
 
 
-void ABrawlerPlayer::EnemyKilledEvent_Implementation()
+void ABrawlerPlayer::EnemyKilledEvent()
 {
 	killedEnemy++;
-	Debug("Killed Enemy: ", killedEnemy);
+	GameHudComponent->UpdateEnemyCounterEvent(killedEnemy);
 }
 
+int ABrawlerPlayer::GetHealth() const
+{
+	return playerLife;
+}
 
+int ABrawlerPlayer::GetStamina() const
+{
+	return playerStamina;
+}
 
+int ABrawlerPlayer::GetKilledEnemy() const
+{
+	return killedEnemy;
+}
