@@ -1,16 +1,16 @@
-#include "MoveAwayFromPlayer.h"
+#include "AttackPlayer.h"
 
 #include "BrawlerNpcAi.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "GameFramework/Character.h"
 #include "Kismet/GameplayStatics.h"
 
-UMoveAwayFromPlayer::UMoveAwayFromPlayer()
+UAttackPlayer::UAttackPlayer()
 {
-    NodeName = "Move away from player";
+    NodeName = "Attack player";
 }
 
-EBTNodeResult::Type UMoveAwayFromPlayer::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
+EBTNodeResult::Type UAttackPlayer::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
     // Get the player and AI controller.
     if (!Player) {
@@ -26,14 +26,9 @@ EBTNodeResult::Type UMoveAwayFromPlayer::ExecuteTask(UBehaviorTreeComponent& Own
     const float   DistFromPlayer = AiToPlayer.Size2D();
     Ai->CheckIfInPlayerRange(DistFromPlayer);
 
-    // Move away if the player is too close.
-    if (Ai->IsInPlayerRange()) {
-        Ai->MoveToLocation(AiLocation - AiToPlayer);
-    }
-    else {
-        AiBlackboard->SetValueAsBool("TooCloseToPlayer", false);
-    }
+    // TODO.
+    Ai->GetBlackboard()->SetValueAsBool("Attacking", false);
 
-    // Finish with success.
-    return EBTNodeResult::Succeeded;
+    // Fail task to end attack.
+    return EBTNodeResult::Failed;
 }

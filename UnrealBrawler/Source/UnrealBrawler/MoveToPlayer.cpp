@@ -1,23 +1,22 @@
-#include "MoveAwayFromPlayer.h"
+#include "MoveToPlayer.h"
 
 #include "BrawlerNpcAi.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "GameFramework/Character.h"
 #include "Kismet/GameplayStatics.h"
 
-UMoveAwayFromPlayer::UMoveAwayFromPlayer()
+UMoveToPlayer::UMoveToPlayer()
 {
-    NodeName = "Move away from player";
+    NodeName = "Move to player";
 }
 
-EBTNodeResult::Type UMoveAwayFromPlayer::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
+EBTNodeResult::Type UMoveToPlayer::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
     // Get the player and AI controller.
     if (!Player) {
         Player = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
     }
-    ABrawlerNpcAi*        Ai           = Cast<ABrawlerNpcAi>(OwnerComp.GetAIOwner());
-    UBlackboardComponent* AiBlackboard = Ai->GetBlackboard();
+    ABrawlerNpcAi* Ai = Cast<ABrawlerNpcAi>(OwnerComp.GetAIOwner());
 
     // Get the player and AI locations as well as their distance.
     const FVector PlayerLocation = Player->GetActorLocation();
@@ -26,14 +25,13 @@ EBTNodeResult::Type UMoveAwayFromPlayer::ExecuteTask(UBehaviorTreeComponent& Own
     const float   DistFromPlayer = AiToPlayer.Size2D();
     Ai->CheckIfInPlayerRange(DistFromPlayer);
 
-    // Move away if the player is too close.
-    if (Ai->IsInPlayerRange()) {
-        Ai->MoveToLocation(AiLocation - AiToPlayer);
-    }
-    else {
-        AiBlackboard->SetValueAsBool("TooCloseToPlayer", false);
+    // Move to the player location.
+    if (DistFromPlayer > 80.f)
+    {
+        Ai->MoveToLocation(Player->GetActorLocation());
+        return EBTNodeResult::Succeeded;
     }
 
     // Finish with success.
-    return EBTNodeResult::Succeeded;
+    return EBTNodeResult::Failed;
 }

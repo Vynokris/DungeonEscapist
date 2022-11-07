@@ -17,10 +17,12 @@ public:
 	void OnPossess(APawn* InPawn) override;
 	
 	UBlackboardComponent* GetBlackboard() const;
+	bool  IsInPlayerRange() const;
+	void  CheckIfInPlayerRange(const float DistFromPlayer);
 	int   GetStrafeDir() const;
 	void  ChangeStrafeDir();
-	float GetTargetDistFromPlayer();
-	float GetPlayerRangeSize();
+	float GetTargetDistFromPlayer() const;
+	float GetPlayerRangeSize() const;
 
 private:
 	UBlackboardComponent* Blackboard;
@@ -39,4 +41,7 @@ private:
 	
 	// The direction in which the AI strafes when the player isn't visible (1 : right, -1 : left).
 	int StrafeDir;
+
+	// Set to true if the distance between AI and player is smaller or equal to TargetDistFromPlayer.
+	bool InPlayerRange = false;
 };

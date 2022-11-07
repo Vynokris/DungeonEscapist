@@ -2,6 +2,9 @@
 #include "BehaviorTree/BehaviorTree.h"
 #include "BehaviorTree/BehaviorTreeComponent.h"
 #include "BehaviorTree/BlackboardComponent.h"
+#include "GameFramework/Actor.h"
+#include "GameFramework/Character.h"
+#include "Kismet/GameplayStatics.h"
 #include "UObject/ConstructorHelpers.h"
 
 ABrawlerNpcAi::ABrawlerNpcAi(const FObjectInitializer& ObjectInitializer)
@@ -30,6 +33,9 @@ void ABrawlerNpcAi::BeginPlay()
 
     // Get a random strafe direction.
     StrafeDir = FMath::RandRange(0, 1) == 0 ? 1 : -1;
+
+    // Set the AI focus to the player.
+    SetFocus(Cast<AActor>(UGameplayStatics::GetPlayerCharacter(GetWorld(), 0)), EAIFocusPriority::Gameplay);
 }
 
 void ABrawlerNpcAi::OnPossess(APawn* InPawn)
@@ -46,6 +52,16 @@ UBlackboardComponent* ABrawlerNpcAi::GetBlackboard() const
     return Blackboard;
 }
 
+bool ABrawlerNpcAi::IsInPlayerRange() const
+{
+    return InPlayerRange;
+}
+
+void ABrawlerNpcAi::CheckIfInPlayerRange(const float DistFromPlayer)
+{
+    InPlayerRange = DistFromPlayer <= TargetDistFromPlayer;
+}
+
 int ABrawlerNpcAi::GetStrafeDir() const
 {
     return StrafeDir;
@@ -56,12 +72,12 @@ void ABrawlerNpcAi::ChangeStrafeDir()
     StrafeDir *= -1;
 }
 
-float ABrawlerNpcAi::GetTargetDistFromPlayer()
+float ABrawlerNpcAi::GetTargetDistFromPlayer() const
 {
     return TargetDistFromPlayer;
 }
 
-float ABrawlerNpcAi::GetPlayerRangeSize()
+float ABrawlerNpcAi::GetPlayerRangeSize() const
 {
     return PlayerRangeSize;
 }
