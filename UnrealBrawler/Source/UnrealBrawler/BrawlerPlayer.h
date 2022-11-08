@@ -27,13 +27,18 @@ private:
 	USpringArmComponent* SpringArmComponent = nullptr;
 	UCharacterMovementComponent* CharacterMovementComponent = nullptr;
 	UGameHUD* GameHudComponent = nullptr;
+	AActor* WeaponInHands = nullptr;
 	
 	float moveForwardDelta = 0;
 	float moveRightDelta = 0;
 	
 	int killedEnemy = 0;
 	
+	bool canTakeDamage = true;
+	
 public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite = "Brawler Invincibility") float damageTimer = 1.0f;
+	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite) UParticleSystemComponent* ParticleSystemComponent = nullptr;
 	
 	UPROPERTY(EditAnywhere, Category = "Brawler View") float cameraLag = 15.f;
@@ -74,6 +79,10 @@ public:
 	void EnemyKilledEvent();
 	
 	bool IsDead() const;
+	
+	UFUNCTION() void SetTakeDamage(bool _TakeDamage, bool _WithTimer);
 
+	void StartTakeDamageTimer();
+	
 	UFUNCTION() void DisplayParticle() const;
 };

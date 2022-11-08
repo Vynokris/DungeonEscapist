@@ -48,7 +48,7 @@ void ABrawlerPlayer::BeginPlay()
 		GetWorld()->GetTimerManager().SetTimer(FootStepParticles, Delegate, stepsParticlesRate, true);
 	}
 	
-	DebugWarning("Spawning ABrawlerPlayer at = %s", *this->GetActorLocation().ToString());
+	Debug("Spawning ABrawlerPlayer at = %s", *this->GetActorLocation().ToString());
 	
 	Super::BeginPlay();
 }
@@ -71,7 +71,7 @@ void ABrawlerPlayer::SetupPlayerInputComponent(UInputComponent* _InputComponent)
 	// _inputComponent->BindAction("TakeDamage", IE_Pressed, this, &ABrawlerPlayer::TakeDamage);
 	{
 		FInputActionBinding TakeDamageBinding("TestKey", IE_Pressed);
-		TakeDamageBinding.ActionDelegate.GetDelegateForManualSet().BindLambda([this] { EnemyKilledEvent(); });
+		TakeDamageBinding.ActionDelegate.GetDelegateForManualSet().BindLambda([this] { TakeDamageEvent(1); });
 		_InputComponent->AddActionBinding(TakeDamageBinding);
 	}
 }
@@ -109,14 +109,18 @@ float ABrawlerPlayer::GetMoveRight() const
 
 void ABrawlerPlayer::TakeDamageEvent(int _Value)
 {
+	if(!canTakeDamage) return;
+	SetTakeDamage(false, true);
+
+	DebugInfo("Damaged applied");
 	playerLife -= _Value;
 
 	if (playerLife <= 0) {
 		DeathEvent();
-		Debug("Player is dead!", _Value);
+		DebugInfo("Player is dead!", _Value);
 	}
 	else {
-		Debug("Player hit, lost: %d HP", _Value);
+		DebugInfo("Player hit, lost: %d HP", _Value);
 	}
 }
 
@@ -179,13 +183,33 @@ int ABrawlerPlayer::GetKilledEnemy() const
 	return killedEnemy;
 }
 
+void ABrawlerPlayer::SetTakeDamage(bool _TakeDamage, bool _WithTimer)
+{
+	canTakeDamage = _TakeDamage;
+	if(_WithTimer) StartTakeDamageTimer();
+	DebugWarning("Player canTakeDamage set to: %d", canTakeDamage)
+}
+
+void ABrawlerPlayer::StartTakeDamageTimer()
+{
+	DebugInfo("Started timer");
+	FTimerHandle InvincibilityTimer;
+	FTimerDelegate Delegate;
+	Delegate.BindUFunction(this, "SetTakeDamage", !canTakeDamage, false);
+	GetWorld()->GetTimerManager().SetTimer(InvincibilityTimer, Delegate, damageTimer, false);
+}
+
+
 void ABrawlerPlayer::NotifyActorBeginOverlap(AActor* OtherActor)
 {
 	if(OtherActor->IsA(AKnifeActor::StaticClass()))
 	{
-		Debug("Found a weapon");
 		AKnifeActor* Knife = Cast<AKnifeActor>(OtherActor);
-		this->AttachToActor(Knife, FAttachmentTransformRules::SnapToTargetIncludingScale, WeaponSocketName);
+		if(WeaponInHands && Knife) return;
+
+		DebugInfo("Picked up a Knife");
+		WeaponInHands = Knife;
+		WeaponInHands->AttachToComponent(this->GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, WeaponSocketName);
 		Knife->Destroy();
 	}
 }
@@ -194,7 +218,6 @@ void ABrawlerPlayer::NotifyHit(UPrimitiveComponent* MyComp, AActor* Other, UPrim
 {
 	if(Other->IsA(ABrawlerNpc::StaticClass()))
 	{
-		Debug("Damaged applied");
 		ABrawlerNpc* Npc = Cast<ABrawlerNpc>(Other);
 		TakeDamageEvent(Npc->GetDamage());
 	}

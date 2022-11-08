@@ -12,10 +12,14 @@ class UNREALBRAWLER_API AKnifeActor : public AActor
 {
 	GENERATED_BODY()
 
+private:
+	USceneComponent* KnifeRoot;
+	UShapeComponent* KnifeBox;
+
 public:
-	UPROPERTY(EditAnywhere) USceneComponent* KnifeRoot;
-	UPROPERTY(EditAnywhere) UStaticMeshComponent* KnifeMesh;
-	UPROPERTY(EditAnywhere) UShapeComponent* KnifeBox;
+	UStaticMeshComponent* KnifeMesh;
+	
+	UPROPERTY(EditAnywhere) float moveSpeed = 2.0f;
 	
 private:
 	void OnHit(UPrimitiveComponent* _HitComp, AActor* _OtherActor, UPrimitiveComponent* _OtherComp, int32 _OtherBodyIndex, bool _FromSweep, const FHitResult& _Hit);

@@ -5,6 +5,7 @@
 
 #include "DebugUtils.h"
 #include "Components/BoxComponent.h"
+#include "Kismet/GameplayStatics.h"
 
 AKnifeActor::AKnifeActor()
 {
@@ -25,7 +26,7 @@ AKnifeActor::AKnifeActor()
 
 void AKnifeActor::BeginPlay()
 {
-	DebugWarning("Spawning AKnifeActor at = %s", *this->GetActorLocation().ToString());
+	Debug("Spawning AKnifeActor at = %s", *this->GetActorLocation().ToString());
 	
 	Super::BeginPlay();
 }
@@ -33,8 +34,10 @@ void AKnifeActor::BeginPlay()
 void AKnifeActor::Tick(float _DeltaTime)
 {
 	Super::Tick(_DeltaTime);
-	
-	this->GetActorLocation().Set(0, this->GetActorLocation().Y + sin(_DeltaTime), 0);
+
+	const float oscilation = sin(UGameplayStatics::GetRealTimeSeconds(GetWorld())*2)/2;
+	this->SetActorLocation(this->GetActorLocation() + FVector(0,0, oscilation));
 }
+
 
 
