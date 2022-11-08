@@ -9,16 +9,25 @@ class UNREALBRAWLER_API ABrawlerNpc : public ACharacter
 {
 	GENERATED_BODY()
 
+	enum class Type
+	{
+		TANK,
+		FIGHTER,
+		HEALER
+	};
+	
+private:
+	int damageToApply;
+	Type type;
+	
 public:	
-	// Sets default values for this character's properties.
 	ABrawlerNpc();
-	
-	// Called when the game starts or when spawned.
-	virtual void BeginPlay() override;
-	
-	// Called every frame.
-	virtual void Tick(const float DeltaTime) override;
 
-	// Called to bind functionality to input.
+	int GetDamage();
+	Type GetType();
+	
+protected:
+	virtual void BeginPlay() override;
+	virtual void Tick(const float DeltaTime) override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 };

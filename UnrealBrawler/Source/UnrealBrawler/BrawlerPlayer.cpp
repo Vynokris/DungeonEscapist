@@ -1,12 +1,15 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "BrawlerPlayer.h"
 #include "DebugUtils.h"
 #include "Components/CapsuleComponent.h"
 #include "Blueprint/WidgetTree.h"
 #include "Kismet/GameplayStatics.h"
-#include "GameFramework/PlayerController.h"
+
+#include "BrawlerPlayer.h"
+
+#include "BrawlerNpc.h"
+#include "KnifeActor.h"
 
 ABrawlerPlayer::ABrawlerPlayer()
 {
@@ -42,7 +45,7 @@ void ABrawlerPlayer::BeginPlay()
 		GetWorld()->GetTimerManager().SetTimer(FootStepParticles, Delegate, stepsParticlesRate, true);
 	}
 	
-	DebugWarning("Using ABrawlerPlayer");
+	DebugWarning("Spawning ABrawlerPlayer at = %s", *this->GetActorLocation().ToString());
 	
 	Super::BeginPlay();
 }
@@ -171,4 +174,26 @@ int ABrawlerPlayer::GetStamina() const
 int ABrawlerPlayer::GetKilledEnemy() const
 {
 	return killedEnemy;
+}
+
+void ABrawlerPlayer::NotifyActorBeginOverlap(AActor* OtherActor)
+{
+	if(OtherActor->IsA(AKnifeActor::StaticClass()))
+	{
+		Debug("Found a weapon");
+		AKnifeActor* Knife = Cast<AKnifeActor>(OtherActor);
+		this->AttachToActor(Knife, FAttachmentTransformRules::SnapToTargetIncludingScale, WeaponSocketName);
+		Knife->Destroy();
+		return;
+	}
+
+	if(OtherActor->IsA(ABrawlerNpc::StaticClass()))
+	{
+		Debug("Damaged applied");
+		ABrawlerNpc* Npc = Cast<ABrawlerNpc>(OtherActor);
+		TakeDamageEvent(Npc->GetDamage());
+		return;
+	}
+
+	return;
 }

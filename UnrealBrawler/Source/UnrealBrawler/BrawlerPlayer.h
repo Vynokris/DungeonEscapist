@@ -21,11 +21,13 @@ class UNREALBRAWLER_API ABrawlerPlayer : public ACharacter
 	GENERATED_BODY()
 
 private:
+	const FName WeaponSocketName = TEXT("WeaponSocket");
+	
 	UCameraComponent* CameraComponent = nullptr;
 	USpringArmComponent* SpringArmComponent = nullptr;
 	UCharacterMovementComponent* CharacterMovementComponent = nullptr;
 	UGameHUD* GameHudComponent = nullptr;
-
+	
 	float moveForwardDelta = 0;
 	float moveRightDelta = 0;
 	
@@ -44,7 +46,6 @@ public:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Brawler State") bool isPlayerDead = false;
 
-	
 private:
 	void ShouldDisplay(bool _Active) const;
 	
@@ -58,6 +59,7 @@ protected:
 	virtual void BeginPlay() override;
 	virtual void Tick(float _DeltaTime) override;
 	virtual void SetupPlayerInputComponent(UInputComponent* _InputComponent) override;
+	virtual void NotifyActorBeginOverlap(AActor* OtherActor) override;
 	
 public:
 	ABrawlerPlayer();
