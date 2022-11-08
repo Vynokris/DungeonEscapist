@@ -1,12 +1,9 @@
 #include "StayInPlayerRange.h"
 
-#include "BrawlerNpc.h"
 #include "BrawlerNpcAi.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "GameFramework/Character.h"
 #include "Kismet/GameplayStatics.h"
-#include "DebugUtils.h"
-#include "DrawDebugHelpers.h"
 
 UStayInPlayerRange::UStayInPlayerRange()
 {
@@ -24,14 +21,15 @@ EBTNodeResult::Type UStayInPlayerRange::ExecuteTask(UBehaviorTreeComponent& Owne
     if (!Player) {
         Player = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
     }
-    ABrawlerNpcAi*        Ai           = Cast<ABrawlerNpcAi>(OwnerComp.GetAIOwner());
-    UBlackboardComponent* AiBlackboard = Ai->GetBlackboard();
+    ABrawlerNpcAi* Ai = Cast<ABrawlerNpcAi>(OwnerComp.GetAIOwner());
 
     // Get the player and AI locations as well as their distance.
     const FVector PlayerLocation = Player->GetActorLocation();
     const FVector AiLocation     = Ai->GetPawn()->GetActorLocation();
     const FVector AiToPlayer     = FVector(PlayerLocation.X - AiLocation.X, PlayerLocation.Y - AiLocation.Y, 0);
-    const FVector AiToPlayerDir  = AiToPlayer / AiToPlayer.Size2D();
+    const float   DistFromPlayer = AiToPlayer.Size2D();
+    const FVector AiToPlayerDir  = AiToPlayer / DistFromPlayer;
+    Ai->CheckIfInPlayerRange(DistFromPlayer);
 
     // Randomly change direction.
     if (FMath::RandRange(0, 50) == 0)

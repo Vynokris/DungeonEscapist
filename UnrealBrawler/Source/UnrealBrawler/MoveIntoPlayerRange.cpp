@@ -1,11 +1,9 @@
 #include "MoveIntoPlayerRange.h"
 
-#include "BrawlerNpc.h"
 #include "BrawlerNpcAi.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "GameFramework/Character.h"
 #include "Kismet/GameplayStatics.h"
-#include "DebugUtils.h"
 
 UMoveIntoPlayerRange::UMoveIntoPlayerRange(const FObjectInitializer& ObjectInitializer)
 {
@@ -26,6 +24,7 @@ EBTNodeResult::Type UMoveIntoPlayerRange::ExecuteTask(UBehaviorTreeComponent& Ow
     const FVector AiLocation     = Ai->GetPawn()->GetActorLocation();
     const FVector AiToPlayer     = FVector(PlayerLocation.X - AiLocation.X, PlayerLocation.Y - AiLocation.Y, 0);
     const float   DistFromPlayer = AiToPlayer.Size2D();
+    Ai->CheckIfInPlayerRange(DistFromPlayer);
 
     // If the AI doesn't have line of sight to the player, make it strafe.
     FHitResult HitStatic, HitDynamic;
@@ -35,11 +34,12 @@ EBTNodeResult::Type UMoveIntoPlayerRange::ExecuteTask(UBehaviorTreeComponent& Ow
     {
         const FVector AiToPlayerVec = AiToPlayer / DistFromPlayer;
         Ai->MoveToLocation(AiLocation + AiToPlayerVec * 50.f + FVector::CrossProduct(AiToPlayerVec * 100.f, FVector::UpVector) * Ai->GetStrafeDir());
+        Ai->GetPawn()->SetActorRotation(AiToPlayer.Rotation());
         return EBTNodeResult::Failed;
     }
 
     // Move towards the player if the AI isn't close enough.
-    if (DistFromPlayer > Ai->GetTargetDistFromPlayer())
+    if (!Ai->IsInPlayerRange())
     {
         Ai->MoveToLocation(Player->GetActorLocation());
         return EBTNodeResult::Failed;

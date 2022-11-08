@@ -38,6 +38,9 @@ void ABrawlerPlayer::BeginPlay()
 {
 	ParticleSystemComponent->DeactivateSystem();
 	
+	SpringArmComponent->CameraLagSpeed = cameraLag;
+	SpringArmComponent->TargetArmLength = cameraDistance;
+	
 	{
 		FTimerHandle FootStepParticles;
 		FTimerDelegate Delegate;

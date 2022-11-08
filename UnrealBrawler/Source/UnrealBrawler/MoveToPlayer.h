@@ -3,15 +3,15 @@
 #include "CoreMinimal.h"
 #include "BehaviorTree/Tasks/BTTask_BlackboardBase.h"
 #include "BehaviorTree/BehaviorTreeTypes.h"
-#include "MoveAwayFromPlayer.generated.h"
+#include "MoveToPlayer.generated.h"
 
 UCLASS(Blueprintable)
-class UNREALBRAWLER_API UMoveAwayFromPlayer : public UBTTask_BlackboardBase
+class UNREALBRAWLER_API UMoveToPlayer : public UBTTask_BlackboardBase
 {
 	GENERATED_BODY()
 
 public:
-	UMoveAwayFromPlayer();
+	UMoveToPlayer();
 
 	EBTNodeResult::Type ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) override;
 
