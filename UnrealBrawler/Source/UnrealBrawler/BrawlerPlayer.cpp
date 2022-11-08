@@ -6,7 +6,6 @@
 #include "Components/CapsuleComponent.h"
 #include "Blueprint/WidgetTree.h"
 #include "Kismet/GameplayStatics.h"
-#include "GameFramework/PlayerController.h"
 
 ABrawlerPlayer::ABrawlerPlayer()
 {
@@ -68,7 +67,7 @@ void ABrawlerPlayer::SetupPlayerInputComponent(UInputComponent* _InputComponent)
 	// _inputComponent->BindAction("TakeDamage", IE_Pressed, this, &ABrawlerPlayer::TakeDamage);
 	{
 		FInputActionBinding TakeDamageBinding("TestKey", IE_Pressed);
-		TakeDamageBinding.ActionDelegate.GetDelegateForManualSet().BindLambda([this] { EnemyKilledEvent(); });
+		TakeDamageBinding.ActionDelegate.GetDelegateForManualSet().BindLambda([this] { TakeDamageEvent(1); });
 		_InputComponent->AddActionBinding(TakeDamageBinding);
 	}
 }
