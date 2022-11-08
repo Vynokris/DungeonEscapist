@@ -34,7 +34,7 @@ void AKnifeActor::Tick(float _DeltaTime)
 {
 	Super::Tick(_DeltaTime);
 	
-	this->GetActorTransform().TransformPosition(FVector(0, sin(_DeltaTime) ,0));
+	this->GetActorLocation().Set(0, this->GetActorLocation().Y + sin(_DeltaTime), 0);
 }
 
 

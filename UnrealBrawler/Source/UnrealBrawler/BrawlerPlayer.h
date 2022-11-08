@@ -60,6 +60,7 @@ protected:
 	virtual void Tick(float _DeltaTime) override;
 	virtual void SetupPlayerInputComponent(UInputComponent* _InputComponent) override;
 	virtual void NotifyActorBeginOverlap(AActor* OtherActor) override;
+	virtual void NotifyHit(UPrimitiveComponent* MyComp, AActor* Other, UPrimitiveComponent* OtherComp, bool bSelfMoved, FVector HitLocation, FVector HitNormal, FVector NormalImpulse, const FHitResult& Hit) override;
 	
 public:
 	ABrawlerPlayer();

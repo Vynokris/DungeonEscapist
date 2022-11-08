@@ -187,16 +187,17 @@ void ABrawlerPlayer::NotifyActorBeginOverlap(AActor* OtherActor)
 		AKnifeActor* Knife = Cast<AKnifeActor>(OtherActor);
 		this->AttachToActor(Knife, FAttachmentTransformRules::SnapToTargetIncludingScale, WeaponSocketName);
 		Knife->Destroy();
-		return;
 	}
+}
 
-	if(OtherActor->IsA(ABrawlerNpc::StaticClass()))
+void ABrawlerPlayer::NotifyHit(UPrimitiveComponent* MyComp, AActor* Other, UPrimitiveComponent* OtherComp, bool bSelfMoved, FVector HitLocation, FVector HitNormal, FVector NormalImpulse, const FHitResult& Hit)
+{
+	if(Other->IsA(ABrawlerNpc::StaticClass()))
 	{
 		Debug("Damaged applied");
-		ABrawlerNpc* Npc = Cast<ABrawlerNpc>(OtherActor);
+		ABrawlerNpc* Npc = Cast<ABrawlerNpc>(Other);
 		TakeDamageEvent(Npc->GetDamage());
-		return;
 	}
-
-	return;
 }
+
+
