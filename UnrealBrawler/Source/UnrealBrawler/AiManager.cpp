@@ -27,16 +27,28 @@ void AAiManager::Tick(float DeltaTime)
 
 	if (AttackCooldown <= 0)
 	{
-		// TODO: This could use a refacor.
-		// Find a random enemy that is in range of the player and not attacking.
-		int RandEnemyIdx = FMath::RandRange(0, AiEnemies.Num()-1);
-		for (int j = 0; j < AiEnemies.Num() && AiEnemies[RandEnemyIdx]->IsInPlayerRange() && AiEnemies[RandEnemyIdx]->GetBlackboard()->GetValueAsBool("Attacking") && AiEnemies[RandEnemyIdx]->GetBlackboard()->GetValueAsBool("TooCloseToPlayer"); j++)
-			RandEnemyIdx = (RandEnemyIdx + 1) % AiEnemies.Num();
+		int ConcurrentAttacksCounter = 0;
+		for (AEnemyAiController* Ai : AiEnemies)
+			if (Ai->GetBlackboard()->GetValueAsBool("Attacking"))
+				ConcurrentAttacksCounter++;
 
-		// Let the enemy start an attack.
-		if (AiEnemies[RandEnemyIdx]->IsInPlayerRange() && !AiEnemies[RandEnemyIdx]->GetBlackboard()->GetValueAsBool("Attacking") && !AiEnemies[RandEnemyIdx]->GetBlackboard()->GetValueAsBool("TooCloseToPlayer"))
+		if (ConcurrentAttacksCounter < MaxConcurrentAttacks)
 		{
-			AiEnemies[RandEnemyIdx]->GetBlackboard()->SetValueAsBool("Attacking", true);
+			// TODO: This could use a refactor.
+			// Find a random enemy that is in range of the player and not attacking.
+			int RandEnemyIdx = FMath::RandRange(0, AiEnemies.Num()-1);
+			for (int j = 0; j < AiEnemies.Num() && AiEnemies[RandEnemyIdx]->IsInPlayerRange() && AiEnemies[RandEnemyIdx]->GetBlackboard()->GetValueAsBool("Attacking") && AiEnemies[RandEnemyIdx]->GetBlackboard()->GetValueAsBool("TooCloseToPlayer"); j++)
+				RandEnemyIdx = (RandEnemyIdx + 1) % AiEnemies.Num();
+
+			// Let the enemy start an attack.
+			if (AiEnemies[RandEnemyIdx]->IsInPlayerRange() && !AiEnemies[RandEnemyIdx]->GetBlackboard()->GetValueAsBool("Attacking") && !AiEnemies[RandEnemyIdx]->GetBlackboard()->GetValueAsBool("TooCloseToPlayer"))
+			{
+				AiEnemies[RandEnemyIdx]->GetBlackboard()->SetValueAsBool("Attacking", true);
+				AttackCooldown = AttackInterval;
+			}
+		}
+		else
+		{
 			AttackCooldown = AttackInterval;
 		}
 	}

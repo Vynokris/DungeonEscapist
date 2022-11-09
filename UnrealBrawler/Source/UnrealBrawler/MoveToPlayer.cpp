@@ -12,6 +12,10 @@ UMoveToPlayer::UMoveToPlayer()
 
 EBTNodeResult::Type UMoveToPlayer::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
+    // Note: This function's return values look inverted because this node is used in a selector before the AttackPlayer node.
+    //       This means that this node needs to return Success to prevent the execution of the AttackPlayer node.
+    //       When this node finally returns Failed, the selector calls the AttackPlayer node.
+    
     // Get the player and AI controller.
     if (!Player) {
         Player = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
@@ -25,8 +29,15 @@ EBTNodeResult::Type UMoveToPlayer::ExecuteTask(UBehaviorTreeComponent& OwnerComp
     const float   DistFromPlayer = AiToPlayer.Size2D();
     Ai->CheckIfInPlayerRange(DistFromPlayer);
 
+    // Stop attacking if the player is out of range.
+    if (!Ai->IsInPlayerRange())
+    {
+        Ai->GetBlackboard()->SetValueAsBool("Attacking", false);
+        return EBTNodeResult::Succeeded;
+    }
+    
     // Move to the player location.
-    if (DistFromPlayer > 80.f)
+    if (DistFromPlayer > 100.f)
     {
         Ai->MoveToLocation(Player->GetActorLocation());
         return EBTNodeResult::Succeeded;

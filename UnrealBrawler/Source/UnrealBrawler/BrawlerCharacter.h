@@ -25,15 +25,21 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera", meta = (AllowPrivateAccess = "true")) float CameraLag      = 15.f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera", meta = (AllowPrivateAccess = "true")) float CameraDistance = 300.f;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character", meta = (AllowPrivateAccess = "true")) int Health                = 5;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character", meta = (AllowPrivateAccess = "true")) int PlayerMaxHealth       = 5;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character", meta = (AllowPrivateAccess = "true")) int EnemyMaxHealth        = 3;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character", meta = (AllowPrivateAccess = "true")) int AttackDamage          = 1;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character", meta = (AllowPrivateAccess = "true")) int Stamina               = 10;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character", meta = (AllowPrivateAccess = "true")) int AttackDuration        = 1;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character", meta = (AllowPrivateAccess = "true")) int InvincibilityDuration = 2;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character", meta = (AllowPrivateAccess = "true")) TSubclassOf<AActor> PlayerDefaultWeapon;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character", meta = (AllowPrivateAccess = "true")) TSubclassOf<AActor> EnemyDefaultWeapon;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "VFX", meta = (AllowPrivateAccess = "true")) UParticleSystemComponent* ParticleSystemComponent = nullptr;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "VFX", meta = (AllowPrivateAccess = "true")) float WalkingFxRate = 0.2f;
 	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character Movement: Walking", meta = (AllowPrivateAccess = "true")) float MaxEnemyWalkSpeed = 500;
+
+	bool  CharacterIsPlayer  = true;
+	int   Health             = 0;
 	int   KillCount          = 0;
 	float AttackTimer        = 0;
 	bool  Defending          = false;
@@ -56,13 +62,15 @@ protected:
 public:
 	ABrawlerCharacter();
 
-	UFUNCTION(BlueprintCallable) int  GetHealth()    const;
-	UFUNCTION(BlueprintCallable) int  GetStamina()   const;
-	UFUNCTION(BlueprintCallable) int  GetKillCount() const;
-	UFUNCTION(BlueprintCallable) bool IsAttacking()  const;
-	UFUNCTION(BlueprintCallable) bool IsDefending()  const;
-	UFUNCTION(BlueprintCallable) bool IsInvincible() const;
-	UFUNCTION(BlueprintCallable) bool IsDead()       const;
+	UFUNCTION(BlueprintCallable) int  IsPlayer()        const;
+	UFUNCTION(BlueprintCallable) int  IsEnemy()         const;
+	UFUNCTION(BlueprintCallable) int  GetHealth()       const;
+	UFUNCTION(BlueprintCallable) int  GetAttackDamage() const;
+	UFUNCTION(BlueprintCallable) int  GetKillCount()    const;
+	UFUNCTION(BlueprintCallable) bool IsAttacking()     const;
+	UFUNCTION(BlueprintCallable) bool IsDefending()     const;
+	UFUNCTION(BlueprintCallable) bool IsInvincible()    const;
+	UFUNCTION(BlueprintCallable) bool IsDead()          const;
 	
 	void TakeDamageEvent(const int& Amount);
 	void AttackEvent();

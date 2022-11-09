@@ -44,19 +44,45 @@ void ABrawlerCharacter::BeginPlay()
 	SpringArmComponent->CameraLagSpeed = CameraLag;
 	SpringArmComponent->TargetArmLength = CameraDistance;
 
-	// If the character is controller by AI, add the Enemy tag and make the character always face the player.
+	// If the character is controller by AI, treat this character as an enemy.
 	if (AEnemyAiController* Ai = Cast<AEnemyAiController>(GetController()))
 	{
+		CharacterIsPlayer = false;
+		Health = EnemyMaxHealth;
 		Tags.Add("Enemy");
+
+		// Force the enemy to always face the player.
 		CharacterMovementComponent->bUseControllerDesiredRotation = true;
 		CharacterMovementComponent->bOrientRotationToMovement     = false;
 		Ai->SetFocus(Cast<AActor>(UGameplayStatics::GetPlayerCharacter(GetWorld(), 0)), EAIFocusPriority::Gameplay);
+
+		// Remove the camera and spring arm.
+		GetComponentByClass(UCameraComponent   ::StaticClass())->DestroyComponent();
+		GetComponentByClass(USpringArmComponent::StaticClass())->DestroyComponent();
+
+		// Change the movement speed.
+		GetCharacterMovement()->MaxWalkSpeed = 500;
+
+		// Give a knife to the enemy.
+		if (EnemyDefaultWeapon)
+		{
+			AKnifeActor* Knife = Cast<AKnifeActor>(GetWorld()->SpawnActor(EnemyDefaultWeapon));
+			Knife->GetPickedUp(this);
+		}
 	}
 
-	// If the character is controlled by the player, add the Player tag.
+	// If the character is controlled by the player, treat this character as a player.
 	else
 	{
+		Health = PlayerMaxHealth;
 		Tags.Add("Player");
+
+		// Give a knife to the player.
+		if (PlayerDefaultWeapon)
+		{
+			AKnifeActor* Knife = Cast<AKnifeActor>(GetWorld()->SpawnActor(PlayerDefaultWeapon));
+			Knife->GetPickedUp(this);
+		}
 	}
 }
 
@@ -76,13 +102,23 @@ void ABrawlerCharacter::SetupPlayerInputComponent(UInputComponent* NewInputCompo
 {
 	Super::SetupPlayerInputComponent(NewInputComponent);
 
+	// Movement.
 	NewInputComponent->BindAxis("MoveForward", this, &ABrawlerCharacter::MoveForward);
 	NewInputComponent->BindAxis("MoveRight", this, &ABrawlerCharacter::MoveRight);
 
+	// Camera.
 	NewInputComponent->BindAxis("LookRight", this, &ABrawlerCharacter::AddControllerYawInput);
 	NewInputComponent->BindAxis("LookUp", this, &ABrawlerCharacter::AddControllerPitchInput);
 
-	// _inputComponent->BindAction("TakeDamage", IE_Pressed, this, &ABrawlerCharacter::TakeDamage);
+	// Attack key.
+	NewInputComponent->BindAction("Attack", IE_Pressed, this, &ABrawlerCharacter::AttackEvent);
+	
+	// Defend key.
+	NewInputComponent->BindAction("Defend", IE_Pressed,  this, &ABrawlerCharacter::StartDefendingEvent);
+	NewInputComponent->BindAction("Defend", IE_Released, this, &ABrawlerCharacter::StopDefendingEvent);
+	
+	// Damage test key.
+	// NewInputComponent->BindAction("TakeDamage", IE_Pressed, this, &ABrawlerCharacter::TakeDamage);
 	{
 		FInputActionBinding TakeDamageBinding("TestKey", IE_Pressed);
 		TakeDamageBinding.ActionDelegate.GetDelegateForManualSet().BindLambda([this] { TakeDamageEvent(1); });
@@ -96,7 +132,7 @@ void ABrawlerCharacter::MoveForward(const float Amount)
 	if(IsDead()) return;
 
 	const FVector Direction = FRotationMatrix(Controller->GetControlRotation()).GetScaledAxis(EAxis::X)
-					        + FRotationMatrix(Controller->GetControlRotation()).GetScaledAxis(EAxis::Z);
+							+ FRotationMatrix(Controller->GetControlRotation()).GetScaledAxis(EAxis::Z);
 	AddMovementInput(Direction, Amount);
 }
 
@@ -124,17 +160,17 @@ void ABrawlerCharacter::UpdateWalkingFX() const
 void ABrawlerCharacter::TakeDamageEvent(const int& Amount)
 {
 	if (InvincibilityTimer > 0) {
-		Debug("Player is invincible.");
 		return;
 	}
 	
 	Health -= Amount;
 	if (Health <= 0) {
 		DeathEvent();
-		Debug("Player is dead!");
+		Debug("%s is dead!", *GetName());
 	}
 	else {
-		Debug("Player hit, lost: %d HP", Amount);
+		InvincibilityEvent();
+		Debug("%s hit, lost %d HP, %d HP remaining", *GetName(), Amount, Health);
 	}
 }
 
@@ -160,8 +196,10 @@ void ABrawlerCharacter::InvincibilityEvent()
 
 void ABrawlerCharacter::DeathEvent()
 {
-	ParticleSystemComponent->DeactivateSystem();
 	Health = 0;
+	ParticleSystemComponent->DeactivateSystem();
+	if (Controller && IsEnemy())
+		Controller->UnPossess();
 }
 
 void ABrawlerCharacter::EnemyKilledEvent()
@@ -171,14 +209,24 @@ void ABrawlerCharacter::EnemyKilledEvent()
 }
 
 
+int ABrawlerCharacter::IsPlayer() const
+{
+	return CharacterIsPlayer;
+}
+
+int ABrawlerCharacter::IsEnemy() const
+{
+	return !CharacterIsPlayer;
+}
+
 int ABrawlerCharacter::GetHealth() const
 {
 	return Health;
 }
 
-int ABrawlerCharacter::GetStamina() const
+int ABrawlerCharacter::GetAttackDamage() const
 {
-	return Stamina;
+	return AttackDamage;
 }
 
 int ABrawlerCharacter::GetKillCount() const

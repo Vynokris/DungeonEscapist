@@ -19,6 +19,10 @@ private:
 	// Dictates how many seconds the AI manager waits before sending a new attacker to the player.
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Behavior", meta = (AllowPrivateAccess = "true"))
 	float AttackInterval = 1;
+	
+	// Dictates how many AI enemies can attack the player at the same time.
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Behavior", meta = (AllowPrivateAccess = "true"))
+	float MaxConcurrentAttacks = 3;
 
 	// Counter that lets any AI attack the player when it is under 0 and is reset every time an AI starts attacking.
 	float AttackCooldown = 0;

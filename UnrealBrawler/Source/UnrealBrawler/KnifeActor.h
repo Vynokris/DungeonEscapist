@@ -16,7 +16,7 @@ private:
 	UShapeComponent*      BoxComponent  = nullptr;
 	UStaticMeshComponent* MeshComponent = nullptr;
 
-	ABrawlerCharacter* Player = nullptr;
+	ABrawlerCharacter* ParentCharacter = nullptr;
 	
 private:
 	virtual void NotifyActorBeginOverlap(AActor* OtherActor) override;
@@ -29,4 +29,5 @@ public:
 	AKnifeActor();
 
 	bool WasPickedUp() const;
+	void GetPickedUp(ABrawlerCharacter* NewParentCharacter);
 };

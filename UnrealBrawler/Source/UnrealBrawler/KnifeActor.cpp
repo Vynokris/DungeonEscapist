@@ -46,23 +46,34 @@ void AKnifeActor::Tick(float DeltaTime)
 
 void AKnifeActor::NotifyActorBeginOverlap(AActor* OtherActor)
 {
-	if (!WasPickedUp() && OtherActor->Tags.Contains("Player"))
+	if (WasPickedUp() && ParentCharacter->IsAttacking())
 	{
-		AttachToComponent(Cast<USceneComponent>(Cast<ABrawlerCharacter>(OtherActor)->GetMesh()),
-						  FAttachmentTransformRules::SnapToTargetNotIncludingScale,
-						  "WeaponSocket");
-		SetActorRelativeLocation({0, 0, 0});
-		SetActorRelativeRotation({0, 0, 0});
-		Player = Cast<ABrawlerCharacter>(OtherActor);
+		// Let player and enemies damage each other.
+		if ((ParentCharacter->IsEnemy()  && OtherActor->Tags.Contains("Player")) ||
+			(ParentCharacter->IsPlayer() && OtherActor->Tags.Contains("Enemy")))
+		{
+			Cast<ABrawlerCharacter>(OtherActor)->TakeDamageEvent(ParentCharacter->GetAttackDamage());
+		}
 	}
 
-	if (WasPickedUp() && Player->IsAttacking() && OtherActor->Tags.Contains("Enemy"))
+	// Get picked up only by the player.
+	if (!WasPickedUp() && OtherActor->Tags.Contains("Player"))
 	{
-		Debug("Touched an enemy");
+		GetPickedUp(Cast<ABrawlerCharacter>(OtherActor));
 	}
 }
 
 bool AKnifeActor::WasPickedUp() const
 {
-	return Player != nullptr;
+	return ParentCharacter != nullptr;
+}
+
+void AKnifeActor::GetPickedUp(ABrawlerCharacter* NewParentCharacter)
+{
+	AttachToComponent(Cast<USceneComponent>(NewParentCharacter->GetMesh()),
+					  FAttachmentTransformRules::SnapToTargetNotIncludingScale,
+					  "WeaponSocket");
+	SetActorRelativeLocation({0, 0, 0});
+	SetActorRelativeRotation({0, 0, 0});
+	ParentCharacter = NewParentCharacter;
 }

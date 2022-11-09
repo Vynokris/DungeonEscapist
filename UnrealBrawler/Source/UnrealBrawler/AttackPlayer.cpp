@@ -1,5 +1,6 @@
 #include "AttackPlayer.h"
 
+#include "BrawlerCharacter.h"
 #include "EnemyAiController.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "GameFramework/Character.h"
@@ -27,6 +28,7 @@ EBTNodeResult::Type UAttackPlayer::ExecuteTask(UBehaviorTreeComponent& OwnerComp
     Ai->CheckIfInPlayerRange(DistFromPlayer);
 
     // TODO.
+    Cast<ABrawlerCharacter>(Ai->GetPawn())->AttackEvent();
     AiBlackboard->SetValueAsBool("Attacking", false);
 
     // Fail task to end attack.
