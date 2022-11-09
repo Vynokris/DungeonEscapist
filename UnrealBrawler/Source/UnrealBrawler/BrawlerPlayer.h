@@ -1,18 +1,13 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
 #pragma once
 
 #include "CoreMinimal.h"
+#include "AIController.h"
 #include "GameHUD.h"
-
 #include "GameFramework/Character.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
-
 #include "Particles/ParticleSystemComponent.h"
-
 #include "Camera/CameraComponent.h"
-
 #include "BrawlerPlayer.generated.h"
 
 UCLASS()
@@ -21,56 +16,59 @@ class UNREALBRAWLER_API ABrawlerPlayer : public ACharacter
 	GENERATED_BODY()
 
 private:
-	UCameraComponent* CameraComponent = nullptr;
-	USpringArmComponent* SpringArmComponent = nullptr;
+	UCameraComponent*            CameraComponent            = nullptr;
+	USpringArmComponent*         SpringArmComponent         = nullptr;
 	UCharacterMovementComponent* CharacterMovementComponent = nullptr;
-	UGameHUD* GameHudComponent = nullptr;
+	UGameHUD*                    GameHudComponent           = nullptr;
+	AAIController*				 AiController				= nullptr;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera", meta = (AllowPrivateAccess = "true")) float CameraLag      = 15.f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera", meta = (AllowPrivateAccess = "true")) float CameraDistance = 300.f;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character", meta = (AllowPrivateAccess = "true")) int Health                = 5;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character", meta = (AllowPrivateAccess = "true")) int AttackDamage          = 1;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character", meta = (AllowPrivateAccess = "true")) int Stamina               = 10;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character", meta = (AllowPrivateAccess = "true")) int AttackDuration        = 1;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character", meta = (AllowPrivateAccess = "true")) int InvincibilityDuration = 2;
 
-	float moveForwardDelta = 0;
-	float moveRightDelta = 0;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "VFX", meta = (AllowPrivateAccess = "true")) UParticleSystemComponent* ParticleSystemComponent = nullptr;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "VFX", meta = (AllowPrivateAccess = "true")) float WalkingFxRate = 0.2f;
 	
-	int killedEnemy = 0;
-	
-public:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite) UParticleSystemComponent* ParticleSystemComponent = nullptr;
-	
-	UPROPERTY(EditAnywhere, Category = "Brawler View") float cameraLag = 15.f;
-	UPROPERTY(EditAnywhere, Category = "Brawler View") float cameraDistance = 300.f;
-	
-	UPROPERTY(EditAnywhere, Category = "Brawler Stats") int playerLife = 5;
-	UPROPERTY(EditAnywhere, Category = "Brawler Stats") int playerStamina = 10;
-
-	UPROPERTY(EditAnywhere, Category = "Brawler VFX") float stepsParticlesRate = 0.2f;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Brawler State") bool isPlayerDead = false;
-
+	int   KillCount          = 0;
+	float AttackTimer        = 0;
+	bool  Defending          = false;
+	float InvincibilityTimer = 0;
 	
 private:
-	void ShouldDisplay(bool _Active) const;
-	
-	void MoveRight(float _Value);
-	void MoveForward(float _Value);
+	void MoveForward(const float Amount);
+	void MoveRight  (const float Amount);
 
-	float GetMoveRight() const;
-	float GetMoveForward() const;
+	float GetMoveForward() const { return 0; } // TODO: Find a way to delete these without crashing Unreal.
+	float GetMoveRight()   const { return 0; } // TODO: Find a way to delete these without crashing Unreal.
+
+	void UpdateWalkingFX() const;
 
 protected:
 	virtual void BeginPlay() override;
-	virtual void Tick(float _DeltaTime) override;
-	virtual void SetupPlayerInputComponent(UInputComponent* _InputComponent) override;
+	virtual void Tick(float DeltaSeconds) override;
+	virtual void SetupPlayerInputComponent(UInputComponent* NewInputComponent) override;
 	
 public:
 	ABrawlerPlayer();
 
-	UFUNCTION(BlueprintCallable) int GetHealth() const;
-	UFUNCTION(BlueprintCallable) int GetStamina() const;
-	UFUNCTION(BlueprintCallable) int GetKilledEnemy() const;
+	UFUNCTION(BlueprintCallable) int  GetHealth()    const;
+	UFUNCTION(BlueprintCallable) int  GetStamina()   const;
+	UFUNCTION(BlueprintCallable) int  GetKillCount() const;
+	UFUNCTION(BlueprintCallable) bool IsAttacking()  const;
+	UFUNCTION(BlueprintCallable) bool IsDefending()  const;
+	UFUNCTION(BlueprintCallable) bool IsInvincible() const;
+	UFUNCTION(BlueprintCallable) bool IsDead()       const;
 	
-	void TakeDamageEvent(int _Value);
+	void TakeDamageEvent(const int& Amount);
+	void AttackEvent();
+	void StartDefendingEvent();
+	void StopDefendingEvent();
+	void InvincibilityEvent();
 	void DeathEvent();
 	void EnemyKilledEvent();
-	
-	bool IsDead() const;
-
-	UFUNCTION() void DisplayParticle() const;
 };
