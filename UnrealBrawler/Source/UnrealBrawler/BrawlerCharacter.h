@@ -8,10 +8,10 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Particles/ParticleSystemComponent.h"
 #include "Camera/CameraComponent.h"
-#include "BrawlerPlayer.generated.h"
+#include "BrawlerCharacter.generated.h"
 
 UCLASS()
-class UNREALBRAWLER_API ABrawlerPlayer : public ACharacter
+class UNREALBRAWLER_API ABrawlerCharacter : public ACharacter
 {
 	GENERATED_BODY()
 
@@ -54,7 +54,7 @@ protected:
 	virtual void SetupPlayerInputComponent(UInputComponent* NewInputComponent) override;
 	
 public:
-	ABrawlerPlayer();
+	ABrawlerCharacter();
 
 	UFUNCTION(BlueprintCallable) int  GetHealth()    const;
 	UFUNCTION(BlueprintCallable) int  GetStamina()   const;

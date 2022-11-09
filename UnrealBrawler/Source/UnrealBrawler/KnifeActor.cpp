@@ -1,6 +1,6 @@
 #include "KnifeActor.h"
 
-#include "BrawlerPlayer.h"
+#include "BrawlerCharacter.h"
 #include "DebugUtils.h"
 #include "Components/BoxComponent.h"
 #include "Kismet/GameplayStatics.h"
@@ -48,12 +48,12 @@ void AKnifeActor::NotifyActorBeginOverlap(AActor* OtherActor)
 {
 	if (!WasPickedUp() && OtherActor->Tags.Contains("Player"))
 	{
-		AttachToComponent(Cast<USceneComponent>(Cast<ABrawlerPlayer>(OtherActor)->GetMesh()),
+		AttachToComponent(Cast<USceneComponent>(Cast<ABrawlerCharacter>(OtherActor)->GetMesh()),
 						  FAttachmentTransformRules::SnapToTargetNotIncludingScale,
 						  "WeaponSocket");
 		SetActorRelativeLocation({0, 0, 0});
 		SetActorRelativeRotation({0, 0, 0});
-		Player = Cast<ABrawlerPlayer>(OtherActor);
+		Player = Cast<ABrawlerCharacter>(OtherActor);
 	}
 
 	if (WasPickedUp() && Player->IsAttacking() && OtherActor->Tags.Contains("Enemy"))

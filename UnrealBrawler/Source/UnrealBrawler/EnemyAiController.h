@@ -2,16 +2,16 @@
 
 #include "CoreMinimal.h"
 #include "AIController.h"
-#include "BrawlerNpcAi.generated.h"
+#include "EnemyAiController.generated.h"
 class UBehaviorTreeComponent;
 
 UCLASS()
-class UNREALBRAWLER_API ABrawlerNpcAi : public AAIController
+class UNREALBRAWLER_API AEnemyAiController : public AAIController
 {
 	GENERATED_BODY()
 
 public:
-	ABrawlerNpcAi(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
+	AEnemyAiController(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 
 	void BeginPlay() override;
 	void OnPossess(APawn* InPawn) override;

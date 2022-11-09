@@ -3,7 +3,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "KnifeActor.generated.h"
-class ABrawlerPlayer;
+class ABrawlerCharacter;
 
 UCLASS()
 class UNREALBRAWLER_API AKnifeActor : public AActor
@@ -16,7 +16,7 @@ private:
 	UShapeComponent*      BoxComponent  = nullptr;
 	UStaticMeshComponent* MeshComponent = nullptr;
 
-	ABrawlerPlayer* Player = nullptr;
+	ABrawlerCharacter* Player = nullptr;
 	
 private:
 	virtual void NotifyActorBeginOverlap(AActor* OtherActor) override;

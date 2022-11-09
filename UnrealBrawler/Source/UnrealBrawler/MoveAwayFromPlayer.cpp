@@ -1,6 +1,6 @@
 #include "MoveAwayFromPlayer.h"
 
-#include "BrawlerNpcAi.h"
+#include "EnemyAiController.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "GameFramework/Character.h"
 #include "Kismet/GameplayStatics.h"
@@ -16,7 +16,7 @@ EBTNodeResult::Type UMoveAwayFromPlayer::ExecuteTask(UBehaviorTreeComponent& Own
     if (!Player) {
         Player = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
     }
-    ABrawlerNpcAi*        Ai           = Cast<ABrawlerNpcAi>(OwnerComp.GetAIOwner());
+    AEnemyAiController*   Ai           = Cast<AEnemyAiController>(OwnerComp.GetAIOwner());
     UBlackboardComponent* AiBlackboard = Ai->GetBlackboard();
 
     // Get the player and AI locations as well as their distance.

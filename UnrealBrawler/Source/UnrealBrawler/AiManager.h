@@ -3,7 +3,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "AiManager.generated.h"
-class ABrawlerNpcAi;
+class AEnemyAiController;
 
 UCLASS()
 class UNREALBRAWLER_API AAiManager : public AActor
@@ -24,5 +24,5 @@ private:
 	float AttackCooldown = 0;
 
 	// List of all the AI enemies.
-	TArray<ABrawlerNpcAi*> AiEnemies;
+	TArray<AEnemyAiController*> AiEnemies;
 };

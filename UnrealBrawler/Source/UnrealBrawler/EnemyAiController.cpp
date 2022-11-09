@@ -1,4 +1,4 @@
-#include "BrawlerNpcAi.h"
+#include "EnemyAiController.h"
 #include "BehaviorTree/BehaviorTree.h"
 #include "BehaviorTree/BehaviorTreeComponent.h"
 #include "BehaviorTree/BlackboardComponent.h"
@@ -7,7 +7,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "UObject/ConstructorHelpers.h"
 
-ABrawlerNpcAi::ABrawlerNpcAi(const FObjectInitializer& ObjectInitializer)
+AEnemyAiController::AEnemyAiController(const FObjectInitializer& ObjectInitializer)
 {
     // Get the behavior tree.
     static ConstructorHelpers::FObjectFinder<UBehaviorTree> Obj(TEXT("BehaviorTree'/Game/Blueprints/AI/BrawlerNpcBehavior.BrawlerNpcBehavior'"));
@@ -20,7 +20,7 @@ ABrawlerNpcAi::ABrawlerNpcAi(const FObjectInitializer& ObjectInitializer)
     Blackboard            = ObjectInitializer.CreateDefaultSubobject<UBlackboardComponent  >(this, TEXT("Blackboard"));
 }
 
-void ABrawlerNpcAi::BeginPlay()
+void AEnemyAiController::BeginPlay()
 {
     Super::BeginPlay();
 
@@ -38,7 +38,7 @@ void ABrawlerNpcAi::BeginPlay()
     SetFocus(Cast<AActor>(UGameplayStatics::GetPlayerCharacter(GetWorld(), 0)), EAIFocusPriority::Gameplay);
 }
 
-void ABrawlerNpcAi::OnPossess(APawn* InPawn)
+void AEnemyAiController::OnPossess(APawn* InPawn)
 {
     Super::OnPossess(InPawn);
 
@@ -47,37 +47,37 @@ void ABrawlerNpcAi::OnPossess(APawn* InPawn)
         Blackboard->InitializeBlackboard(*BehaviorTree->BlackboardAsset);
 }
 
-UBlackboardComponent* ABrawlerNpcAi::GetBlackboard() const
+UBlackboardComponent* AEnemyAiController::GetBlackboard() const
 {
     return Blackboard;
 }
 
-bool ABrawlerNpcAi::IsInPlayerRange() const
+bool AEnemyAiController::IsInPlayerRange() const
 {
     return InPlayerRange;
 }
 
-void ABrawlerNpcAi::CheckIfInPlayerRange(const float DistFromPlayer)
+void AEnemyAiController::CheckIfInPlayerRange(const float DistFromPlayer)
 {
     InPlayerRange = DistFromPlayer <= TargetDistFromPlayer;
 }
 
-int ABrawlerNpcAi::GetStrafeDir() const
+int AEnemyAiController::GetStrafeDir() const
 {
     return StrafeDir;
 }
 
-void ABrawlerNpcAi::ChangeStrafeDir()
+void AEnemyAiController::ChangeStrafeDir()
 {
     StrafeDir *= -1;
 }
 
-float ABrawlerNpcAi::GetTargetDistFromPlayer() const
+float AEnemyAiController::GetTargetDistFromPlayer() const
 {
     return TargetDistFromPlayer;
 }
 
-float ABrawlerNpcAi::GetPlayerRangeSize() const
+float AEnemyAiController::GetPlayerRangeSize() const
 {
     return PlayerRangeSize;
 }

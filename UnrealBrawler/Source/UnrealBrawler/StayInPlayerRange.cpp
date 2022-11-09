@@ -1,6 +1,6 @@
 #include "StayInPlayerRange.h"
 
-#include "BrawlerNpcAi.h"
+#include "EnemyAiController.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "GameFramework/Character.h"
 #include "Kismet/GameplayStatics.h"
@@ -10,7 +10,7 @@ UStayInPlayerRange::UStayInPlayerRange()
     NodeName = TEXT("Stay in player range");
 }
 
-FVector ComputeStrafeVec(ABrawlerNpcAi* Ai, const FVector& AiToPlayerDir)
+FVector ComputeStrafeVec(AEnemyAiController* Ai, const FVector& AiToPlayerDir)
 {
     return (AiToPlayerDir * 20.f + FVector::CrossProduct(AiToPlayerDir * 100.f, FVector::UpVector) * Ai->GetStrafeDir()) * 1.2f;
 }
@@ -21,7 +21,7 @@ EBTNodeResult::Type UStayInPlayerRange::ExecuteTask(UBehaviorTreeComponent& Owne
     if (!Player) {
         Player = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
     }
-    ABrawlerNpcAi* Ai = Cast<ABrawlerNpcAi>(OwnerComp.GetAIOwner());
+    AEnemyAiController* Ai = Cast<AEnemyAiController>(OwnerComp.GetAIOwner());
 
     // Get the player and AI locations as well as their distance.
     const FVector PlayerLocation = Player->GetActorLocation();

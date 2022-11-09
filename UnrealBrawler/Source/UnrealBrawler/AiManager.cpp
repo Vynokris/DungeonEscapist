@@ -1,6 +1,6 @@
 #include "AiManager.h"
 
-#include "BrawlerNpcAi.h"
+#include "EnemyAiController.h"
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/Actor.h"
 #include "BehaviorTree/BlackboardComponent.h"
@@ -16,9 +16,9 @@ void AAiManager::BeginPlay()
 
 	// Find all enemies spawned by default in the level.
 	TArray<AActor*> FoundEnemies;
-	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ABrawlerNpcAi::StaticClass(), FoundEnemies);
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), AEnemyAiController::StaticClass(), FoundEnemies);
 	for (AActor* Actor : FoundEnemies)
-		AiEnemies.Push(Cast<ABrawlerNpcAi>(Actor));
+		AiEnemies.Push(Cast<AEnemyAiController>(Actor));
 }
 
 void AAiManager::Tick(float DeltaTime)

@@ -1,7 +1,6 @@
-#include "BrawlerPlayer.h"
+#include "BrawlerCharacter.h"
 
-#include "BrawlerNpc.h"
-#include "BrawlerNpcAi.h"
+#include "EnemyAiController.h"
 #include "DebugUtils.h"
 #include "KnifeActor.h"
 #include "Components/CapsuleComponent.h"
@@ -9,7 +8,7 @@
 #include "Kismet/GameplayStatics.h"
 
 
-ABrawlerPlayer::ABrawlerPlayer()
+ABrawlerCharacter::ABrawlerCharacter()
 {
 	PrimaryActorTick.bCanEverTick = true;
 	bUseControllerRotationYaw = false;
@@ -37,7 +36,7 @@ ABrawlerPlayer::ABrawlerPlayer()
 	ParticleSystemComponent->SetupAttachment(CastChecked<USceneComponent, UCapsuleComponent>(GetCapsuleComponent()));
 }
 
-void ABrawlerPlayer::BeginPlay()
+void ABrawlerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 	
@@ -46,7 +45,7 @@ void ABrawlerPlayer::BeginPlay()
 	SpringArmComponent->TargetArmLength = CameraDistance;
 
 	// If the character is controller by AI, add the Enemy tag and make the character always face the player.
-	if (ABrawlerNpcAi* Ai = Cast<ABrawlerNpcAi>(GetController()))
+	if (AEnemyAiController* Ai = Cast<AEnemyAiController>(GetController()))
 	{
 		Tags.Add("Enemy");
 		CharacterMovementComponent->bUseControllerDesiredRotation = true;
@@ -61,7 +60,7 @@ void ABrawlerPlayer::BeginPlay()
 	}
 }
 
-void ABrawlerPlayer::Tick(float DeltaSeconds)
+void ABrawlerCharacter::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
 	UpdateWalkingFX();
@@ -73,17 +72,17 @@ void ABrawlerPlayer::Tick(float DeltaSeconds)
 		AttackTimer -= DeltaSeconds;
 }
 
-void ABrawlerPlayer::SetupPlayerInputComponent(UInputComponent* NewInputComponent)
+void ABrawlerCharacter::SetupPlayerInputComponent(UInputComponent* NewInputComponent)
 {
 	Super::SetupPlayerInputComponent(NewInputComponent);
 
-	NewInputComponent->BindAxis("MoveForward", this, &ABrawlerPlayer::MoveForward);
-	NewInputComponent->BindAxis("MoveRight", this, &ABrawlerPlayer::MoveRight);
+	NewInputComponent->BindAxis("MoveForward", this, &ABrawlerCharacter::MoveForward);
+	NewInputComponent->BindAxis("MoveRight", this, &ABrawlerCharacter::MoveRight);
 
-	NewInputComponent->BindAxis("LookRight", this, &ABrawlerPlayer::AddControllerYawInput);
-	NewInputComponent->BindAxis("LookUp", this, &ABrawlerPlayer::AddControllerPitchInput);
+	NewInputComponent->BindAxis("LookRight", this, &ABrawlerCharacter::AddControllerYawInput);
+	NewInputComponent->BindAxis("LookUp", this, &ABrawlerCharacter::AddControllerPitchInput);
 
-	// _inputComponent->BindAction("TakeDamage", IE_Pressed, this, &ABrawlerPlayer::TakeDamage);
+	// _inputComponent->BindAction("TakeDamage", IE_Pressed, this, &ABrawlerCharacter::TakeDamage);
 	{
 		FInputActionBinding TakeDamageBinding("TestKey", IE_Pressed);
 		TakeDamageBinding.ActionDelegate.GetDelegateForManualSet().BindLambda([this] { TakeDamageEvent(1); });
@@ -92,7 +91,7 @@ void ABrawlerPlayer::SetupPlayerInputComponent(UInputComponent* NewInputComponen
 }
 
 
-void ABrawlerPlayer::MoveForward(const float Amount)
+void ABrawlerCharacter::MoveForward(const float Amount)
 {
 	if(IsDead()) return;
 
@@ -101,7 +100,7 @@ void ABrawlerPlayer::MoveForward(const float Amount)
 	AddMovementInput(Direction, Amount);
 }
 
-void ABrawlerPlayer::MoveRight(const float Amount)
+void ABrawlerCharacter::MoveRight(const float Amount)
 {
 	if(IsDead()) return;
 
@@ -109,7 +108,7 @@ void ABrawlerPlayer::MoveRight(const float Amount)
 	AddMovementInput(Direction, Amount);
 }
 
-void ABrawlerPlayer::UpdateWalkingFX() const
+void ABrawlerCharacter::UpdateWalkingFX() const
 {
 	if (IsDead()) return;
 	
@@ -122,7 +121,7 @@ void ABrawlerPlayer::UpdateWalkingFX() const
 }
 
 
-void ABrawlerPlayer::TakeDamageEvent(const int& Amount)
+void ABrawlerCharacter::TakeDamageEvent(const int& Amount)
 {
 	if (InvincibilityTimer > 0) {
 		Debug("Player is invincible.");
@@ -139,70 +138,70 @@ void ABrawlerPlayer::TakeDamageEvent(const int& Amount)
 	}
 }
 
-void ABrawlerPlayer::AttackEvent()
+void ABrawlerCharacter::AttackEvent()
 {
 	AttackTimer = AttackDuration;
 }
 
-void ABrawlerPlayer::StartDefendingEvent()
+void ABrawlerCharacter::StartDefendingEvent()
 {
 	Defending = true;
 }
 
-void ABrawlerPlayer::StopDefendingEvent()
+void ABrawlerCharacter::StopDefendingEvent()
 {
 	Defending = false;
 }
 
-void ABrawlerPlayer::InvincibilityEvent()
+void ABrawlerCharacter::InvincibilityEvent()
 {
 	InvincibilityTimer = InvincibilityDuration;
 }
 
-void ABrawlerPlayer::DeathEvent()
+void ABrawlerCharacter::DeathEvent()
 {
 	ParticleSystemComponent->DeactivateSystem();
 	Health = 0;
 }
 
-void ABrawlerPlayer::EnemyKilledEvent()
+void ABrawlerCharacter::EnemyKilledEvent()
 {
 	KillCount++;
 	GameHudComponent->UpdateEnemyCounterEvent(KillCount);
 }
 
 
-int ABrawlerPlayer::GetHealth() const
+int ABrawlerCharacter::GetHealth() const
 {
 	return Health;
 }
 
-int ABrawlerPlayer::GetStamina() const
+int ABrawlerCharacter::GetStamina() const
 {
 	return Stamina;
 }
 
-int ABrawlerPlayer::GetKillCount() const
+int ABrawlerCharacter::GetKillCount() const
 {
 	return KillCount;
 }
 
-bool ABrawlerPlayer::IsAttacking() const
+bool ABrawlerCharacter::IsAttacking() const
 {
 	return AttackTimer > 0;
 }
 
-bool ABrawlerPlayer::IsDefending() const
+bool ABrawlerCharacter::IsDefending() const
 {
 	return Defending;
 }
 
-bool ABrawlerPlayer::IsInvincible() const
+bool ABrawlerCharacter::IsInvincible() const
 {
 	return InvincibilityTimer > 0;
 }
 
-bool ABrawlerPlayer::IsDead() const
+bool ABrawlerCharacter::IsDead() const
 {
 	return Health <= 0;
 }
