@@ -5,6 +5,7 @@
 #include "KnifeActor.h"
 #include "Components/CapsuleComponent.h"
 #include "Blueprint/WidgetTree.h"
+#include "Components/BoxComponent.h"
 #include "Kismet/GameplayStatics.h"
 
 ABrawlerCharacter::ABrawlerCharacter()
@@ -33,6 +34,12 @@ ABrawlerCharacter::ABrawlerCharacter()
 	// Setup walking particles.
 	ParticleSystemComponent = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("ParticleSystemComponent"));
 	ParticleSystemComponent->SetupAttachment(CastChecked<USceneComponent, UCapsuleComponent>(GetCapsuleComponent()));
+
+	// Setup reach box.
+	ReachComponent = CreateDefaultSubobject<UBoxComponent>(TEXT("ReachBoxComponent"));
+	ReachComponent->SetWorldScale3D(FVector(0.3f,0.3f,1.0f));
+	ReachComponent->SetGenerateOverlapEvents(true);
+	ReachComponent->SetupAttachment(RootComponent);
 }
 
 void ABrawlerCharacter::BeginPlay()
@@ -114,17 +121,16 @@ void ABrawlerCharacter::SetupPlayerInputComponent(UInputComponent* NewInputCompo
 	NewInputComponent->BindAction("Defend", IE_Pressed,  this, &ABrawlerCharacter::StartDefendingEvent);
 	NewInputComponent->BindAction("Defend", IE_Released, this, &ABrawlerCharacter::StopDefendingEvent);
 	
-	// Damage test key.
-	// NewInputComponent->BindAction("TakeDamage", IE_Pressed, this, &ABrawlerCharacter::TakeDamage);
+	// Drop Weapon test key.
+	NewInputComponent->BindAction("TestKey1", IE_Pressed, this, &ABrawlerCharacter::DropWeaponEvent);
+
+	// Attack test key.
+	NewInputComponent->BindAction("AttackKey", IE_Pressed, this, &ABrawlerCharacter::AttackEvent);
+	
+	// Take Damage test key.
 	{
 		FInputActionBinding TakeDamageBinding("TestKey", IE_Pressed);
 		TakeDamageBinding.ActionDelegate.GetDelegateForManualSet().BindLambda([this] { TakeDamageEvent(1); });
-		NewInputComponent->AddActionBinding(TakeDamageBinding);
-	}
-
-	{
-		FInputActionBinding TakeDamageBinding("TestKey1", IE_Pressed);
-		TakeDamageBinding.ActionDelegate.GetDelegateForManualSet().BindLambda([this] { DropWeaponEvent(); });
 		NewInputComponent->AddActionBinding(TakeDamageBinding);
 	}
 }
@@ -181,7 +187,37 @@ void ABrawlerCharacter::TakeDamageEvent(const int& Amount)
 void ABrawlerCharacter::AttackEvent()
 {
 	AttackTimer = AttackDuration;
+
+	if(TargetActor == nullptr) return;
+	
+	ABrawlerCharacter* EnemyBrawler = Cast<ABrawlerCharacter>(TargetActor);
+	EnemyBrawler->TakeDamageEvent(1);
 }
+
+// Detect collision between actor hitbox and other actor
+void ABrawlerCharacter::NotifyActorBeginOverlap(AActor* OtherActor)
+{
+	if(!OtherActor->IsA(StaticClass())) return;
+	
+	if(Cast<ABrawlerCharacter>(OtherActor)->IsEnemy() && ReachComponent->IsOverlappingActor(OtherActor))
+	{
+		// storing latest in range target
+		DebugInfo("Overlapping");
+		TargetActor = OtherActor;
+	}
+}
+
+// Detect if no more collision between actor hitbox and other actor
+void ABrawlerCharacter::NotifyActorEndOverlap(AActor* OtherActor)
+{
+	if(OtherActor == TargetActor && !ReachComponent->IsOverlappingActor(TargetActor))
+	{
+		// removing target, not in range anymore
+		DebugInfo("Not overlapping");
+		TargetActor = nullptr;
+	}
+}
+
 
 void ABrawlerCharacter::StartDefendingEvent()
 {
