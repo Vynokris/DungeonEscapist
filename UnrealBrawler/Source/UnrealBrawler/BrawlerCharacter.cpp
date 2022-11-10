@@ -7,7 +7,6 @@
 #include "Blueprint/WidgetTree.h"
 #include "Kismet/GameplayStatics.h"
 
-
 ABrawlerCharacter::ABrawlerCharacter()
 {
 	PrimaryActorTick.bCanEverTick = true;
@@ -80,8 +79,8 @@ void ABrawlerCharacter::BeginPlay()
 		// Give a knife to the player.
 		if (PlayerDefaultWeapon)
 		{
-			AKnifeActor* Knife = Cast<AKnifeActor>(GetWorld()->SpawnActor(PlayerDefaultWeapon));
-			Knife->GetPickedUp(this);
+			KnifeActor = Cast<AKnifeActor>(GetWorld()->SpawnActor(PlayerDefaultWeapon));
+			KnifeActor->GetPickedUp(this);
 		}
 	}
 }
@@ -92,10 +91,8 @@ void ABrawlerCharacter::Tick(float DeltaSeconds)
 	UpdateWalkingFX();
 
 	// Decrement timers.
-	if (InvincibilityTimer > 0)
-		InvincibilityTimer -= DeltaSeconds;
-	if (AttackTimer > 0)
-		AttackTimer -= DeltaSeconds;
+	if (InvincibilityTimer > 0) InvincibilityTimer -= DeltaSeconds;
+	if (AttackTimer > 0) AttackTimer -= DeltaSeconds;
 }
 
 void ABrawlerCharacter::SetupPlayerInputComponent(UInputComponent* NewInputComponent)
@@ -122,6 +119,12 @@ void ABrawlerCharacter::SetupPlayerInputComponent(UInputComponent* NewInputCompo
 	{
 		FInputActionBinding TakeDamageBinding("TestKey", IE_Pressed);
 		TakeDamageBinding.ActionDelegate.GetDelegateForManualSet().BindLambda([this] { TakeDamageEvent(1); });
+		NewInputComponent->AddActionBinding(TakeDamageBinding);
+	}
+
+	{
+		FInputActionBinding TakeDamageBinding("TestKey1", IE_Pressed);
+		TakeDamageBinding.ActionDelegate.GetDelegateForManualSet().BindLambda([this] { DropWeaponEvent(); });
 		NewInputComponent->AddActionBinding(TakeDamageBinding);
 	}
 }
@@ -159,9 +162,9 @@ void ABrawlerCharacter::UpdateWalkingFX() const
 
 void ABrawlerCharacter::TakeDamageEvent(const int& Amount)
 {
-	if (InvincibilityTimer > 0) {
-		return;
-	}
+	if (IsDead()) return;
+
+	if (InvincibilityTimer > 0) return;
 	
 	Health -= Amount;
 	if (Health <= 0) {
@@ -174,6 +177,7 @@ void ABrawlerCharacter::TakeDamageEvent(const int& Amount)
 	}
 }
 
+#pragma region Player Events
 void ABrawlerCharacter::AttackEvent()
 {
 	AttackTimer = AttackDuration;
@@ -198,8 +202,8 @@ void ABrawlerCharacter::DeathEvent()
 {
 	Health = 0;
 	ParticleSystemComponent->DeactivateSystem();
-	if (Controller && IsEnemy())
-		Controller->UnPossess();
+	
+	if (Controller && IsEnemy()) Controller->UnPossess();
 }
 
 void ABrawlerCharacter::EnemyKilledEvent()
@@ -208,7 +212,15 @@ void ABrawlerCharacter::EnemyKilledEvent()
 	GameHudComponent->UpdateEnemyCounterEvent(KillCount);
 }
 
+void ABrawlerCharacter::DropWeaponEvent()
+{
+	if(KnifeActor == nullptr) return;
+	
+	KnifeActor->DropPickedUp(this);
+}
+#pragma endregion
 
+#pragma region Getter & Setter
 int ABrawlerCharacter::IsPlayer() const
 {
 	return CharacterIsPlayer;
@@ -253,3 +265,9 @@ bool ABrawlerCharacter::IsDead() const
 {
 	return Health <= 0;
 }
+
+void ABrawlerCharacter::SetWeaponActor(AKnifeActor* KnifeWeapon)
+{
+	KnifeActor = KnifeWeapon;
+}
+#pragma endregion

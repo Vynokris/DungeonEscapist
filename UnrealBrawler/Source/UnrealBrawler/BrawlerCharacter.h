@@ -3,6 +3,7 @@
 #include "CoreMinimal.h"
 #include "AIController.h"
 #include "GameHUD.h"
+#include "KnifeActor.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -21,6 +22,7 @@ private:
 	UCharacterMovementComponent* CharacterMovementComponent = nullptr;
 	UGameHUD*                    GameHudComponent           = nullptr;
 	AAIController*				 AiController				= nullptr;
+	AKnifeActor*				 KnifeActor					= nullptr;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera", meta = (AllowPrivateAccess = "true")) float CameraLag      = 15.f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera", meta = (AllowPrivateAccess = "true")) float CameraDistance = 300.f;
@@ -49,9 +51,6 @@ private:
 	void MoveForward(const float Amount);
 	void MoveRight  (const float Amount);
 
-	float GetMoveForward() const { return 0; } // TODO: Find a way to delete these without crashing Unreal.
-	float GetMoveRight()   const { return 0; } // TODO: Find a way to delete these without crashing Unreal.
-
 	void UpdateWalkingFX() const;
 
 protected:
@@ -79,4 +78,7 @@ public:
 	void InvincibilityEvent();
 	void DeathEvent();
 	void EnemyKilledEvent();
+	void DropWeaponEvent();
+
+	void SetWeaponActor(AKnifeActor* KnifeWeapon);
 };

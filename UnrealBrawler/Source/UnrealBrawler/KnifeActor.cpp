@@ -34,9 +34,9 @@ void AKnifeActor::BeginPlay()
 	Super::BeginPlay();
 }
 
-void AKnifeActor::Tick(float DeltaTime)
+void AKnifeActor::Tick(float DeltaSeconds)
 {
-	Super::Tick(DeltaTime);
+	Super::Tick(DeltaSeconds);
 	
 	if (!WasPickedUp()) {
 		SetActorLocation(GetActorLocation() + FVector (0,0, sin(UGameplayStatics::GetRealTimeSeconds(GetWorld())*2)/4));
@@ -76,4 +76,18 @@ void AKnifeActor::GetPickedUp(ABrawlerCharacter* NewParentCharacter)
 	SetActorRelativeLocation({0, 0, 0});
 	SetActorRelativeRotation({0, 0, 0});
 	ParentCharacter = NewParentCharacter;
+
+	NewParentCharacter->SetWeaponActor(this);
+}
+
+void AKnifeActor::DropPickedUp(ABrawlerCharacter* CurParentCharacter)
+{
+	DetachFromActor(FDetachmentTransformRules::KeepRelativeTransform);
+	
+	SetActorRelativeLocation(CurParentCharacter->GetActorLocation());
+	SetActorRelativeRotation({0, 0, 0});
+	SetActorScale3D({1,1,1});
+	ParentCharacter = nullptr;
+
+	CurParentCharacter->SetWeaponActor(nullptr);
 }
