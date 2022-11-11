@@ -35,7 +35,7 @@ ABrawlerCharacter::ABrawlerCharacter()
 	ParticleSystemComponent = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("ParticleSystemComponent"));
 	ParticleSystemComponent->SetupAttachment(CastChecked<USceneComponent, UCapsuleComponent>(GetCapsuleComponent()));
 
-	// Setup reach box.
+	// Setup reach hitbox.
 	ReachComponent = CreateDefaultSubobject<UBoxComponent>(TEXT("ReachBoxComponent"));
 	ReachComponent->SetWorldScale3D(FVector(0.3f,0.3f,1.0f));
 	ReachComponent->SetGenerateOverlapEvents(true);
@@ -82,6 +82,7 @@ void ABrawlerCharacter::BeginPlay()
 	{
 		Health = PlayerMaxHealth;
 		Tags.Add("Player");
+		PlayerName == FString("Undefined") ? PlayerName = FString("Player") : PlayerName;
 
 		// Give a knife to the player.
 		if (PlayerDefaultWeapon)
@@ -100,6 +101,8 @@ void ABrawlerCharacter::Tick(float DeltaSeconds)
 	// Decrement timers.
 	if (InvincibilityTimer > 0) InvincibilityTimer -= DeltaSeconds;
 	if (AttackTimer > 0) AttackTimer -= DeltaSeconds;
+
+	if(IsDefending()) DefendEvent();
 }
 
 void ABrawlerCharacter::SetupPlayerInputComponent(UInputComponent* NewInputComponent)
@@ -137,6 +140,7 @@ void ABrawlerCharacter::MoveForward(const float Amount)
 {
 	if(IsDead()) return;
 	if(IsAttacking()) return;
+	if(IsDefending()) return;
 	
 	const FVector Direction = FRotationMatrix(Controller->GetControlRotation()).GetScaledAxis(EAxis::X)
 							+ FRotationMatrix(Controller->GetControlRotation()).GetScaledAxis(EAxis::Z);
@@ -147,6 +151,7 @@ void ABrawlerCharacter::MoveRight(const float Amount)
 {
 	if(IsDead()) return;
 	if(IsAttacking()) return;
+	if(IsDefending()) return;
 	
 	const FVector Direction = FRotationMatrix(Controller->GetControlRotation()).GetScaledAxis(EAxis::Y);
 	AddMovementInput(Direction, Amount);
@@ -164,7 +169,7 @@ void ABrawlerCharacter::UpdateWalkingFX() const
 		ParticleSystemComponent->DeactivateSystem();
 }
 
-
+#pragma region Player Events
 void ABrawlerCharacter::TakeDamageEvent(const int& Amount)
 {
 	if (IsDead()) return;
@@ -173,24 +178,35 @@ void ABrawlerCharacter::TakeDamageEvent(const int& Amount)
 	Health -= Amount;
 	if (IsDead()) {
 		DeathEvent();
-		Debug("%s is dead!", *GetName());
+		DebugInfo("%s is dead!", *GetPlayerName());
 	}
 	else {
 		InvincibilityEvent();
-		Debug("%s hit, lost %d HP, %d HP remaining", *GetName(), Amount, Health);
+		DebugInfo("%s hit, lost %d HP, %d HP remaining", *GetPlayerName(), Amount, Health);
 	}
 }
 
-#pragma region Player Events
 void ABrawlerCharacter::AttackEvent()
 {
+	if(IsDead()) return;
+	if(IsDefending()) return;
+	
 	AttackTimer = AttackDuration;
 
 	if(TargetActor == nullptr) return;
 	
 	ABrawlerCharacter* EnemyBrawler = Cast<ABrawlerCharacter>(TargetActor);
+	DebugInfo("%s is attacking!", *GetPlayerName());
 	EnemyBrawler->TakeDamageEvent(1);
 }
+
+void ABrawlerCharacter::DefendEvent()
+{
+	if(IsDead()) return;
+
+	DebugInfo("%s is defending!", *GetPlayerName());
+}
+
 
 // Detect collision between actor hitbox and other actor
 void ABrawlerCharacter::NotifyActorBeginOverlap(AActor* OtherActor)
@@ -200,7 +216,6 @@ void ABrawlerCharacter::NotifyActorBeginOverlap(AActor* OtherActor)
 	if(Cast<ABrawlerCharacter>(OtherActor)->IsEnemy() && ReachComponent->IsOverlappingActor(OtherActor))
 	{
 		// storing latest in range target
-		DebugInfo("Overlapping");
 		TargetActor = OtherActor;
 	}
 }
@@ -211,7 +226,6 @@ void ABrawlerCharacter::NotifyActorEndOverlap(AActor* OtherActor)
 	if(OtherActor == TargetActor && !ReachComponent->IsOverlappingActor(TargetActor))
 	{
 		// removing target, not in range anymore
-		DebugInfo("Not overlapping");
 		TargetActor = nullptr;
 	}
 }
@@ -303,5 +317,10 @@ bool ABrawlerCharacter::IsDead() const
 void ABrawlerCharacter::SetWeaponActor(AKnifeActor* KnifeWeapon)
 {
 	KnifeActor = KnifeWeapon;
+}
+
+FString ABrawlerCharacter::GetPlayerName() const
+{
+	return PlayerName;
 }
 #pragma endregion

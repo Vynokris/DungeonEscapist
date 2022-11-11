@@ -33,11 +33,13 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character", meta = (AllowPrivateAccess = "true")) int AttackDamage          = 1;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character", meta = (AllowPrivateAccess = "true")) int AttackDuration        = 1;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character", meta = (AllowPrivateAccess = "true")) int InvincibilityDuration = 2;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character", meta = (AllowPrivateAccess = "true")) FString PlayerName		= FString("Undefined");
+	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character", meta = (AllowPrivateAccess = "true")) TSubclassOf<AActor> PlayerDefaultWeapon;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character", meta = (AllowPrivateAccess = "true")) TSubclassOf<AActor> EnemyDefaultWeapon;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Settings", meta = (AllowPrivateAccess = "true")) UShapeComponent* ReachComponent = nullptr;
-
+	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "VFX", meta = (AllowPrivateAccess = "true")) UParticleSystemComponent* ParticleSystemComponent = nullptr;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "VFX", meta = (AllowPrivateAccess = "true")) float WalkingFxRate = 0.2f;
 	
@@ -66,18 +68,20 @@ protected:
 public:
 	ABrawlerCharacter();
 
-	UFUNCTION(BlueprintCallable) int  IsPlayer()        const;
-	UFUNCTION(BlueprintCallable) int  IsEnemy()         const;
-	UFUNCTION(BlueprintCallable) int  GetHealth()       const;
-	UFUNCTION(BlueprintCallable) int  GetAttackDamage() const;
-	UFUNCTION(BlueprintCallable) int  GetKillCount()    const;
-	UFUNCTION(BlueprintCallable) bool IsAttacking()     const;
-	UFUNCTION(BlueprintCallable) bool IsDefending()     const;
-	UFUNCTION(BlueprintCallable) bool IsInvincible()    const;
-	UFUNCTION(BlueprintCallable) bool IsDead()          const;
+	UFUNCTION(BlueprintCallable) int  IsPlayer()			const;
+	UFUNCTION(BlueprintCallable) int  IsEnemy()				const;
+	UFUNCTION(BlueprintCallable) int  GetHealth()			const;
+	UFUNCTION(BlueprintCallable) int  GetAttackDamage()		const;
+	UFUNCTION(BlueprintCallable) int  GetKillCount()		const;
+	UFUNCTION(BlueprintCallable) bool IsAttacking()			const;
+	UFUNCTION(BlueprintCallable) bool IsDefending()			const;
+	UFUNCTION(BlueprintCallable) bool IsInvincible()		const;
+	UFUNCTION(BlueprintCallable) bool IsDead()				const;
+	UFUNCTION(BlueprintCallable) FString GetPlayerName()	const;
 	
 	void TakeDamageEvent(const int& Amount);
 	void AttackEvent();
+	void DefendEvent();
 	void StartDefendingEvent();
 	void StopDefendingEvent();
 	void InvincibilityEvent();
