@@ -123,9 +123,6 @@ void ABrawlerCharacter::SetupPlayerInputComponent(UInputComponent* NewInputCompo
 	
 	// Drop Weapon test key.
 	NewInputComponent->BindAction("TestKey1", IE_Pressed, this, &ABrawlerCharacter::DropWeaponEvent);
-
-	// Attack test key.
-	NewInputComponent->BindAction("AttackKey", IE_Pressed, this, &ABrawlerCharacter::AttackEvent);
 	
 	// Take Damage test key.
 	{
@@ -139,7 +136,8 @@ void ABrawlerCharacter::SetupPlayerInputComponent(UInputComponent* NewInputCompo
 void ABrawlerCharacter::MoveForward(const float Amount)
 {
 	if(IsDead()) return;
-
+	if(IsAttacking()) return;
+	
 	const FVector Direction = FRotationMatrix(Controller->GetControlRotation()).GetScaledAxis(EAxis::X)
 							+ FRotationMatrix(Controller->GetControlRotation()).GetScaledAxis(EAxis::Z);
 	AddMovementInput(Direction, Amount);
@@ -148,7 +146,8 @@ void ABrawlerCharacter::MoveForward(const float Amount)
 void ABrawlerCharacter::MoveRight(const float Amount)
 {
 	if(IsDead()) return;
-
+	if(IsAttacking()) return;
+	
 	const FVector Direction = FRotationMatrix(Controller->GetControlRotation()).GetScaledAxis(EAxis::Y);
 	AddMovementInput(Direction, Amount);
 }
@@ -169,11 +168,10 @@ void ABrawlerCharacter::UpdateWalkingFX() const
 void ABrawlerCharacter::TakeDamageEvent(const int& Amount)
 {
 	if (IsDead()) return;
-
-	if (InvincibilityTimer > 0) return;
+	if (IsInvincible()) return;
 	
 	Health -= Amount;
-	if (Health <= 0) {
+	if (IsDead()) {
 		DeathEvent();
 		Debug("%s is dead!", *GetName());
 	}
