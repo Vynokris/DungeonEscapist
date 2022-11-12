@@ -6,33 +6,35 @@
 #include "DebugUtils.h"
 #include "Components/TextBlock.h"
 
+bool UGameHUD::Initialize()
+{
+    const bool Success = Super::Initialize();
+    DebugInfo("Created HUD: %d", Success);
+    if(!Success) return false;
+
+    if(EnemyCounter)
+    {
+        EnemyCounter->TextDelegate.BindUFunction(this, "UpdateCounterEvent");
+        UpdateCounterEvent("0");
+    }
+    
+    return true;
+}
+
 void UGameHUD::NativeConstruct()
 {
     Super::NativeConstruct();
 }
 
-bool UGameHUD::Initialize()
+void UGameHUD::NativeDestruct()
 {
-    const bool Success = Super::Initialize();
-    if(!Success) return false;
-
-    if(EnemyCounter)
-    {
-        EnemyCounter->TextDelegate.BindUFunction(this, "SetCounterText");
-        Debug("Found EnemyCounter"); 
-    }
-    return true;
+    Super::NativeDestruct();
 }
 
-
-void UGameHUD::UpdateEnemyCounterEvent(int _Value)
+void UGameHUD::UpdateCounterEvent(const FString& Amount)
 {
-    SetCounterText(_Value);
-    Debug("Setting value GUI: ", _Value);
+    EnemyCounter->SetText(FText::FromString(Amount));
+    DebugError("Updated text");
 }
 
-FText UGameHUD::SetCounterText(int _Value) const
-{
-    return FText::FromString(FString::FromInt(_Value));
-}
 

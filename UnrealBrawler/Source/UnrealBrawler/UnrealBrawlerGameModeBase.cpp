@@ -1,26 +1,31 @@
 #include "DebugUtils.h"
 #include "UnrealBrawlerGameModeBase.h"
-#include "KnifeActor.h"
 
-void AUnrealBrawlerGameModeBase()
-{
-}
+#include "GameHUD.h"
+#include "KnifeActor.h"
+#include "Blueprint/UserWidget.h"
 
 void AUnrealBrawlerGameModeBase::BeginPlay()
 {
-    //SpawnActor(FVector(0, 60, 110.250), FRotator(0));
     Super::BeginPlay();
+    
+    if(IsValid(WidgetGameClass))
+    {
+        DebugInfo("Found Game HUD!");
+        GameHUD = Cast<UGameHUD>(CreateWidget(GetWorld(), WidgetGameClass));
+        
+        if(GameHUD)
+        {
+            GameHUD->AddToViewport();
+        }
+    }
+    else
+    {
+        DebugError("Game HUD not found!");
+    }
 }
 
-void AUnrealBrawlerGameModeBase::Tick(float _DeltaTime)
+void AUnrealBrawlerGameModeBase::Tick(float DeltaSeconds)
 {
-    Super::Tick(_DeltaTime);
-}
-
-AActor* AUnrealBrawlerGameModeBase::SpawnActor(FVector Position, FRotator Orientation)
-{
-    //FActorSpawnParameters SpawnParameters;
-    //SpawnParameters.Template = Cast<AKnifeActor>(KnifeBlueprint);
-    //return GetWorld()->SpawnActor<AActor>(KnifeBlueprint, _Position, _Orientation, SpawnParameters);
-    return nullptr;
+    Super::Tick(DeltaSeconds);
 }

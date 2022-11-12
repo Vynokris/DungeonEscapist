@@ -6,6 +6,7 @@
 #include "Components/CapsuleComponent.h"
 #include "Blueprint/WidgetTree.h"
 #include "Components/BoxComponent.h"
+#include "NiagaraFunctionLibrary.h"
 #include "Kismet/GameplayStatics.h"
 
 ABrawlerCharacter::ABrawlerCharacter()
@@ -124,15 +125,18 @@ void ABrawlerCharacter::SetupPlayerInputComponent(UInputComponent* NewInputCompo
 	NewInputComponent->BindAction("Defend", IE_Pressed,  this, &ABrawlerCharacter::StartDefendingEvent);
 	NewInputComponent->BindAction("Defend", IE_Released, this, &ABrawlerCharacter::StopDefendingEvent);
 	
-	// Drop Weapon test key.
-	NewInputComponent->BindAction("TestKey1", IE_Pressed, this, &ABrawlerCharacter::DropWeaponEvent);
+	// Drop Key.
+	NewInputComponent->BindAction("Drop", IE_Pressed, this, &ABrawlerCharacter::DropWeaponEvent);
+
+	// Enemy counter test key;
+	NewInputComponent->BindAction("TestKey", IE_Pressed, this, &ABrawlerCharacter::EnemyKilledEvent);
 	
 	// Take Damage test key.
-	{
+	/*{
 		FInputActionBinding TakeDamageBinding("TestKey", IE_Pressed);
 		TakeDamageBinding.ActionDelegate.GetDelegateForManualSet().BindLambda([this] { TakeDamageEvent(1); });
 		NewInputComponent->AddActionBinding(TakeDamageBinding);
-	}
+	}*/
 }
 
 
@@ -176,6 +180,8 @@ void ABrawlerCharacter::TakeDamageEvent(const int& Amount)
 	if (IsInvincible()) return;
 	
 	Health -= Amount;
+	UNiagaraFunctionLibrary::SpawnSystemAttached(BloodSplatterEffect, this->RootComponent, NAME_None, FVector(0.f), FRotator(0.f), EAttachLocation::Type::KeepRelativeOffset, true);
+	
 	if (IsDead()) {
 		DeathEvent();
 		DebugInfo("%s is dead!", *GetPlayerName());
@@ -257,7 +263,9 @@ void ABrawlerCharacter::DeathEvent()
 void ABrawlerCharacter::EnemyKilledEvent()
 {
 	KillCount++;
-	GameHudComponent->UpdateEnemyCounterEvent(KillCount);
+	DebugError("KillCount %d: ", KillCount);
+	UGameHUD* GameHUD = Cast<UGameHUD>(CurrentHUD);
+	//GameHUD->UpdateCounterEvent(FString::FromInt(KillCount));
 }
 
 void ABrawlerCharacter::DropWeaponEvent()

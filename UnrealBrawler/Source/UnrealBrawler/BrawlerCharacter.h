@@ -9,6 +9,8 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Particles/ParticleSystemComponent.h"
 #include "Camera/CameraComponent.h"
+#include "Blueprint/UserWidget.h"
+#include "NiagaraComponent.h"
 #include "BrawlerCharacter.generated.h"
 
 UCLASS()
@@ -20,10 +22,10 @@ private:
 	UCameraComponent*            CameraComponent            = nullptr;
 	USpringArmComponent*         SpringArmComponent         = nullptr;
 	UCharacterMovementComponent* CharacterMovementComponent = nullptr;
-	UGameHUD*                    GameHudComponent           = nullptr;
 	AAIController*				 AiController				= nullptr;
 	AKnifeActor*				 KnifeActor					= nullptr;
 	AActor*						 TargetActor				= nullptr;
+	UUserWidget*				 CurrentHUD					= nullptr;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera", meta = (AllowPrivateAccess = "true")) float CameraLag      = 15.f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera", meta = (AllowPrivateAccess = "true")) float CameraDistance = 300.f;
@@ -42,6 +44,7 @@ private:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "VFX", meta = (AllowPrivateAccess = "true")) UParticleSystemComponent* ParticleSystemComponent = nullptr;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "VFX", meta = (AllowPrivateAccess = "true")) float WalkingFxRate = 0.2f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "VFX", meta = (AllowPrivateAccess = "true")) UNiagaraSystem* BloodSplatterEffect = nullptr;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character Movement: Walking", meta = (AllowPrivateAccess = "true")) float MaxEnemyWalkSpeed = 500;
 

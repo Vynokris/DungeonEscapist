@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GameHUD.h"
 #include "KnifeActor.h"
 #include "GameFramework/GameModeBase.h"
 #include "UnrealBrawlerGameModeBase.generated.h"
@@ -11,12 +12,13 @@ class UNREALBRAWLER_API AUnrealBrawlerGameModeBase : public AGameModeBase
 	GENERATED_BODY()
 
 private:
-	AActor* SpawnActor(FVector Position, FRotator Orientation);
-
-public:
-	//UPROPERTY(EditDefaultsOnly, Category="KnifeBlueprint") TSubclassOf<AKnifeActor> KnifeBlueprint;
+	UGameHUD* GameHUD = nullptr;
 	
-	protected:
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="UserInterface", meta = (AllowPrivateAccess = "true")) TSubclassOf<UUserWidget> WidgetGameClass;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="UserInterface", meta = (AllowPrivateAccess = "true")) TSubclassOf<UUserWidget> WidgetHomeClass;
+	
+protected:
 	virtual void BeginPlay() override;
-	virtual void Tick(float DeltaTime) override;
+	virtual void Tick(float DeltaSeconds) override;
 };

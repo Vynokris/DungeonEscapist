@@ -12,15 +12,13 @@ class UNREALBRAWLER_API UGameHUD : public UUserWidget
 	GENERATED_BODY()
 
 private:
-	UFUNCTION() FText SetCounterText(int _Value) const;
-	
+	UPROPERTY(EditAnywhere, Category = "Game UI", meta = (BindWidget)) class UTextBlock* EnemyCounter;
+
 protected:
-	virtual void NativeConstruct() override;
 	virtual bool Initialize() override;
-	
-public:
-	void UpdateEnemyCounterEvent(int _Value);
+	virtual void NativeConstruct() override;
+	virtual void NativeDestruct() override;
 
 public:
-	UPROPERTY (EditAnywhere, Category = "Game UI", meta = (BindWidget)) class UTextBlock* EnemyCounter;
+	UFUNCTION(BlueprintCallable) void UpdateCounterEvent(const FString& Amount);
 };
