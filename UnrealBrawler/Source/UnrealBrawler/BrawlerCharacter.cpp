@@ -198,6 +198,8 @@ void ABrawlerCharacter::StartDefendingEvent()
 
 void ABrawlerCharacter::StopDefendingEvent()
 {
+	if (!IsDefending()) return;
+	
 	Defending = false;
 	DebugInfo("%s stopped defending.", *GetName());
 }
