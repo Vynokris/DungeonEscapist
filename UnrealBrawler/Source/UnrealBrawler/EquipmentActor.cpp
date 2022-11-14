@@ -51,7 +51,7 @@ void AEquipmentActor::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
 	
-	if (!WasPickedUp()) {
+	if (floatingEffect && !WasPickedUp()) {
 		SetActorLocation(GetActorLocation() + FVector (0,0, sin(UGameplayStatics::GetRealTimeSeconds(GetWorld())*2)/4));
 		SetActorRotation(GetActorRotation() + FRotator(0, 1, 0));
 	}
