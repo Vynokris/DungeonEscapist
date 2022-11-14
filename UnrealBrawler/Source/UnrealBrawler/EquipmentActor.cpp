@@ -69,16 +69,32 @@ void AEquipmentActor::NotifyActorBeginOverlap(AActor* OtherActor)
 
 	if (Cast<AActor>(ParentCharacter) != OtherActor)
 	{
-		if (EquipmentType == Weapon && ParentCharacter->IsAttacking())
+		switch (EquipmentType)
 		{
-			// Let player and enemies damage each other.
-			if ((ParentCharacter->IsEnemy()  && OtherActor->Tags.Contains("Player")) ||
-				(ParentCharacter->IsPlayer() && OtherActor->Tags.Contains("Enemy")))
+		case Weapon:
+			if (ParentCharacter->IsAttacking() && !ParentCharacter->WasAttackBlocked())
 			{
-				ABrawlerCharacter* OtherCharacter = Cast<ABrawlerCharacter>(OtherActor);
-				if (!OtherCharacter->IsDefending())
-					OtherCharacter->TakeDamageEvent(ParentCharacter->GetAttackDamage());
+				if (ABrawlerCharacter* OtherCharacter = Cast<ABrawlerCharacter>(OtherActor))
+				{
+					// Let player and enemies damage each other.
+					if ((ParentCharacter->IsEnemy()  &&  OtherCharacter->IsPlayer()) ||
+						(ParentCharacter->IsPlayer() && !OtherCharacter->IsPlayer()))
+					{
+						OtherCharacter->TakeDamageEvent(ParentCharacter->GetAttackDamage());
+					}
+				}
 			}
+			break;
+			
+		case Shield:
+			// If the shield was hit by a weapon, block the other actor's attack.
+			if (ParentCharacter->IsDefending() && OtherActor->Tags.Contains("Weapon"))
+				if (ABrawlerCharacter* OtherCharacter = Cast<AEquipmentActor>(OtherActor)->ParentCharacter)
+					OtherCharacter->AttackBlockedEvent();
+			break;
+			
+		default:
+			break;
 		}
 	}
 }

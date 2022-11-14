@@ -127,31 +127,26 @@ void ABrawlerCharacter::SetupPlayerInputComponent(UInputComponent* NewInputCompo
 
 void ABrawlerCharacter::MoveForward(const float Amount)
 {
-    if(IsDead()) return;
-    if(IsAttacking()) return;
-    if(IsDefending()) return;
+    if(IsDead() || Amount == 0) return;
     
     const FVector Direction = FRotationMatrix(Controller->GetControlRotation()).GetScaledAxis(EAxis::X)
                             + FRotationMatrix(Controller->GetControlRotation()).GetScaledAxis(EAxis::Z);
-    AddMovementInput(Direction, Amount);
+    AddMovementInput(Direction, Amount / (IsAttacking() || IsDefending() ? 1000 : 1));
 }
 
 void ABrawlerCharacter::MoveRight(const float Amount)
 {
-    if(IsDead()) return;
-    if(IsAttacking()) return;
-    if(IsDefending()) return;
+    if(IsDead() || Amount == 0) return;
     
     const FVector Direction = FRotationMatrix(Controller->GetControlRotation()).GetScaledAxis(EAxis::Y);
-    AddMovementInput(Direction, Amount);
+    AddMovementInput(Direction, Amount * (IsAttacking() || IsDefending() ? 0.0001 : 1));
 }
 
 void ABrawlerCharacter::UpdateWalkingFX() const
 {
     if (IsDead()) return;
     
-    const bool ShouldShowFX = GetVelocity() != FVector(0, 0, 0) && !CharacterMovementComponent->IsFalling();
-    
+    const bool ShouldShowFX = GetVelocity().SizeSquared() > 10 && !CharacterMovementComponent->IsFalling();
     if (ShouldShowFX && ParticleSystemComponent->bWasDeactivated)
         ParticleSystemComponent->ActivateSystem();
     else if (!ShouldShowFX && !ParticleSystemComponent->bWasDeactivated)
@@ -162,8 +157,7 @@ void ABrawlerCharacter::UpdateWalkingFX() const
 #pragma region Player Events
 void ABrawlerCharacter::TakeDamageEvent(const int& Amount)
 {
-    if (IsDead()) return;
-    if (IsInvincible()) return;
+    if (IsDead() || IsInvincible()) return;
     
     Health -= Amount;
     UNiagaraFunctionLibrary::SpawnSystemAttached(BloodSplatterEffect, this->RootComponent, NAME_None, FVector(0.f), FRotator(0.f), EAttachLocation::Type::KeepRelativeOffset, true);
@@ -185,6 +179,7 @@ void ABrawlerCharacter::StartAttackingEvent()
     if(IsDead() || IsDefending() || !HasEquipment(Weapon)) return;
 
     Attacking = true;
+    AttackBlocked = false;
     DebugInfo("%s is attacking.", *GetName());
 }
 
@@ -193,7 +188,16 @@ void ABrawlerCharacter::StopAttackingEvent()
     if(!IsAttacking()) return;
 
     Attacking = false;
+    AttackBlocked = false;
     DebugInfo("%s is attacking.", *GetName());
+}
+
+void ABrawlerCharacter::AttackBlockedEvent()
+{
+    if (!IsAttacking()) return;
+
+    AttackBlocked = true;
+    DebugInfo("%s's attack was blocked.", *GetName());
 }
 
 void ABrawlerCharacter::StartDefendingEvent()
@@ -293,6 +297,11 @@ int ABrawlerCharacter::GetKillCount() const
 bool ABrawlerCharacter::IsAttacking() const
 {
     return Attacking;
+}
+
+bool ABrawlerCharacter::WasAttackBlocked() const
+{
+    return AttackBlocked;
 }
 
 bool ABrawlerCharacter::IsDefending() const
