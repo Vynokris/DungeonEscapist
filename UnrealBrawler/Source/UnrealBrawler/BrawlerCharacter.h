@@ -3,7 +3,7 @@
 #include "CoreMinimal.h"
 #include "AIController.h"
 #include "GameHUD.h"
-#include "KnifeActor.h"
+#include "EquipmentActor.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -26,6 +26,7 @@ private:
 	AAIController*				 AiController				= nullptr;
 	AKnifeActor*				 KnifeActor					= nullptr;
 	AActor*						 TargetActor				= nullptr;
+	UUserWidget*				 CurrentHUD					= nullptr;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera", meta = (AllowPrivateAccess = "true")) float CameraLag      = 15.f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera", meta = (AllowPrivateAccess = "true")) float CameraDistance = 300.f;
@@ -35,7 +36,6 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character", meta = (AllowPrivateAccess = "true")) int AttackDamage          = 1;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character", meta = (AllowPrivateAccess = "true")) int AttackDuration        = 1;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character", meta = (AllowPrivateAccess = "true")) int InvincibilityDuration = 2;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character", meta = (AllowPrivateAccess = "true")) FString PlayerName		= FString("Undefined");
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character", meta = (AllowPrivateAccess = "true")) TSubclassOf<AActor> PlayerDefaultWeapon;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character", meta = (AllowPrivateAccess = "true")) TSubclassOf<AActor> EnemyDefaultWeapon;
@@ -56,6 +56,8 @@ private:
 	float AttackTimer        = 0;
 	bool  Defending          = false;
 	float InvincibilityTimer = 0;
+
+	TArray<AEquipmentActor*> Equipment;
 	
 private:
 	void MoveForward(const float Amount);
@@ -67,32 +69,28 @@ protected:
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaSeconds) override;
 	virtual void SetupPlayerInputComponent(UInputComponent* NewInputComponent) override;
-	virtual void NotifyActorBeginOverlap(AActor* OtherActor) override;
-	virtual void NotifyActorEndOverlap(AActor* OtherActor) override;
 	
 public:
 	ABrawlerCharacter();
-
-	UFUNCTION(BlueprintCallable) int  IsPlayer()			const;
-	UFUNCTION(BlueprintCallable) int  IsEnemy()				const;
-	UFUNCTION(BlueprintCallable) int  GetHealth()			const;
-	UFUNCTION(BlueprintCallable) int  GetAttackDamage()		const;
-	UFUNCTION(BlueprintCallable) int  GetKillCount()		const;
-	UFUNCTION(BlueprintCallable) bool IsAttacking()			const;
-	UFUNCTION(BlueprintCallable) bool IsDefending()			const;
-	UFUNCTION(BlueprintCallable) bool IsInvincible()		const;
-	UFUNCTION(BlueprintCallable) bool IsDead()				const;
-	UFUNCTION(BlueprintCallable) FString GetPlayerName()	const;
 	
 	void TakeDamageEvent(const int& Amount);
 	void AttackEvent();
-	void DefendEvent();
 	void StartDefendingEvent();
 	void StopDefendingEvent();
 	void InvincibilityEvent();
 	void DeathEvent();
 	void EnemyKilledEvent();
-	void DropWeaponEvent();
+	void DropEquipmentEvent(const EEquipmentType& EquipmentType);
+	void AddEquipment(AEquipmentActor* NewEquipment);
 
-	void SetWeaponActor(AKnifeActor* KnifeWeapon);
+	UFUNCTION(BlueprintCallable) int  IsPlayer()	    const;
+	UFUNCTION(BlueprintCallable) int  IsEnemy()		    const;
+	UFUNCTION(BlueprintCallable) int  GetHealth()	    const;
+	UFUNCTION(BlueprintCallable) int  GetAttackDamage() const;
+	UFUNCTION(BlueprintCallable) int  GetKillCount()    const;
+	UFUNCTION(BlueprintCallable) bool IsAttacking()	    const;
+	UFUNCTION(BlueprintCallable) bool IsDefending()	    const;
+	UFUNCTION(BlueprintCallable) bool IsInvincible()    const;
+	UFUNCTION(BlueprintCallable) bool IsDead()          const;
+	UFUNCTION(BlueprintCallable) bool HasEquipment(const EEquipmentType& EquipmentType) const;
 };

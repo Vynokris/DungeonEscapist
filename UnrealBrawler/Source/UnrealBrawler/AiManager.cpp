@@ -17,8 +17,16 @@ void AAiManager::BeginPlay()
 	// Find all enemies spawned by default in the level.
 	TArray<AActor*> FoundEnemies;
 	UGameplayStatics::GetAllActorsOfClass(GetWorld(), AEnemyAiController::StaticClass(), FoundEnemies);
-	for (AActor* Actor : FoundEnemies)
-		AiEnemies.Push(Cast<AEnemyAiController>(Actor));
+	for (int i = 0; i < FoundEnemies.Num(); i++) {
+		AiEnemies.Push(Cast<AEnemyAiController>(FoundEnemies[i]));
+	}
+}
+
+static bool CanEnemyAttack(const AEnemyAiController* Enemy)
+{
+	return Enemy->IsInPlayerRange() &&
+		  !Enemy->GetBlackboard()->GetValueAsBool("Attacking") &&
+	      !Enemy->GetBlackboard()->GetValueAsBool("TooCloseToPlayer");
 }
 
 void AAiManager::Tick(float DeltaTime)
@@ -34,14 +42,13 @@ void AAiManager::Tick(float DeltaTime)
 
 		if (ConcurrentAttacksCounter < MaxConcurrentAttacks)
 		{
-			// TODO: This could use a refactor.
 			// Find a random enemy that is in range of the player and not attacking.
 			int RandEnemyIdx = FMath::RandRange(0, AiEnemies.Num()-1);
-			for (int j = 0; j < AiEnemies.Num() && AiEnemies[RandEnemyIdx]->IsInPlayerRange() && AiEnemies[RandEnemyIdx]->GetBlackboard()->GetValueAsBool("Attacking") && AiEnemies[RandEnemyIdx]->GetBlackboard()->GetValueAsBool("TooCloseToPlayer"); j++)
+			for (int j = 0; j < AiEnemies.Num() && !CanEnemyAttack(AiEnemies[RandEnemyIdx]); j++)
 				RandEnemyIdx = (RandEnemyIdx + 1) % AiEnemies.Num();
 
 			// Let the enemy start an attack.
-			if (AiEnemies[RandEnemyIdx]->IsInPlayerRange() && !AiEnemies[RandEnemyIdx]->GetBlackboard()->GetValueAsBool("Attacking") && !AiEnemies[RandEnemyIdx]->GetBlackboard()->GetValueAsBool("TooCloseToPlayer"))
+			if (CanEnemyAttack(AiEnemies[RandEnemyIdx]))
 			{
 				AiEnemies[RandEnemyIdx]->GetBlackboard()->SetValueAsBool("Attacking", true);
 				AttackCooldown = AttackInterval;

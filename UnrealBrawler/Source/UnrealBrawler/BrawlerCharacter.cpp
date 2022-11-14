@@ -2,10 +2,9 @@
 
 #include "EnemyAiController.h"
 #include "DebugUtils.h"
-#include "KnifeActor.h"
+#include "EquipmentActor.h"
 #include "Components/CapsuleComponent.h"
 #include "Blueprint/WidgetTree.h"
-#include "Components/BoxComponent.h"
 #include "NiagaraFunctionLibrary.h"
 #include "Kismet/GameplayStatics.h"
 
@@ -35,12 +34,6 @@ ABrawlerCharacter::ABrawlerCharacter()
 	// Setup walking particles.
 	ParticleSystemComponent = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("ParticleSystemComponent"));
 	ParticleSystemComponent->SetupAttachment(CastChecked<USceneComponent, UCapsuleComponent>(GetCapsuleComponent()));
-
-	// Setup reach hitbox.
-	ReachComponent = CreateDefaultSubobject<UBoxComponent>(TEXT("ReachBoxComponent"));
-	ReachComponent->SetWorldScale3D(FVector(0.3f,0.3f,1.0f));
-	ReachComponent->SetGenerateOverlapEvents(true);
-	ReachComponent->SetupAttachment(RootComponent);
 }
 
 void ABrawlerCharacter::BeginPlay()
@@ -72,25 +65,19 @@ void ABrawlerCharacter::BeginPlay()
 
 		// Give a knife to the enemy.
 		if (EnemyDefaultWeapon)
-		{
-			AKnifeActor* Knife = Cast<AKnifeActor>(GetWorld()->SpawnActor(EnemyDefaultWeapon));
-			Knife->GetPickedUp(this);
-		}
+			Cast<AEquipmentActor>(GetWorld()->SpawnActor(EnemyDefaultWeapon))->GetPickedUp(this);
 	}
 
 	// If the character is controlled by the player, treat this character as a player.
 	else
 	{
 		Health = PlayerMaxHealth;
+		SetActorLabel("Player");
 		Tags.Add("Player");
-		PlayerName == FString("Undefined") ? PlayerName = FString("Player") : PlayerName;
 
 		// Give a knife to the player.
 		if (PlayerDefaultWeapon)
-		{
-			KnifeActor = Cast<AKnifeActor>(GetWorld()->SpawnActor(PlayerDefaultWeapon));
-			KnifeActor->GetPickedUp(this);
-		}
+			Cast<AEquipmentActor>(GetWorld()->SpawnActor(PlayerDefaultWeapon))->GetPickedUp(this);
 	}
 }
 
@@ -102,8 +89,6 @@ void ABrawlerCharacter::Tick(float DeltaSeconds)
 	// Decrement timers.
 	if (InvincibilityTimer > 0) InvincibilityTimer -= DeltaSeconds;
 	if (AttackTimer > 0) AttackTimer -= DeltaSeconds;
-
-	if(IsDefending()) DefendEvent();
 }
 
 void ABrawlerCharacter::SetupPlayerInputComponent(UInputComponent* NewInputComponent)
@@ -125,18 +110,19 @@ void ABrawlerCharacter::SetupPlayerInputComponent(UInputComponent* NewInputCompo
 	NewInputComponent->BindAction("Defend", IE_Pressed,  this, &ABrawlerCharacter::StartDefendingEvent);
 	NewInputComponent->BindAction("Defend", IE_Released, this, &ABrawlerCharacter::StopDefendingEvent);
 	
-	// Drop Key.
-	NewInputComponent->BindAction("Drop", IE_Pressed, this, &ABrawlerCharacter::DropWeaponEvent);
+	// Drop keys.
+	{
+		FInputActionBinding DropWeaponBinding("DropWeapon", IE_Pressed);
+		DropWeaponBinding.ActionDelegate.GetDelegateForManualSet().BindLambda([this] { DropEquipmentEvent(Weapon); });
+		NewInputComponent->AddActionBinding(DropWeaponBinding);
+		
+		FInputActionBinding DropShieldBinding("DropShield", IE_Pressed);
+		DropShieldBinding.ActionDelegate.GetDelegateForManualSet().BindLambda([this] { DropEquipmentEvent(Shield); });
+		NewInputComponent->AddActionBinding(DropShieldBinding);
+	}
 
 	// Enemy counter test key;
 	NewInputComponent->BindAction("TestKey", IE_Pressed, this, &ABrawlerCharacter::EnemyKilledEvent);
-	
-	// Take Damage test key.
-	/*{
-		FInputActionBinding TakeDamageBinding("TestKey", IE_Pressed);
-		TakeDamageBinding.ActionDelegate.GetDelegateForManualSet().BindLambda([this] { TakeDamageEvent(1); });
-		NewInputComponent->AddActionBinding(TakeDamageBinding);
-	}*/
 }
 
 
@@ -173,6 +159,7 @@ void ABrawlerCharacter::UpdateWalkingFX() const
 		ParticleSystemComponent->DeactivateSystem();
 }
 
+
 #pragma region Player Events
 void ABrawlerCharacter::TakeDamageEvent(const int& Amount)
 {
@@ -189,63 +176,32 @@ void ABrawlerCharacter::TakeDamageEvent(const int& Amount)
 	}
 	else {
 		InvincibilityEvent();
-		DebugInfo("%s hit, lost %d HP, %d HP remaining", *GetPlayerName(), Amount, Health);
+		DebugInfo("%s hit, lost %d HP, %d HP remaining", *GetName(), Amount, Health);
 	}
 }
 
 void ABrawlerCharacter::AttackEvent()
 {
-	if(IsDead()) return;
-	if(IsDefending()) return;
-	
+	// Make sure the player isn't dead or defending and has a weapon before attacking.
+	if(IsDead() || IsDefending() || !HasEquipment(Weapon)) return;
+
 	AttackTimer = AttackDuration;
-
-	if(TargetActor == nullptr) return;
-	
-	ABrawlerCharacter* EnemyBrawler = Cast<ABrawlerCharacter>(TargetActor);
-	DebugInfo("%s is attacking!", *GetPlayerName());
-	EnemyBrawler->TakeDamageEvent(1);
+	DebugInfo("%s is attacking.", *GetName());
 }
-
-void ABrawlerCharacter::DefendEvent()
-{
-	if(IsDead()) return;
-
-	DebugInfo("%s is defending!", *GetPlayerName());
-}
-
-
-// Detect collision between actor hitbox and other actor
-void ABrawlerCharacter::NotifyActorBeginOverlap(AActor* OtherActor)
-{
-	if(!OtherActor->IsA(StaticClass())) return;
-	
-	if(Cast<ABrawlerCharacter>(OtherActor)->IsEnemy() && ReachComponent->IsOverlappingActor(OtherActor))
-	{
-		// storing latest in range target
-		TargetActor = OtherActor;
-	}
-}
-
-// Detect if no more collision between actor hitbox and other actor
-void ABrawlerCharacter::NotifyActorEndOverlap(AActor* OtherActor)
-{
-	if(OtherActor == TargetActor && !ReachComponent->IsOverlappingActor(TargetActor))
-	{
-		// removing target, not in range anymore
-		TargetActor = nullptr;
-	}
-}
-
 
 void ABrawlerCharacter::StartDefendingEvent()
 {
+	// Make sure the player isn't dead or attacking and has a shield before defending.
+	if (IsDead() || IsAttacking() || !HasEquipment(Shield)) return;
+	
 	Defending = true;
+	DebugInfo("%s started defending.", *GetName());
 }
 
 void ABrawlerCharacter::StopDefendingEvent()
 {
 	Defending = false;
+	DebugInfo("%s stopped defending.", *GetName());
 }
 
 void ABrawlerCharacter::InvincibilityEvent()
@@ -257,8 +213,8 @@ void ABrawlerCharacter::DeathEvent()
 {
 	Health = 0;
 	ParticleSystemComponent->DeactivateSystem();
-	
 	if (Controller && IsEnemy()) Controller->UnPossess();
+	DebugInfo("%s is dead!", *GetName());
 }
 
 void ABrawlerCharacter::EnemyKilledEvent()
@@ -273,13 +229,31 @@ void ABrawlerCharacter::EnemyKilledEvent()
 	if(HUD) HUD->UpdateCounterEvent(FString::FromInt(KillCount));
 }
 
-void ABrawlerCharacter::DropWeaponEvent()
+void ABrawlerCharacter::DropEquipmentEvent(const EEquipmentType& EquipmentType)
 {
-	if(KnifeActor == nullptr) return;
-	
-	KnifeActor->DropPickedUp(this);
+	// Get the character's specified equipment piece if they have one.
+	AEquipmentActor* EquipmentPiece = nullptr;
+	for (AEquipmentActor* EquipmentItem : Equipment) {
+		if (EquipmentItem->GetType() == EquipmentType) {
+			EquipmentPiece = EquipmentItem;
+			break;
+		}
+	}
+
+	if (EquipmentPiece) {
+		EquipmentPiece->GetDropped(this);
+		Equipment.Remove(EquipmentPiece);
+		DebugInfo("%s dropped equipment piece.", *GetName());
+	}
+}
+
+void ABrawlerCharacter::AddEquipment(AEquipmentActor* NewEquipment)
+{
+	if (!HasEquipment(NewEquipment->GetType()))
+		Equipment.Add(NewEquipment);
 }
 #pragma endregion
+
 
 #pragma region Getter & Setter
 int ABrawlerCharacter::IsPlayer() const
@@ -327,13 +301,15 @@ bool ABrawlerCharacter::IsDead() const
 	return Health <= 0;
 }
 
-void ABrawlerCharacter::SetWeaponActor(AKnifeActor* KnifeWeapon)
+bool ABrawlerCharacter::HasEquipment(const EEquipmentType& EquipmentType) const
 {
-	KnifeActor = KnifeWeapon;
-}
-
-FString ABrawlerCharacter::GetPlayerName() const
-{
-	return PlayerName;
+	bool HasSpecifiedEquipment = false;
+	for (const AEquipmentActor* EquipmentItem : Equipment) {
+		if (EquipmentItem->GetType() == EquipmentType) {
+			HasSpecifiedEquipment = true;
+			break;
+		}
+	}
+	return HasSpecifiedEquipment;
 }
 #pragma endregion

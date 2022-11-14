@@ -2,7 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "GameHUD.h"
-#include "KnifeActor.h"
+#include "EquipmentActor.h"
 #include "GameFramework/GameModeBase.h"
 #include "UnrealBrawlerGameModeBase.generated.h"
 
