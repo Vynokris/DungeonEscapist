@@ -84,7 +84,6 @@ public:
 	
 	void TakeDamageEvent(const int& Amount);
 	void AttackEvent();
-	void DefendEvent();
 	void StartDefendingEvent();
 	void StopDefendingEvent();
 	void InvincibilityEvent();

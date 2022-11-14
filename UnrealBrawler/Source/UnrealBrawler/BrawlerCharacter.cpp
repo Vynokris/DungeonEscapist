@@ -102,8 +102,6 @@ void ABrawlerCharacter::Tick(float DeltaSeconds)
 	// Decrement timers.
 	if (InvincibilityTimer > 0) InvincibilityTimer -= DeltaSeconds;
 	if (AttackTimer > 0) AttackTimer -= DeltaSeconds;
-
-	if(IsDefending()) DefendEvent();
 }
 
 void ABrawlerCharacter::SetupPlayerInputComponent(UInputComponent* NewInputComponent)
@@ -173,6 +171,7 @@ void ABrawlerCharacter::UpdateWalkingFX() const
 		ParticleSystemComponent->DeactivateSystem();
 }
 
+
 #pragma region Player Events
 void ABrawlerCharacter::TakeDamageEvent(const int& Amount)
 {
@@ -184,7 +183,6 @@ void ABrawlerCharacter::TakeDamageEvent(const int& Amount)
 	
 	if (IsDead()) {
 		DeathEvent();
-		DebugInfo("%s is dead!", *GetPlayerName());
 	}
 	else {
 		InvincibilityEvent();
@@ -200,21 +198,13 @@ void ABrawlerCharacter::AttackEvent()
 	AttackTimer = AttackDuration;
 
 	if(TargetActor == nullptr) return;
-	
 	ABrawlerCharacter* EnemyBrawler = Cast<ABrawlerCharacter>(TargetActor);
-	DebugInfo("%s is attacking!", *GetPlayerName());
 	EnemyBrawler->TakeDamageEvent(1);
+	DebugInfo("%s is attacking.", *GetPlayerName());
 }
-
-void ABrawlerCharacter::DefendEvent()
-{
-	if(IsDead()) return;
-
-	DebugInfo("%s is defending!", *GetPlayerName());
-}
-
 
 // Detect collision between actor hitbox and other actor
+// TEMPORARY
 void ABrawlerCharacter::NotifyActorBeginOverlap(AActor* OtherActor)
 {
 	if(!OtherActor->IsA(StaticClass())) return;
@@ -227,6 +217,7 @@ void ABrawlerCharacter::NotifyActorBeginOverlap(AActor* OtherActor)
 }
 
 // Detect if no more collision between actor hitbox and other actor
+// TEMPORARY
 void ABrawlerCharacter::NotifyActorEndOverlap(AActor* OtherActor)
 {
 	if(OtherActor == TargetActor && !ReachComponent->IsOverlappingActor(TargetActor))
@@ -236,15 +227,16 @@ void ABrawlerCharacter::NotifyActorEndOverlap(AActor* OtherActor)
 	}
 }
 
-
 void ABrawlerCharacter::StartDefendingEvent()
 {
 	Defending = true;
+	DebugInfo("%s started defending.", *GetPlayerName());
 }
 
 void ABrawlerCharacter::StopDefendingEvent()
 {
 	Defending = false;
+	DebugInfo("%s stopped defending.", *GetPlayerName());
 }
 
 void ABrawlerCharacter::InvincibilityEvent()
@@ -256,15 +248,16 @@ void ABrawlerCharacter::DeathEvent()
 {
 	Health = 0;
 	ParticleSystemComponent->DeactivateSystem();
-	
 	if (Controller && IsEnemy()) Controller->UnPossess();
+	DebugInfo("%s is dead!", *GetPlayerName());
 }
 
 void ABrawlerCharacter::EnemyKilledEvent()
 {
 	KillCount++;
 	DebugError("KillCount %d: ", KillCount);
-	UGameHUD* GameHUD = Cast<UGameHUD>(CurrentHUD);
+	
+	// UGameHUD* GameHUD = Cast<UGameHUD>(CurrentHUD);
 	//GameHUD->UpdateCounterEvent(FString::FromInt(KillCount));
 }
 
@@ -272,9 +265,11 @@ void ABrawlerCharacter::DropWeaponEvent()
 {
 	if(KnifeActor == nullptr) return;
 	
-	KnifeActor->DropPickedUp(this);
+	KnifeActor->GetDropped(this);
+	DebugInfo("%s dropped weapon.", *GetPlayerName());
 }
 #pragma endregion
+
 
 #pragma region Getter & Setter
 int ABrawlerCharacter::IsPlayer() const
