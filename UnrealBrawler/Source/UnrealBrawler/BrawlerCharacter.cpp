@@ -104,14 +104,14 @@ void ABrawlerCharacter::SetupPlayerInputComponent(UInputComponent* NewInputCompo
 
 	// Attack key.
 	NewInputComponent->BindAction("Attack", IE_Pressed, this, &ABrawlerCharacter::StartAttackingEvent);
-
-	// Pickup key
-	//NewInputComponent->BindAction("Pickup", IE_Pressed, this, &ABrawlerCharacter::StartAttackingEvent);
-	//NewInputComponent->BindAction("Pickup", IE_Released, this, &ABrawlerCharacter::StartAttackingEvent);
 	
 	// Defend key.
 	NewInputComponent->BindAction("Defend", IE_Pressed,  this, &ABrawlerCharacter::StartDefendingEvent);
 	NewInputComponent->BindAction("Defend", IE_Released, this, &ABrawlerCharacter::StopDefendingEvent);
+
+	// Pickup key
+	//NewInputComponent->BindAction("Pickup", IE_Pressed, this, &ABrawlerCharacter::StartAttackingEvent);
+	//NewInputComponent->BindAction("Pickup", IE_Released, this, &ABrawlerCharacter::StartAttackingEvent);
 	
 	// Drop keys.
 	{
