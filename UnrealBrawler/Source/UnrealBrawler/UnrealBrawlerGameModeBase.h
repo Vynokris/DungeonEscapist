@@ -17,8 +17,11 @@ private:
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="UserInterface", meta = (AllowPrivateAccess = "true")) TSubclassOf<UUserWidget> WidgetGameClass;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="UserInterface", meta = (AllowPrivateAccess = "true")) TSubclassOf<UUserWidget> WidgetHomeClass;
-	
+
 protected:
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaSeconds) override;
+
+public:
+	UGameHUD* GetGameHUD();
 };

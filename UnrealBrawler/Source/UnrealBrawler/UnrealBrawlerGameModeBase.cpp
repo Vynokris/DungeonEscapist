@@ -11,7 +11,6 @@ void AUnrealBrawlerGameModeBase::BeginPlay()
     
     if(IsValid(WidgetGameClass))
     {
-        DebugInfo("Found Game HUD!");
         GameHUD = Cast<UGameHUD>(CreateWidget(GetWorld(), WidgetGameClass));
         
         if(GameHUD)
@@ -19,13 +18,14 @@ void AUnrealBrawlerGameModeBase::BeginPlay()
             GameHUD->AddToViewport();
         }
     }
-    else
-    {
-        DebugError("Game HUD not found!");
-    }
 }
 
 void AUnrealBrawlerGameModeBase::Tick(float DeltaSeconds)
 {
     Super::Tick(DeltaSeconds);
+}
+
+UGameHUD* AUnrealBrawlerGameModeBase::GetGameHUD()
+{
+    return GameHUD;
 }

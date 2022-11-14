@@ -184,7 +184,8 @@ void ABrawlerCharacter::TakeDamageEvent(const int& Amount)
 	
 	if (IsDead()) {
 		DeathEvent();
-		DebugInfo("%s is dead!", *GetPlayerName());
+		if(IsEnemy()) EnemyKilledEvent(); // if enemy was killed, means player killed him
+		DebugWarning("%s is dead!", *GetPlayerName());
 	}
 	else {
 		InvincibilityEvent();
@@ -263,9 +264,13 @@ void ABrawlerCharacter::DeathEvent()
 void ABrawlerCharacter::EnemyKilledEvent()
 {
 	KillCount++;
-	DebugError("KillCount %d: ", KillCount);
-	UGameHUD* GameHUD = Cast<UGameHUD>(CurrentHUD);
-	//GameHUD->UpdateCounterEvent(FString::FromInt(KillCount));
+	DebugData("KillCount %d: ", KillCount);
+
+	if(!GameMode) return;
+	
+	AUnrealBrawlerGameModeBase* BrawlerMode = Cast<AUnrealBrawlerGameModeBase>(GameMode);
+	UGameHUD* HUD = BrawlerMode->GetGameHUD();
+	if(HUD) HUD->UpdateCounterEvent(FString::FromInt(KillCount));
 }
 
 void ABrawlerCharacter::DropWeaponEvent()
