@@ -101,6 +101,8 @@ void AEquipmentActor::NotifyActorBeginOverlap(AActor* OtherActor)
 
 void AEquipmentActor::GetPickedUp(ABrawlerCharacter* NewParentCharacter)
 {
+	if (!NewParentCharacter) return;
+	
 	FName SocketName = "";
 	switch (EquipmentType)
 	{

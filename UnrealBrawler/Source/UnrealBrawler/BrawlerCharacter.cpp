@@ -65,7 +65,8 @@ void ABrawlerCharacter::BeginPlay()
 
         // Give default equipment to the enemy.
         for (TSubclassOf<AEquipmentActor> EquipmentPiece : EnemyDefaultEquipment)
-            Cast<AEquipmentActor>(GetWorld()->SpawnActor(EquipmentPiece))->GetPickedUp(this);
+            if (EquipmentPiece)
+                Cast<AEquipmentActor>(GetWorld()->SpawnActor(EquipmentPiece))->GetPickedUp(this);
     }
 
     // If the character is controlled by the player, treat this character as a player.
@@ -77,7 +78,8 @@ void ABrawlerCharacter::BeginPlay()
 
         // Give default equipment to the player.
         for (TSubclassOf<AEquipmentActor> EquipmentPiece : PlayerDefaultEquipment)
-            Cast<AEquipmentActor>(GetWorld()->SpawnActor(EquipmentPiece))->GetPickedUp(this);
+            if (EquipmentPiece)
+                Cast<AEquipmentActor>(GetWorld()->SpawnActor(EquipmentPiece))->GetPickedUp(this);
     }
 }
 
