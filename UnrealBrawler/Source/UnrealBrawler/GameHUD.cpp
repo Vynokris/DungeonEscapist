@@ -9,7 +9,6 @@
 bool UGameHUD::Initialize()
 {
     const bool Success = Super::Initialize();
-    DebugInfo("Created HUD: %d", Success);
     if(!Success) return false;
 
     if(EnemyCounter)
@@ -34,7 +33,6 @@ void UGameHUD::NativeDestruct()
 void UGameHUD::UpdateCounterEvent(const FString& Amount)
 {
     EnemyCounter->SetText(FText::FromString(Amount));
-    DebugError("Updated text");
 }
 
 
