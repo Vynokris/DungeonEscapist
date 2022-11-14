@@ -29,5 +29,5 @@ public:
 
 	bool WasPickedUp() const;
 	void GetPickedUp(ABrawlerCharacter* NewParentCharacter);
-	void DropPickedUp(ABrawlerCharacter* CurParentCharacter);
+	void GetDropped (ABrawlerCharacter* CurParentCharacter);
 };

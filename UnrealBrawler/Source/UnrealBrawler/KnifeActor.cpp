@@ -80,7 +80,7 @@ void AKnifeActor::GetPickedUp(ABrawlerCharacter* NewParentCharacter)
 	NewParentCharacter->SetWeaponActor(this);
 }
 
-void AKnifeActor::DropPickedUp(ABrawlerCharacter* CurParentCharacter)
+void AKnifeActor::GetDropped(ABrawlerCharacter* CurParentCharacter)
 {
 	DetachFromActor(FDetachmentTransformRules::KeepRelativeTransform);
 	
