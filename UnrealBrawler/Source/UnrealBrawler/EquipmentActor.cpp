@@ -106,7 +106,7 @@ void AEquipmentActor::GetPickedUp(ABrawlerCharacter* NewParentCharacter)
 	SetActorRelativeLocation({0, 0, 0});
 	SetActorRelativeRotation({0, 0, 0});
 	ParentCharacter = NewParentCharacter;
-	NewParentCharacter->AddEquipment(this);
+	NewParentCharacter->PickupEquipmentEvent(this);
 }
 
 void AEquipmentActor::GetDropped(const ABrawlerCharacter* CurParentCharacter)

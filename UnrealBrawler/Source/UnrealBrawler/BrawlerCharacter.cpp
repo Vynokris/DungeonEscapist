@@ -86,9 +86,8 @@ void ABrawlerCharacter::Tick(float DeltaSeconds)
 	Super::Tick(DeltaSeconds);
 	UpdateWalkingFX();
 
-	// Decrement timers.
+	// Decrement timer.
 	if (InvincibilityTimer > 0) InvincibilityTimer -= DeltaSeconds;
-	if (AttackTimer > 0) AttackTimer -= DeltaSeconds;
 }
 
 void ABrawlerCharacter::SetupPlayerInputComponent(UInputComponent* NewInputComponent)
@@ -104,7 +103,7 @@ void ABrawlerCharacter::SetupPlayerInputComponent(UInputComponent* NewInputCompo
 	NewInputComponent->BindAxis("LookUp", this, &ABrawlerCharacter::AddControllerPitchInput);
 
 	// Attack key.
-	NewInputComponent->BindAction("Attack", IE_Pressed, this, &ABrawlerCharacter::AttackEvent);
+	NewInputComponent->BindAction("Attack", IE_Pressed, this, &ABrawlerCharacter::StartAttackingEvent);
 	
 	// Defend key.
 	NewInputComponent->BindAction("Defend", IE_Pressed,  this, &ABrawlerCharacter::StartDefendingEvent);
@@ -171,21 +170,29 @@ void ABrawlerCharacter::TakeDamageEvent(const int& Amount)
 	
 	if (IsDead()) {
 		DeathEvent();
-		if(IsEnemy()) EnemyKilledEvent(); // if enemy was killed, means player killed him
-		DebugWarning("%s is dead!", *GetPlayerName());
+		if(IsEnemy())
+			EnemyKilledEvent(); // If an enemy was killed that means the player killed him.
 	}
 	else {
-		InvincibilityEvent();
+		StartInvincibilityEvent();
 		DebugInfo("%s hit, lost %d HP, %d HP remaining", *GetName(), Amount, Health);
 	}
 }
 
-void ABrawlerCharacter::AttackEvent()
+void ABrawlerCharacter::StartAttackingEvent()
 {
 	// Make sure the player isn't dead or defending and has a weapon before attacking.
 	if(IsDead() || IsDefending() || !HasEquipment(Weapon)) return;
 
-	AttackTimer = AttackDuration;
+	Attacking = true;
+	DebugInfo("%s is attacking.", *GetName());
+}
+
+void ABrawlerCharacter::StopAttackingEvent()
+{
+	if(!IsAttacking()) return;
+
+	Attacking = false;
 	DebugInfo("%s is attacking.", *GetName());
 }
 
@@ -206,7 +213,7 @@ void ABrawlerCharacter::StopDefendingEvent()
 	DebugInfo("%s stopped defending.", *GetName());
 }
 
-void ABrawlerCharacter::InvincibilityEvent()
+void ABrawlerCharacter::StartInvincibilityEvent()
 {
 	InvincibilityTimer = InvincibilityDuration;
 }
@@ -249,7 +256,7 @@ void ABrawlerCharacter::DropEquipmentEvent(const EEquipmentType& EquipmentType)
 	}
 }
 
-void ABrawlerCharacter::AddEquipment(AEquipmentActor* NewEquipment)
+void ABrawlerCharacter::PickupEquipmentEvent(AEquipmentActor* NewEquipment)
 {
 	if (!HasEquipment(NewEquipment->GetType()))
 		Equipment.Add(NewEquipment);
@@ -285,7 +292,7 @@ int ABrawlerCharacter::GetKillCount() const
 
 bool ABrawlerCharacter::IsAttacking() const
 {
-	return AttackTimer > 0;
+	return Attacking;
 }
 
 bool ABrawlerCharacter::IsDefending() const

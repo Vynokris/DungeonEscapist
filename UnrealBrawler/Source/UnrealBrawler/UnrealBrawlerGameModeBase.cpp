@@ -1,6 +1,6 @@
-#include "DebugUtils.h"
 #include "UnrealBrawlerGameModeBase.h"
 
+#include "DebugUtils.h"
 #include "GameHUD.h"
 #include "EquipmentActor.h"
 #include "Blueprint/UserWidget.h"

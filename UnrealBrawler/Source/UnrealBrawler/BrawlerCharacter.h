@@ -24,8 +24,6 @@ private:
 	USpringArmComponent*         SpringArmComponent         = nullptr;
 	UCharacterMovementComponent* CharacterMovementComponent = nullptr;
 	AAIController*				 AiController				= nullptr;
-	AKnifeActor*				 KnifeActor					= nullptr;
-	AActor*						 TargetActor				= nullptr;
 	UUserWidget*				 CurrentHUD					= nullptr;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera", meta = (AllowPrivateAccess = "true")) float CameraLag      = 15.f;
@@ -34,7 +32,6 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character", meta = (AllowPrivateAccess = "true")) int PlayerMaxHealth       = 5;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character", meta = (AllowPrivateAccess = "true")) int EnemyMaxHealth        = 3;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character", meta = (AllowPrivateAccess = "true")) int AttackDamage          = 1;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character", meta = (AllowPrivateAccess = "true")) int AttackDuration        = 1;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character", meta = (AllowPrivateAccess = "true")) int InvincibilityDuration = 2;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character", meta = (AllowPrivateAccess = "true")) TSubclassOf<AActor> PlayerDefaultWeapon;
@@ -53,7 +50,7 @@ private:
 	bool  CharacterIsPlayer  = true;
 	int   Health             = 0;
 	int   KillCount          = 0;
-	float AttackTimer        = 0;
+	bool  Attacking          = false;
 	bool  Defending          = false;
 	float InvincibilityTimer = 0;
 
@@ -73,15 +70,16 @@ protected:
 public:
 	ABrawlerCharacter();
 	
-	void TakeDamageEvent(const int& Amount);
-	void AttackEvent();
-	void StartDefendingEvent();
-	void StopDefendingEvent();
-	void InvincibilityEvent();
-	void DeathEvent();
-	void EnemyKilledEvent();
-	void DropEquipmentEvent(const EEquipmentType& EquipmentType);
-	void AddEquipment(AEquipmentActor* NewEquipment);
+	UFUNCTION(BlueprintCallable) void TakeDamageEvent(const int& Amount);
+	UFUNCTION(BlueprintCallable) void StartAttackingEvent();
+	UFUNCTION(BlueprintCallable) void StopAttackingEvent();
+	UFUNCTION(BlueprintCallable) void StartDefendingEvent();
+	UFUNCTION(BlueprintCallable) void StopDefendingEvent();
+	UFUNCTION(BlueprintCallable) void StartInvincibilityEvent();
+	UFUNCTION(BlueprintCallable) void DeathEvent();
+	UFUNCTION(BlueprintCallable) void EnemyKilledEvent();
+	UFUNCTION(BlueprintCallable) void DropEquipmentEvent(const EEquipmentType& EquipmentType);
+	UFUNCTION(BlueprintCallable) void PickupEquipmentEvent(AEquipmentActor* NewEquipment);
 
 	UFUNCTION(BlueprintCallable) int  IsPlayer()	    const;
 	UFUNCTION(BlueprintCallable) int  IsEnemy()		    const;
