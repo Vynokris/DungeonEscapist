@@ -37,11 +37,12 @@ EBTNodeResult::Type UMoveToPlayer::ExecuteTask(UBehaviorTreeComponent& OwnerComp
     }
     
     // Move to the player location.
-    if (DistFromPlayer > 100.f)
+    if (DistFromPlayer > 120.f)
     {
         Ai->MoveToLocation(Player->GetActorLocation());
         return EBTNodeResult::Succeeded;
     }
+    Ai->StopMovement();
 
     // Finish with success.
     return EBTNodeResult::Failed;

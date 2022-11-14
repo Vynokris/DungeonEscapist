@@ -2,7 +2,7 @@
 #include "UnrealBrawlerGameModeBase.h"
 
 #include "GameHUD.h"
-#include "KnifeActor.h"
+#include "EquipmentActor.h"
 #include "Blueprint/UserWidget.h"
 
 void AUnrealBrawlerGameModeBase::BeginPlay()
