@@ -26,26 +26,24 @@ private:
 	AAIController*				 AiController				= nullptr;
 	UUserWidget*				 CurrentHUD					= nullptr;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera", meta = (AllowPrivateAccess = "true")) float CameraLag      = 15.f;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera", meta = (AllowPrivateAccess = "true")) float CameraDistance = 300.f;
+	UPROPERTY(EditAnywhere, Category = "Camera") float CameraLag      = 15.f;
+	UPROPERTY(EditAnywhere, Category = "Camera") float CameraDistance = 300.f;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character", meta = (AllowPrivateAccess = "true")) int PlayerMaxHealth       = 5;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character", meta = (AllowPrivateAccess = "true")) int EnemyMaxHealth        = 3;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character", meta = (AllowPrivateAccess = "true")) int AttackDamage          = 1;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character", meta = (AllowPrivateAccess = "true")) int InvincibilityDuration = 2;
+	UPROPERTY(EditAnywhere, Category = "Character") int PlayerMaxHealth       = 5;
+	UPROPERTY(EditAnywhere, Category = "Character") int EnemyMaxHealth        = 3;
+	UPROPERTY(EditAnywhere, Category = "Character") int AttackDamage          = 1;
+	UPROPERTY(EditAnywhere, Category = "Character") int InvincibilityDuration = 2;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character", meta = (AllowPrivateAccess = "true")) TSubclassOf<AActor> PlayerDefaultWeapon;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character", meta = (AllowPrivateAccess = "true")) TSubclassOf<AActor> EnemyDefaultWeapon;
+	UPROPERTY(EditDefaultsOnly, Category = "Character") TArray<TSubclassOf<AEquipmentActor>> PlayerDefaultEquipment;
+	UPROPERTY(EditDefaultsOnly, Category = "Character") TArray<TSubclassOf<AEquipmentActor>> EnemyDefaultEquipment;
+	
+	UPROPERTY(EditAnywhere, Category = "VFX") UParticleSystemComponent* ParticleSystemComponent = nullptr;
+	UPROPERTY(EditAnywhere, Category = "VFX") float WalkingFxRate = 0.2f;
+	UPROPERTY(EditAnywhere, Category = "VFX") UNiagaraSystem* BloodSplatterEffect = nullptr;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Settings", meta = (AllowPrivateAccess = "true")) UShapeComponent* ReachComponent = nullptr;
+	UPROPERTY(EditAnywhere, Category = "GameMode") TSubclassOf<AGameModeBase> GameMode;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "VFX", meta = (AllowPrivateAccess = "true")) UParticleSystemComponent* ParticleSystemComponent = nullptr;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "VFX", meta = (AllowPrivateAccess = "true")) float WalkingFxRate = 0.2f;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "VFX", meta = (AllowPrivateAccess = "true")) UNiagaraSystem* BloodSplatterEffect = nullptr;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GameMode", meta = (AllowPrivateAccess = "true")) TSubclassOf<AGameModeBase> GameMode;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character Movement: Walking", meta = (AllowPrivateAccess = "true")) float MaxEnemyWalkSpeed = 500;
+	UPROPERTY(EditAnywhere, Category = "Character Movement: Walking") float MaxEnemyWalkSpeed = 500;
 
 	bool  CharacterIsPlayer  = true;
 	int   Health             = 0;

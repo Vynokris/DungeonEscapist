@@ -23,12 +23,10 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Equipment Properties", meta = (AllowPrivateAccess = "true")) UStaticMeshComponent*       MeshComponent = nullptr;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Equipment Properties", meta = (AllowPrivateAccess = "true")) TEnumAsByte<EEquipmentType> EquipmentType = Weapon;
 	
-private:
-	virtual void NotifyActorBeginOverlap(AActor* OtherActor) override;
-	
 protected:
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaSeconds) override;
+	virtual void NotifyActorBeginOverlap(AActor* OtherActor) override;
 	
 public:	
 	AEquipmentActor();
