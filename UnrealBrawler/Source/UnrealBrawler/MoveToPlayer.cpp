@@ -1,5 +1,6 @@
 #include "MoveToPlayer.h"
 
+#include "DrawDebugHelpers.h"
 #include "EnemyAiController.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "GameFramework/Character.h"
@@ -40,6 +41,7 @@ EBTNodeResult::Type UMoveToPlayer::ExecuteTask(UBehaviorTreeComponent& OwnerComp
     if (DistFromPlayer > 150.f)
     {
         Ai->MoveToLocation(Player->GetActorLocation());
+        DrawDebugLine(GetWorld(), AiLocation, Player->GetActorLocation(), FColor::Red, false, -1, 0, 10);
         return EBTNodeResult::Succeeded;
     }
     Ai->StopMovement();

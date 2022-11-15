@@ -1,5 +1,6 @@
 #include "AiManager.h"
 
+#include "BrawlerCharacter.h"
 #include "EnemyAiController.h"
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/Actor.h"
@@ -24,9 +25,11 @@ void AAiManager::BeginPlay()
 
 static bool CanEnemyAttack(const AEnemyAiController* Enemy)
 {
-	return Enemy->IsInPlayerRange() &&
-		  !Enemy->GetBlackboard()->GetValueAsBool("Attacking") &&
-	      !Enemy->GetBlackboard()->GetValueAsBool("TooCloseToPlayer");
+	const ABrawlerCharacter* Character = Cast<ABrawlerCharacter>(Enemy->GetPawn());
+	return  Character &&
+		   !Character->IsDead() &&
+		    Enemy->IsInPlayerRange() &&
+		   !Enemy->GetBlackboard()->GetValueAsBool("Attacking");
 }
 
 void AAiManager::Tick(float DeltaTime)
