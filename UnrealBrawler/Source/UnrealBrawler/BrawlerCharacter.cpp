@@ -88,8 +88,14 @@ void ABrawlerCharacter::Tick(float DeltaSeconds)
     Super::Tick(DeltaSeconds);
     UpdateWalkingFX();
 
-    // Decrement timer.
+    // Attack/defend whenever possible if buffers are non-zero.
+    if (DefenseBuffer > 0 && !IsAttacking() && !IsDefending()) StartDefendingEvent();
+    if (AttackBuffer  > 0 && !IsAttacking() && !IsDefending()) StartAttackingEvent();
+
+    // Decrement timer and buffers.
     if (InvincibilityTimer > 0) InvincibilityTimer -= DeltaSeconds;
+    if (AttackBuffer       > 0) AttackBuffer       -= DeltaSeconds;
+    if (DefenseBuffer      > 0) DefenseBuffer      -= DeltaSeconds;
 }
 
 void ABrawlerCharacter::SetupPlayerInputComponent(UInputComponent* NewInputComponent)
@@ -146,9 +152,8 @@ void ABrawlerCharacter::MoveRight(const float Amount)
 
 void ABrawlerCharacter::UpdateWalkingFX() const
 {
-    if (IsDead()) return;
-    
-    const bool ShouldShowFX = GetVelocity().SizeSquared() > 10 && !CharacterMovementComponent->IsFalling();
+    // Only show step VFX when the player is moving and not falling.
+    const bool ShouldShowFX = !IsDead() && GetVelocity().SizeSquared() > 10 && !CharacterMovementComponent->IsFalling();
     if (ShouldShowFX && ParticleSystemComponent->bWasDeactivated)
         ParticleSystemComponent->ActivateSystem();
     else if (!ShouldShowFX && !ParticleSystemComponent->bWasDeactivated)
@@ -159,16 +164,26 @@ void ABrawlerCharacter::UpdateWalkingFX() const
 #pragma region Player Events
 void ABrawlerCharacter::TakeDamageEvent(const int& Amount)
 {
+    // Make sure the player isn't dead or invincible before taking damage.
     if (IsDead() || IsInvincible()) return;
-    
+
+    // Take damage and show damage particles.
     Health -= Amount;
     UNiagaraFunctionLibrary::SpawnSystemAttached(BloodSplatterEffect, this->RootComponent, NAME_None, FVector(0.f), FRotator(0.f), EAttachLocation::Type::KeepRelativeOffset, true);
-    
+
+    // If the character is dead, call the death event.
     if (IsDead()) {
         DeathEvent();
-        if(IsEnemy())
-            EnemyKilledEvent(); // If an enemy was killed that means the player killed him.
+        
+        // If the character is an enemy, call the player's enemy killed event.
+        if (IsEnemy()) {
+            TArray<AActor*> FoundActors;
+            UGameplayStatics::GetAllActorsWithTag(GetWorld(), "Player", FoundActors);
+            Cast<ABrawlerCharacter>(FoundActors[0])->EnemyKilledEvent();
+        }
     }
+
+    // If the character isn't dead start a new invincibility timer.
     else {
         StartInvincibilityEvent();
         DebugInfo("%s hit, lost %d HP, %d HP remaining", *GetName(), Amount, Health);
@@ -177,10 +192,14 @@ void ABrawlerCharacter::TakeDamageEvent(const int& Amount)
 
 void ABrawlerCharacter::StartAttackingEvent()
 {
-    // Make sure the player isn't dead or defending and has a weapon before attacking.
-    if(IsDead() || IsDefending() || !HasEquipment(Weapon)) return;
+    // Make sure the player isn't dead and has a weapon before attacking.
+    if (IsDead() || !HasEquipment(Weapon)) return;
 
+    // If the player is currently attacking or defending, start the attack buffer.
+    if (IsAttacking() || IsDefending()) { AttackBuffer = AttackBufferDuration; return; }
+    
     Attacking = true;
+    AttackBuffer = 0;
     AttackBlocked = false;
     DebugInfo("%s is attacking.", *GetName());
 }
@@ -204,15 +223,20 @@ void ABrawlerCharacter::AttackBlockedEvent()
 
 void ABrawlerCharacter::StartDefendingEvent()
 {
-    // Make sure the player isn't dead or attacking and has a shield before defending.
-    if (IsDead() || IsAttacking() || !HasEquipment(Shield)) return;
+    // Make sure the player isn't dead and has a shield before defending.
+    if (IsDead() || !HasEquipment(Shield)) return;
+
+    // If the player is currently attacking or defending, start the defense buffer.
+    if (IsAttacking() || IsDefending()) { DefenseBuffer = DefenseBufferDuration; return; }
     
     Defending = true;
+    DefenseBuffer = 0;
     DebugInfo("%s started defending.", *GetName());
 }
 
 void ABrawlerCharacter::StopDefendingEvent()
 {
+    DefenseBuffer = 0;
     if (!IsDefending()) return;
     
     Defending = false;
@@ -237,7 +261,7 @@ void ABrawlerCharacter::DeathEvent()
 void ABrawlerCharacter::EnemyKilledEvent()
 {
     KillCount++;
-    DebugData("KillCount %d: ", KillCount);
+    DebugData("KillCount: %d", KillCount);
 
     if(!GameMode) return;
     
