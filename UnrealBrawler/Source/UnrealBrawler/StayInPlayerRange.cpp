@@ -53,7 +53,7 @@ EBTNodeResult::Type UStayInPlayerRange::ExecuteTask(UBehaviorTreeComponent& Owne
     
     // Set the point towards which the AI should move.
     Ai->MoveToLocation(AiLocation + StrafeVec);
-    DrawDebugLine(GetWorld(), AiLocation, AiLocation + StrafeVec, FColor::Red, false, -1, 0, 10);
+    DrawDebugLine(GetWorld(), AiLocation, AiLocation + StrafeVec, FColor::Green, false, GetWorld()->GetDeltaSeconds() * 2.5, 0, 10);
 
     // Finish with success.
     return EBTNodeResult::Succeeded;

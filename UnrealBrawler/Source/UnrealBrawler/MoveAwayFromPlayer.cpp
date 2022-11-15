@@ -29,7 +29,7 @@ EBTNodeResult::Type UMoveAwayFromPlayer::ExecuteTask(UBehaviorTreeComponent& Own
     // Get the player and AI locations as well as their distance.
     const FVector PlayerLocation = Player->GetActorLocation();
     const FVector AiLocation     = Ai->GetPawn()->GetActorLocation();
-    const FVector AiToPlayer     = FVector(PlayerLocation.X - AiLocation.X, PlayerLocation.Y - AiLocation.Y, 0);
+    const FVector AiToPlayer     = FVector(PlayerLocation.X - AiLocation.X, PlayerLocation.Y - AiLocation.Y, AiLocation.Z);
     const float   DistFromPlayer = AiToPlayer.Size2D();
     const FVector AiToPlayerDir  = AiToPlayer / DistFromPlayer;
     Ai->CheckIfInPlayerRange(DistFromPlayer);
@@ -52,7 +52,7 @@ EBTNodeResult::Type UMoveAwayFromPlayer::ExecuteTask(UBehaviorTreeComponent& Own
     
         // Set the point towards which the AI should move.
         Ai->MoveToLocation(AiLocation + StrafeVec);
-        DrawDebugLine(GetWorld(), AiLocation, AiLocation + StrafeVec, FColor::Red, false, -1, 0, 10);
+        DrawDebugLine(GetWorld(), AiLocation, AiLocation + StrafeVec, FColor::Blue, false, GetWorld()->GetDeltaSeconds() * 2.5, 0, 10);
     }
     else
     {

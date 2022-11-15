@@ -15,12 +15,11 @@ AEquipmentActor::AEquipmentActor()
 
 	MeshComponent = CreateDefaultSubobject<UStaticMeshComponent>("EquipmentMesh");
 	MeshComponent->SetupAttachment(RootComponent);
-	MeshComponent->SetCollisionResponseToAllChannels(ECR_Overlap);
-	MeshComponent->SetGenerateOverlapEvents(true);
+	MeshComponent->SetCollisionResponseToAllChannels(ECR_Ignore);
 
 	BoxComponent = CreateDefaultSubobject<UBoxComponent>("EquipmentBox");
 	BoxComponent->SetupAttachment(RootComponent);
-	MeshComponent->SetCollisionResponseToAllChannels(ECR_Overlap);
+	BoxComponent->SetCollisionResponseToAllChannels(ECR_Overlap);
 	BoxComponent->SetGenerateOverlapEvents(true);
 
 	Tags.Add("Equipment");
@@ -30,6 +29,9 @@ void AEquipmentActor::BeginPlay()
 {
 	Debug("Spawning EquipmentActor at = %s", *this->GetActorLocation().ToString());
 	
+	MeshComponent->SetCollisionResponseToAllChannels(ECR_Ignore);
+	BoxComponent->SetCollisionResponseToAllChannels(ECR_Overlap);
+	BoxComponent->SetGenerateOverlapEvents(true);
 	switch (EquipmentType)
 	{
 	case Weapon:
