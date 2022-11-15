@@ -20,9 +20,10 @@ class UNREALBRAWLER_API ABrawlerCharacter : public ACharacter
     GENERATED_BODY()
 
 private:
-    UCameraComponent*            CameraComponent            = nullptr;
     USpringArmComponent*         SpringArmComponent         = nullptr;
+    UCameraComponent*            CameraComponent            = nullptr;
     UCharacterMovementComponent* CharacterMovementComponent = nullptr;
+    UAnimInstance*               AnimInstance               = nullptr;
     UUserWidget*				 CurrentHUD					= nullptr;
     
     UPROPERTY(EditAnywhere, Category = "Camera") float CameraLag      = 15.f;

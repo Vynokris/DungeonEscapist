@@ -34,6 +34,9 @@ ABrawlerCharacter::ABrawlerCharacter()
     // Setup walking particles.
     ParticleSystemComponent = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("ParticleSystemComponent"));
     ParticleSystemComponent->SetupAttachment(CastChecked<USceneComponent, UCapsuleComponent>(GetCapsuleComponent()));
+
+    // Setup anim instance.
+    AnimInstance = GetMesh()->GetAnimInstance();
 }
 
 void ABrawlerCharacter::BeginPlay()
