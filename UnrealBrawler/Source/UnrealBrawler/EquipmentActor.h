@@ -19,10 +19,13 @@ class UNREALBRAWLER_API AEquipmentActor : public AActor
 
 private:
 	ABrawlerCharacter* ParentCharacter = nullptr;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Equipment Properties", meta = (AllowPrivateAccess = "true")) UShapeComponent*            BoxComponent  = nullptr;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Equipment Properties", meta = (AllowPrivateAccess = "true")) UStaticMeshComponent*       MeshComponent = nullptr;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Equipment Properties", meta = (AllowPrivateAccess = "true")) TEnumAsByte<EEquipmentType> EquipmentType = Weapon;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Equipment Properties", meta = (AllowPrivateAccess = "true")) bool                        PlayFloatingAnimation = true;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Equipment Properties", meta = (AllowPrivateAccess = "true")) TEnumAsByte<EEquipmentType> EquipmentType			= Weapon;
+
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Equipment Properties", meta = (AllowPrivateAccess = "true")) UShapeComponent*            BoxComponent			= nullptr;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Equipment Properties", meta = (AllowPrivateAccess = "true")) UStaticMeshComponent*       MeshComponent			= nullptr;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Equipment Properties", meta = (AllowPrivateAccess = "true")) bool                        PlayFloatingAnimation	= true;
 	
 protected:
 	virtual void BeginPlay() override;

@@ -110,10 +110,6 @@ void ABrawlerCharacter::SetupPlayerInputComponent(UInputComponent* NewInputCompo
 	// Defend key.
 	NewInputComponent->BindAction("Defend", IE_Pressed,  this, &ABrawlerCharacter::StartDefendingEvent);
 	NewInputComponent->BindAction("Defend", IE_Released, this, &ABrawlerCharacter::StopDefendingEvent);
-
-	// Pickup key
-	//NewInputComponent->BindAction("Pickup", IE_Pressed, this, &ABrawlerCharacter::StartAttackingEvent);
-	//NewInputComponent->BindAction("Pickup", IE_Released, this, &ABrawlerCharacter::StartAttackingEvent);
 	
 	// Drop keys.
 	{
@@ -233,6 +229,8 @@ void ABrawlerCharacter::DeathEvent()
     Health = 0;
     ParticleSystemComponent->DeactivateSystem();
     if (Controller && IsEnemy()) Controller->UnPossess();
+	GetCapsuleComponent()->SetCollisionResponseToAllChannels(ECR_Ignore);
+    
     DebugInfo("%s is dead!", *GetName());
 }
 
