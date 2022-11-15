@@ -18,7 +18,7 @@ AEquipmentActor::AEquipmentActor()
 	MeshComponent->SetCollisionResponseToAllChannels(ECR_Overlap);
 	MeshComponent->SetGenerateOverlapEvents(true);
 
-	BoxComponent = CreateDefaultSubobject<UBoxComponent>("KnifeBox");
+	BoxComponent = CreateDefaultSubobject<UBoxComponent>("EquipmentBox");
 	BoxComponent->SetupAttachment(RootComponent);
 	MeshComponent->SetCollisionResponseToAllChannels(ECR_Overlap);
 	BoxComponent->SetGenerateOverlapEvents(true);
@@ -30,8 +30,6 @@ void AEquipmentActor::BeginPlay()
 {
 	Debug("Spawning EquipmentActor at = %s", *this->GetActorLocation().ToString());
 	
-	MeshComponent->SetCollisionResponseToAllChannels(ECR_Overlap);
-	MeshComponent->SetGenerateOverlapEvents(true);
 	switch (EquipmentType)
 	{
 	case Weapon:
@@ -134,6 +132,7 @@ void AEquipmentActor::GetDropped(const ABrawlerCharacter* CurParentCharacter)
 	SetActorRelativeRotation({0, 0, 0});
 	SetActorScale3D({1,1,1});
 	ParentCharacter = nullptr;
+	PlayFloatingAnimation = true;
 }
 
 bool AEquipmentActor::WasPickedUp() const
