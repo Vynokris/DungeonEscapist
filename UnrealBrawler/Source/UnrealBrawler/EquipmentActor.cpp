@@ -6,6 +6,8 @@
 #include "Components/BoxComponent.h"
 #include "Kismet/GameplayStatics.h"
 
+#define EQUIPMENT_STENCIL_VAL 4
+
 AEquipmentActor::AEquipmentActor()
 {
 	PrimaryActorTick.bCanEverTick = true;
@@ -16,6 +18,8 @@ AEquipmentActor::AEquipmentActor()
 	MeshComponent = CreateDefaultSubobject<UStaticMeshComponent>("EquipmentMesh");
 	MeshComponent->SetupAttachment(RootComponent);
 	MeshComponent->SetCollisionResponseToAllChannels(ECR_Ignore);
+    MeshComponent->SetRenderCustomDepth(true);
+	MeshComponent->SetCustomDepthStencilValue(EQUIPMENT_STENCIL_VAL);
 
 	BoxComponent = CreateDefaultSubobject<UBoxComponent>("EquipmentBox");
 	BoxComponent->SetupAttachment(RootComponent);
@@ -27,11 +31,10 @@ AEquipmentActor::AEquipmentActor()
 
 void AEquipmentActor::BeginPlay()
 {
-	Debug("Spawning EquipmentActor at = %s", *this->GetActorLocation().ToString());
-	
 	MeshComponent->SetCollisionResponseToAllChannels(ECR_Ignore);
 	BoxComponent->SetCollisionResponseToAllChannels(ECR_Overlap);
 	BoxComponent->SetGenerateOverlapEvents(true);
+	
 	switch (EquipmentType)
 	{
 	case Weapon:
@@ -123,8 +126,10 @@ void AEquipmentActor::GetPickedUp(ABrawlerCharacter* NewParentCharacter)
 					  SocketName);
 	SetActorRelativeLocation({0, 0, 0});
 	SetActorRelativeRotation({0, 0, 0});
-	ParentCharacter = NewParentCharacter;
 	NewParentCharacter->PickupEquipmentEvent(this);
+	MeshComponent->SetRenderCustomDepth(NewParentCharacter->GetMesh()->bRenderCustomDepth);
+	MeshComponent->SetCustomDepthStencilValue(NewParentCharacter->GetMesh()->CustomDepthStencilValue);
+	ParentCharacter = NewParentCharacter;
 }
 
 void AEquipmentActor::GetDropped(const ABrawlerCharacter* CurParentCharacter)
@@ -133,6 +138,8 @@ void AEquipmentActor::GetDropped(const ABrawlerCharacter* CurParentCharacter)
 	SetActorRelativeLocation(CurParentCharacter->GetActorLocation());
 	SetActorRelativeRotation({0, 0, 0});
 	SetActorScale3D({1,1,1});
+	MeshComponent->SetRenderCustomDepth(true);
+	MeshComponent->SetCustomDepthStencilValue(EQUIPMENT_STENCIL_VAL);
 	ParentCharacter = nullptr;
 	PlayFloatingAnimation = true;
 }
@@ -145,4 +152,9 @@ bool AEquipmentActor::WasPickedUp() const
 EEquipmentType AEquipmentActor::GetType() const
 {
 	return EquipmentType;
+}
+
+UStaticMeshComponent* AEquipmentActor::GetMesh() const
+{
+	return MeshComponent;
 }

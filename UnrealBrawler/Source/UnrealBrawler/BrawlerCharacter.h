@@ -23,7 +23,6 @@ private:
     USpringArmComponent*         SpringArmComponent         = nullptr;
     UCameraComponent*            CameraComponent            = nullptr;
     UCharacterMovementComponent* CharacterMovementComponent = nullptr;
-    UAnimInstance*               AnimInstance               = nullptr;
     UUserWidget*				 CurrentHUD					= nullptr;
     
     UPROPERTY(EditAnywhere, Category = "Camera") float CameraLag      = 15.f;
@@ -39,6 +38,7 @@ private:
     UPROPERTY(EditDefaultsOnly, Category = "Character") TArray<TSubclassOf<AEquipmentActor>> PlayerDefaultEquipment;
     UPROPERTY(EditDefaultsOnly, Category = "Character") TArray<TSubclassOf<AEquipmentActor>> EnemyDefaultEquipment;
     
+    UPROPERTY(EditAnywhere, Category = "VFX") bool ShowPlayerOutline = false;
     UPROPERTY(EditAnywhere, Category = "VFX") UParticleSystemComponent* ParticleSystemComponent = nullptr;
     UPROPERTY(EditAnywhere, Category = "VFX") float WalkingFxRate = 0.2f;
     UPROPERTY(EditAnywhere, Category = "VFX") UNiagaraSystem* BloodSplatterEffect = nullptr;
@@ -80,6 +80,7 @@ public:
     UFUNCTION(BlueprintCallable) void StartDefendingEvent();
     UFUNCTION(BlueprintCallable) void StopDefendingEvent();
     UFUNCTION(BlueprintCallable) void StartInvincibilityEvent();
+    UFUNCTION(BlueprintCallable) void StopInvincibilityEvent();
     UFUNCTION(BlueprintCallable) void DeathEvent();
     UFUNCTION(BlueprintCallable) void EnemyKilledEvent();
     UFUNCTION(BlueprintCallable) void DropEquipmentEvent(const EEquipmentType& EquipmentType);

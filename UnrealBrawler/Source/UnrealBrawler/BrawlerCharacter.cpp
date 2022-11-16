@@ -8,6 +8,10 @@
 #include "NiagaraFunctionLibrary.h"
 #include "Kismet/GameplayStatics.h"
 
+#define PLAYER_STENCIL_VAL 1
+#define ENEMY_STENCIL_VAL 2
+#define INVINCIBILITY_STENCIL_VAL 3
+
 ABrawlerCharacter::ABrawlerCharacter()
 {
     PrimaryActorTick.bCanEverTick = true;
@@ -35,8 +39,9 @@ ABrawlerCharacter::ABrawlerCharacter()
     ParticleSystemComponent = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("ParticleSystemComponent"));
     ParticleSystemComponent->SetupAttachment(CastChecked<USceneComponent, UCapsuleComponent>(GetCapsuleComponent()));
 
-    // Setup anim instance.
-    AnimInstance = GetMesh()->GetAnimInstance();
+    // Make an outline around characters.
+    GetMesh()->SetRenderCustomDepth(ShowPlayerOutline);
+	GetMesh()->SetCustomDepthStencilValue(0);
 }
 
 void ABrawlerCharacter::BeginPlay()
@@ -53,6 +58,8 @@ void ABrawlerCharacter::BeginPlay()
         CharacterIsPlayer = false;
         Health = EnemyMaxHealth;
         Tags.Add("Enemy");
+        GetMesh()->SetRenderCustomDepth(true);
+		GetMesh()->SetCustomDepthStencilValue(ENEMY_STENCIL_VAL);
 
         // Force the enemy to always face the player.
         CharacterMovementComponent->bUseControllerDesiredRotation = true;
@@ -78,6 +85,8 @@ void ABrawlerCharacter::BeginPlay()
         Health = PlayerMaxHealth;
         SetActorLabel("Player");
         Tags.Add("Player");
+        GetMesh()->SetRenderCustomDepth(ShowPlayerOutline);
+		GetMesh()->SetCustomDepthStencilValue(PLAYER_STENCIL_VAL);
 
         BrawlerGameMode = Cast<AUnrealBrawlerGameModeBase>(GetWorld()->GetAuthGameMode());
         if(IsValid(BrawlerGameMode))
@@ -103,10 +112,16 @@ void ABrawlerCharacter::Tick(float DeltaSeconds)
     if (DefenseBuffer > 0 && !IsAttacking() && !IsDefending()) StartDefendingEvent();
     if (AttackBuffer  > 0 && !IsAttacking() && !IsDefending()) StartAttackingEvent();
 
-    // Decrement timer and buffers.
-    if (InvincibilityTimer > 0) InvincibilityTimer -= DeltaSeconds;
+    // Decrement buffers.
     if (AttackBuffer       > 0) AttackBuffer       -= DeltaSeconds;
     if (DefenseBuffer      > 0) DefenseBuffer      -= DeltaSeconds;
+
+    // Decrement the invincibility timer and call the stop invincibility event when it is finished.
+    if (InvincibilityTimer > 0) {
+        InvincibilityTimer -= DeltaSeconds;
+        if (InvincibilityTimer <= 0)
+            StopInvincibilityEvent();
+    }
 }
 
 void ABrawlerCharacter::SetupPlayerInputComponent(UInputComponent* NewInputComponent)
@@ -259,7 +274,26 @@ void ABrawlerCharacter::StopDefendingEvent()
 
 void ABrawlerCharacter::StartInvincibilityEvent()
 {
+    if (!IsPlayer()) return;
     InvincibilityTimer = InvincibilityDuration;
+
+    // Change the outline color of the character and his equipment to the invincibility color.
+    GetMesh()->SetRenderCustomDepth(true);
+    GetMesh()->SetCustomDepthStencilValue(INVINCIBILITY_STENCIL_VAL);
+    for (const AEquipmentActor* EquipmentPiece : Equipment)
+        EquipmentPiece->GetMesh()->SetCustomDepthStencilValue(INVINCIBILITY_STENCIL_VAL);
+}
+
+void ABrawlerCharacter::StopInvincibilityEvent()
+{
+    if (!IsPlayer()) return;
+    InvincibilityTimer = 0;
+    
+    // Reset the outline color of the character and his equipment.
+    GetMesh()->SetRenderCustomDepth(ShowPlayerOutline);
+    GetMesh()->SetCustomDepthStencilValue(PLAYER_STENCIL_VAL);
+    for (const AEquipmentActor* EquipmentPiece : Equipment)
+        EquipmentPiece->GetMesh()->SetCustomDepthStencilValue(PLAYER_STENCIL_VAL);
 }
 
 void ABrawlerCharacter::DeathEvent()
