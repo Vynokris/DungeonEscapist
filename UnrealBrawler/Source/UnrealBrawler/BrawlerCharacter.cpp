@@ -291,7 +291,7 @@ void ABrawlerCharacter::EnemyKilledEvent()
     if(IsValid(BrawlerGameMode)) BrawlerGameMode->GetUserInterface()->GetCounter()->UpdateCounterEvent(FString::FromInt(GetKillCount()));
 
     // TODO : Replace with spawning system and enemies count alive
-    if(KillCount == 5) BrawlerGameMode->GetUserInterface()->ShowWinMenuEvent();
+    if(KillCount == 5 && IsPlayer()) BrawlerGameMode->GetUserInterface()->ShowWinMenuEvent();
 }
 
 void ABrawlerCharacter::DropEquipmentEvent(const EEquipmentType& EquipmentType)

@@ -77,12 +77,14 @@ void UUserInterfaceManager::QuitGameEvent()
 
 void UUserInterfaceManager::PlayGameEvent()
 {
-    this->ShowMenuGameEvent();
-    this->ShowOverMenuEvent();
-    this->ShowWinMenuEvent();
-
+    this->MainMenuUserWidget->SetVisibility(ESlateVisibility::Hidden);
+    this->OverMenuUserWidget->SetVisibility(ESlateVisibility::Hidden);
+    this->WinMenuUserWidget->SetVisibility(ESlateVisibility::Hidden);
+    
     this->CounterUserWidget->SetVisibility(ESlateVisibility::Visible);
     this->HealthBarUserWidget->SetVisibility(ESlateVisibility::Visible);
+
+    this->UpdateNavigation(this->MainMenuUserWidget);
 }
 
 void UUserInterfaceManager::RestartGameEvent()
