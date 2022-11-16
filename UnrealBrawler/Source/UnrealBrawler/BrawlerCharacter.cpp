@@ -277,7 +277,7 @@ void ABrawlerCharacter::DeathEvent()
     if (Controller && IsEnemy()) Controller->UnPossess();
 	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
 
-    BrawlerGameMode->GetUserInterface()->OverMenuEvent();
+    BrawlerGameMode->GetUserInterface()->ShowOverMenuEvent();
     
     DebugInfo("%s is dead!", *GetName());
 }
@@ -291,7 +291,7 @@ void ABrawlerCharacter::EnemyKilledEvent()
     if(IsValid(BrawlerGameMode)) BrawlerGameMode->GetUserInterface()->GetCounter()->UpdateCounterEvent(FString::FromInt(GetKillCount()));
 
     // TODO : Replace with spawning system and enemies count alive
-    if(KillCount == 5) BrawlerGameMode->GetUserInterface()->WinMenuEvent();
+    if(KillCount == 5) BrawlerGameMode->GetUserInterface()->ShowWinMenuEvent();
 }
 
 void ABrawlerCharacter::DropEquipmentEvent(const EEquipmentType& EquipmentType)

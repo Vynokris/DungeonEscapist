@@ -23,6 +23,8 @@ private:
 	UMenuWidget*		MainMenuWidget		= nullptr;
 	UWinWidget*			WinMenuWidget		= nullptr;
 	UOverWidget*		OverMenuWidget		= nullptr;
+
+	APlayerController*	BrawlerController	= nullptr;
 	
 public:
 	UPROPERTY(EditAnywhere, Category = "HUD UI", meta = (BindWidget))	class UUserWidget*		CounterUserWidget		= nullptr;
@@ -45,7 +47,10 @@ public:
 	UFUNCTION(BlueprintCallable) void PlayGameEvent();
 	UFUNCTION(BlueprintCallable) void RestartGameEvent();
 	
-	UFUNCTION(BlueprintCallable) void MenuGameEvent(const ESlateVisibility& Visibility);
-	UFUNCTION(BlueprintCallable) void OverMenuEvent(const ESlateVisibility& Visibility);
-	UFUNCTION(BlueprintCallable) void WinMenuEvent(const ESlateVisibility& Visibility);
+	UFUNCTION(BlueprintCallable) void ShowMenuGameEvent();
+	UFUNCTION(BlueprintCallable) void ShowOverMenuEvent();
+	UFUNCTION(BlueprintCallable) void ShowWinMenuEvent();
+
+private:
+	
 };

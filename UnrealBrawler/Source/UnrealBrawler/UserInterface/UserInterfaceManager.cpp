@@ -22,7 +22,7 @@ bool UUserInterfaceManager::Initialize()
     if(IsValid(this->WinMenuUserWidget))     this->WinMenuWidget       = Cast<UWinWidget>(WinMenuUserWidget);
     if(IsValid(this->OverMenuUserWidget))    this->OverMenuWidget      = Cast<UOverWidget>(OverMenuUserWidget);
     
-    this->MenuGameEvent(ESlateVisibility::Visible);
+    this->ShowMenuGameEvent();
 
     if(IsValid(this->MainMenuWidget))
     {
@@ -33,16 +33,18 @@ bool UUserInterfaceManager::Initialize()
     if(IsValid(this->WinMenuWidget))
     {
         WinMenuWidget->GetQuitButton()->GetButton()->OnClicked.AddDynamic(this, &UUserInterfaceManager::QuitGameEvent);
-        WinMenuWidget->GetMenuButton()->GetButton()->OnClicked.AddDynamic(this, &UUserInterfaceManager::MenuGameEvent);
+        WinMenuWidget->GetMenuButton()->GetButton()->OnClicked.AddDynamic(this, &UUserInterfaceManager::ShowMenuGameEvent);
         WinMenuWidget->GetRestartButton()->GetButton()->OnClicked.AddDynamic(this, &UUserInterfaceManager::RestartGameEvent);
     }
     
     if(IsValid(this->OverMenuWidget))
     {
         OverMenuWidget->GetQuitButton()->GetButton()->OnClicked.AddDynamic(this, &UUserInterfaceManager::QuitGameEvent);
-        OverMenuWidget->GetMenuButton()->GetButton()->OnClicked.AddDynamic(this, &UUserInterfaceManager::MenuGameEvent);
+        OverMenuWidget->GetMenuButton()->GetButton()->OnClicked.AddDynamic(this, &UUserInterfaceManager::ShowMenuGameEvent);
         OverMenuWidget->GetRestartButton()->GetButton()->OnClicked.AddDynamic(this, &UUserInterfaceManager::RestartGameEvent);
     }
+
+    this->BrawlerController = Cast<APlayerController>(GEngine->GetFirstLocalPlayerController(GetWorld()));
     
     return true;
 }
@@ -75,9 +77,9 @@ void UUserInterfaceManager::QuitGameEvent()
 
 void UUserInterfaceManager::PlayGameEvent()
 {
-    this->MenuGameEvent(ESlateVisibility::Hidden);
-    this->OverMenuEvent(ESlateVisibility::Hidden);
-    this->WinMenuEvent(ESlateVisibility::Hidden);
+    this->ShowMenuGameEvent();
+    this->ShowOverMenuEvent();
+    this->ShowWinMenuEvent();
 }
 
 void UUserInterfaceManager::RestartGameEvent()
@@ -85,19 +87,55 @@ void UUserInterfaceManager::RestartGameEvent()
     this->PlayGameEvent();
 }
 
-void UUserInterfaceManager::MenuGameEvent(const ESlateVisibility& Visibility)
+void UUserInterfaceManager::ShowMenuGameEvent()
 {
-    if(IsValid(this->MainMenuUserWidget)) this->MainMenuUserWidget->SetVisibility(Visibility);
+    if(IsValid(this->MainMenuUserWidget)) this->MainMenuUserWidget->SetVisibility(this->MainMenuUserWidget->IsVisible() ? ESlateVisibility::Hidden : ESlateVisibility::Visible);
+
+    if(IsValid(this->BrawlerController))
+    {
+        if (this->MainMenuUserWidget->IsVisible())
+        {
+            this->BrawlerController->SetPause(true);
+            this->BrawlerController->SetShowMouseCursor(true);
+            return;
+        }
+
+        this->BrawlerController->SetPause(false);
+        this->BrawlerController->SetShowMouseCursor(false);
+    } 
 }
 
-void UUserInterfaceManager::OverMenuEvent(const ESlateVisibility& Visibility)
+void UUserInterfaceManager::ShowOverMenuEvent()
 {
-    if(IsValid(this->OverMenuUserWidget)) this->OverMenuUserWidget->SetVisibility(Visibility);
+    if(IsValid(this->OverMenuUserWidget)) this->OverMenuUserWidget->SetVisibility(this->OverMenuUserWidget->IsVisible() ? ESlateVisibility::Hidden : ESlateVisibility::Visible);
+    
+    if(this->OverMenuUserWidget->IsVisible())
+    {
+        if (this->BrawlerController)
+        {
+            this->BrawlerController->SetPause(true);
+            this->BrawlerController->SetShowMouseCursor(true);
+        }
+    } else
+    {
+        
+    }
 }
 
-void UUserInterfaceManager::WinMenuEvent(const ESlateVisibility& Visibility)
+void UUserInterfaceManager::ShowWinMenuEvent()
 {
-    if(IsValid(this->WinMenuUserWidget)) this->WinMenuUserWidget->SetVisibility(Visibility);
+    if(IsValid(this->WinMenuUserWidget)) this->WinMenuUserWidget->SetVisibility(this->WinMenuUserWidget->IsVisible() ? ESlateVisibility::Hidden : ESlateVisibility::Visible);
+
+    APlayerController* const BrawlerPlayer = Cast<APlayerController>(GEngine->GetFirstLocalPlayerController(GetWorld()));
+    
+    if(this->WinMenuUserWidget->IsVisible())
+    {
+        if (BrawlerPlayer)
+        {
+            BrawlerPlayer->SetPause(true);
+            BrawlerPlayer->SetShowMouseCursor(true);
+        }
+    }
 }
 
 
