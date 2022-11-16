@@ -277,7 +277,7 @@ void ABrawlerCharacter::DeathEvent()
     if (Controller && IsEnemy()) Controller->UnPossess();
 	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
 
-    BrawlerGameMode->GetUserInterface()->ShowOverMenuEvent();
+    if(IsPlayer()) BrawlerGameMode->GetUserInterface()->ShowOverMenuEvent();
     
     DebugInfo("%s is dead!", *GetName());
 }

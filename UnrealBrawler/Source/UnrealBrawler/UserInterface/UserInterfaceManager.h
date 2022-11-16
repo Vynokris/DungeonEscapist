@@ -52,5 +52,5 @@ public:
 	UFUNCTION(BlueprintCallable) void ShowWinMenuEvent();
 
 private:
-	
+	void UpdateNavigation(const UUserWidget* Widget);
 };
