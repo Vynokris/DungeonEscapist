@@ -1,8 +1,7 @@
 #include "BrawlerCharacter.h"
 
-#include "EnemyAiController.h"
-#include "DebugUtils.h"
-#include "EquipmentActor.h"
+#include "AI/EnemyAiController.h"
+#include "Utils/DebugUtils.h"
 #include "Components/CapsuleComponent.h"
 #include "Blueprint/WidgetTree.h"
 #include "NiagaraFunctionLibrary.h"
@@ -40,7 +39,7 @@ ABrawlerCharacter::ABrawlerCharacter()
     ParticleSystemComponent->SetupAttachment(CastChecked<USceneComponent, UCapsuleComponent>(GetCapsuleComponent()));
 
     // Make an outline around characters.
-    GetMesh()->SetRenderCustomDepth(ShowPlayerOutline);
+    GetMesh()->SetRenderCustomDepth(true);
 	GetMesh()->SetCustomDepthStencilValue(0);
 }
 
@@ -58,7 +57,6 @@ void ABrawlerCharacter::BeginPlay()
         CharacterIsPlayer = false;
         Health = EnemyMaxHealth;
         Tags.Add("Enemy");
-        GetMesh()->SetRenderCustomDepth(true);
 		GetMesh()->SetCustomDepthStencilValue(ENEMY_STENCIL_VAL);
 
         // Force the enemy to always face the player.
@@ -85,15 +83,16 @@ void ABrawlerCharacter::BeginPlay()
         Health = PlayerMaxHealth;
         SetActorLabel("Player");
         Tags.Add("Player");
-        GetMesh()->SetRenderCustomDepth(ShowPlayerOutline);
 		GetMesh()->SetCustomDepthStencilValue(PLAYER_STENCIL_VAL);
 
+        // Get GameMode for future usage
         BrawlerGameMode = Cast<AUnrealBrawlerGameModeBase>(GetWorld()->GetAuthGameMode());
         if(IsValid(BrawlerGameMode))
         {
-            BrawlerGameMode->GetGameHUD()->GetHealthBar()->UpdateCurrentHealthTextEvent(FString::FromInt(GetHealth()));
-            BrawlerGameMode->GetGameHUD()->GetHealthBar()->UpdateTotalHealthTextEvent(FString::FromInt(GetHealth()));
-            BrawlerGameMode->GetGameHUD()->GetCounter()->UpdateCounterEvent(FString::FromInt(GetKillCount()));
+            BrawlerGameMode->GetUserInterface()->GetHealthBar()->UpdateCurrentHealthTextEvent(FString::FromInt(GetHealth()));
+            BrawlerGameMode->GetUserInterface()->GetHealthBar()->UpdateTotalHealthTextEvent(FString::FromInt(PlayerMaxHealth));
+            BrawlerGameMode->GetUserInterface()->GetHealthBar()->UpdateHealthEvent(GetHealth()/PlayerMaxHealth);
+            BrawlerGameMode->GetUserInterface()->GetCounter()->UpdateCounterEvent(FString::FromInt(GetKillCount()));
         }
 
         // Give default equipment to the player.
@@ -197,12 +196,21 @@ void ABrawlerCharacter::TakeDamageEvent(const int& Amount)
     Health -= Amount;
     UNiagaraFunctionLibrary::SpawnSystemAttached(BloodSplatterEffect, this->RootComponent, NAME_None, FVector(0.f), FRotator(0.f), EAttachLocation::Type::KeepRelativeOffset, true);
 
+    // Update UI according to new health value
+    if(IsValid(BrawlerGameMode))
+    {
+        BrawlerGameMode->GetUserInterface()->GetHealthBar()->UpdateCurrentHealthTextEvent(FString::FromInt(GetHealth()));
+        BrawlerGameMode->GetUserInterface()->GetHealthBar()->UpdateHealthEvent((float)Health/PlayerMaxHealth);
+    }
+    
     // If the character is dead, call the death event.
-    if (IsDead()) {
+    if (IsDead())
+    {
         DeathEvent();
         
         // If the character is an enemy, call the player's enemy killed event.
-        if (IsEnemy()) {
+        if (IsEnemy())
+        {
             TArray<AActor*> FoundActors;
             UGameplayStatics::GetAllActorsWithTag(GetWorld(), "Player", FoundActors);
             Cast<ABrawlerCharacter>(FoundActors[0])->EnemyKilledEvent();
@@ -210,12 +218,10 @@ void ABrawlerCharacter::TakeDamageEvent(const int& Amount)
     }
 
     // If the character isn't dead start a new invincibility timer.
-    else {
+    else
+    {
         StartInvincibilityEvent();
         DebugInfo("%s hit, lost %d HP, %d HP remaining", *GetName(), Amount, Health);
-
-        if(!BrawlerGameMode) return;
-        if(IsValid(BrawlerGameMode)) BrawlerGameMode->GetGameHUD()->GetHealthBar()->UpdateHealthEvent(Health);
     }
 }
 
@@ -278,7 +284,6 @@ void ABrawlerCharacter::StartInvincibilityEvent()
     InvincibilityTimer = InvincibilityDuration;
 
     // Change the outline color of the character and his equipment to the invincibility color.
-    GetMesh()->SetRenderCustomDepth(true);
     GetMesh()->SetCustomDepthStencilValue(INVINCIBILITY_STENCIL_VAL);
     for (const AEquipmentActor* EquipmentPiece : Equipment)
         EquipmentPiece->GetMesh()->SetCustomDepthStencilValue(INVINCIBILITY_STENCIL_VAL);
@@ -290,7 +295,6 @@ void ABrawlerCharacter::StopInvincibilityEvent()
     InvincibilityTimer = 0;
     
     // Reset the outline color of the character and his equipment.
-    GetMesh()->SetRenderCustomDepth(ShowPlayerOutline);
     GetMesh()->SetCustomDepthStencilValue(PLAYER_STENCIL_VAL);
     for (const AEquipmentActor* EquipmentPiece : Equipment)
         EquipmentPiece->GetMesh()->SetCustomDepthStencilValue(PLAYER_STENCIL_VAL);
@@ -301,7 +305,9 @@ void ABrawlerCharacter::DeathEvent()
     Health = 0;
     ParticleSystemComponent->DeactivateSystem();
     if (Controller && IsEnemy()) Controller->UnPossess();
-	GetCapsuleComponent()->SetCollisionResponseToAllChannels(ECR_Ignore);
+	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
+
+    if(IsPlayer()) BrawlerGameMode->GetUserInterface()->ShowOverMenuEvent();
     
     DebugInfo("%s is dead!", *GetName());
 }
@@ -312,7 +318,10 @@ void ABrawlerCharacter::EnemyKilledEvent()
     DebugData("KillCount: %d", KillCount);
 
     if(!BrawlerGameMode) return;
-    if(IsValid(BrawlerGameMode)) BrawlerGameMode->GetGameHUD()->GetCounter()->UpdateCounterEvent(FString::FromInt(GetKillCount()));
+    if(IsValid(BrawlerGameMode)) BrawlerGameMode->GetUserInterface()->GetCounter()->UpdateCounterEvent(FString::FromInt(GetKillCount()));
+
+    // TODO : Replace with spawning system and enemies count alive
+    if(KillCount == 5) BrawlerGameMode->GetUserInterface()->ShowWinMenuEvent();
 }
 
 void ABrawlerCharacter::DropEquipmentEvent(const EEquipmentType& EquipmentType)

@@ -1,8 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameHUD.h"
-#include "EquipmentActor.h"
+#include "UserInterface/UserInterfaceManager.h"
 #include "GameFramework/GameModeBase.h"
 #include "UnrealBrawlerGameModeBase.generated.h"
 
@@ -12,7 +11,7 @@ class UNREALBRAWLER_API AUnrealBrawlerGameModeBase : public AGameModeBase
 	GENERATED_BODY()
 
 private:
-	UGameHUD* GameHUD = nullptr;
+	UUserInterfaceManager* GameHUD = nullptr;
 	
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="UserInterface", meta = (AllowPrivateAccess = "true")) TSubclassOf<UUserWidget> WidgetGameClass;
@@ -23,5 +22,5 @@ protected:
 	virtual void Tick(float DeltaSeconds) override;
 
 public:
-	UGameHUD* GetGameHUD();
+	UUserInterfaceManager* GetUserInterface();
 };

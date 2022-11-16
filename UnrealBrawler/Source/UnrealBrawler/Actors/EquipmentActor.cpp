@@ -1,7 +1,7 @@
 #include "EquipmentActor.h"
 
-#include "BrawlerCharacter.h"
-#include "DebugUtils.h"
+#include "../BrawlerCharacter.h"
+#include "../Utils/DebugUtils.h"
 #include "DrawDebugHelpers.h"
 #include "Components/BoxComponent.h"
 #include "Kismet/GameplayStatics.h"
@@ -127,7 +127,6 @@ void AEquipmentActor::GetPickedUp(ABrawlerCharacter* NewParentCharacter)
 	SetActorRelativeLocation({0, 0, 0});
 	SetActorRelativeRotation({0, 0, 0});
 	NewParentCharacter->PickupEquipmentEvent(this);
-	MeshComponent->SetRenderCustomDepth(NewParentCharacter->GetMesh()->bRenderCustomDepth);
 	MeshComponent->SetCustomDepthStencilValue(NewParentCharacter->GetMesh()->CustomDepthStencilValue);
 	ParentCharacter = NewParentCharacter;
 }
@@ -138,7 +137,6 @@ void AEquipmentActor::GetDropped(const ABrawlerCharacter* CurParentCharacter)
 	SetActorRelativeLocation(CurParentCharacter->GetActorLocation());
 	SetActorRelativeRotation({0, 0, 0});
 	SetActorScale3D({1,1,1});
-	MeshComponent->SetRenderCustomDepth(true);
 	MeshComponent->SetCustomDepthStencilValue(EQUIPMENT_STENCIL_VAL);
 	ParentCharacter = nullptr;
 	PlayFloatingAnimation = true;

@@ -2,8 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "AIController.h"
-#include "GameHUD.h"
-#include "EquipmentActor.h"
+#include "Actors/EquipmentActor.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -38,7 +37,6 @@ private:
     UPROPERTY(EditDefaultsOnly, Category = "Character") TArray<TSubclassOf<AEquipmentActor>> PlayerDefaultEquipment;
     UPROPERTY(EditDefaultsOnly, Category = "Character") TArray<TSubclassOf<AEquipmentActor>> EnemyDefaultEquipment;
     
-    UPROPERTY(EditAnywhere, Category = "VFX") bool ShowPlayerOutline = false;
     UPROPERTY(EditAnywhere, Category = "VFX") UParticleSystemComponent* ParticleSystemComponent = nullptr;
     UPROPERTY(EditAnywhere, Category = "VFX") float WalkingFxRate = 0.2f;
     UPROPERTY(EditAnywhere, Category = "VFX") UNiagaraSystem* BloodSplatterEffect = nullptr;

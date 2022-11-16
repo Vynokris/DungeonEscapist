@@ -1,16 +1,13 @@
 
 
 
-#include "CounterWidget.h"
+#include "CounterWidgetClass.h"
 
-#include "DebugUtils.h"
 #include "Components/TextBlock.h"
 
 bool UCounterWidget::Initialize()
 {
-    const bool Success = Super::Initialize();
-    if(!Success) return false;
-    
+    if(!Super::Initialize()) return false;
     return true;
 }
 
@@ -26,6 +23,6 @@ void UCounterWidget::NativeDestruct()
 
 void UCounterWidget::UpdateCounterEvent(const FString& Amount)
 {
-    if(IsValid(CurrentEnemyKilled)) CurrentEnemyKilled->SetText(FText::FromString(Amount));
+    if(IsValid(this->CurrentEnemyKilled)) this->CurrentEnemyKilled->SetText(FText::FromString(Amount));
 }
 

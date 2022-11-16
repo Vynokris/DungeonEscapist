@@ -1,9 +1,7 @@
 #include "UnrealBrawlerGameModeBase.h"
 
-#include "DebugUtils.h"
-#include "GameHUD.h"
-#include "EquipmentActor.h"
 #include "Blueprint/UserWidget.h"
+#include "Kismet/GameplayStatics.h"
 
 void AUnrealBrawlerGameModeBase::BeginPlay()
 {
@@ -11,8 +9,12 @@ void AUnrealBrawlerGameModeBase::BeginPlay()
     
     if(IsValid(WidgetGameClass))
     {
-        GameHUD = Cast<UGameHUD>(CreateWidget(GetWorld(), WidgetGameClass));
+        GameHUD = Cast<UUserInterfaceManager>(CreateWidget(GetWorld(), WidgetGameClass));
         if(IsValid(GameHUD)) GameHUD->AddToViewport();
+
+        APlayerController* PlayerControllerRef = UGameplayStatics::GetPlayerController(GetWorld(), 0);
+        PlayerControllerRef->SetShowMouseCursor(true);
+        PlayerControllerRef->SetPause(true);
     }
 }
 
@@ -21,7 +23,7 @@ void AUnrealBrawlerGameModeBase::Tick(float DeltaSeconds)
     Super::Tick(DeltaSeconds);
 }
 
-UGameHUD* AUnrealBrawlerGameModeBase::GetGameHUD()
+UUserInterfaceManager* AUnrealBrawlerGameModeBase::GetUserInterface()
 {
     return GameHUD;
 }

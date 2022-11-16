@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
-#include "CounterWidget.generated.h"
+#include "CounterWidgetClass.generated.h"
 
 UCLASS()
 class UNREALBRAWLER_API UCounterWidget : public UUserWidget

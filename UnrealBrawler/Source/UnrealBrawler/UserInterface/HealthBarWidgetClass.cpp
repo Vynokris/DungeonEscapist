@@ -1,9 +1,8 @@
 
 
 
-#include "HealthBarWidget.h"
+#include "HealthBarWidgetClass.h"
 
-#include "DebugUtils.h"
 #include "Components/ProgressBar.h"
 #include "Components/TextBlock.h"
 
@@ -25,9 +24,9 @@ void UHealthBarWidget::NativeDestruct()
     Super::NativeDestruct();
 }
 
-void UHealthBarWidget::UpdateHealthEvent(const int& Amount)
+void UHealthBarWidget::UpdateHealthEvent(const float& Amount)
 {
-    if(IsValid(HealthBar)) HealthBar->Percent = Amount;
+    if(IsValid(HealthBar)) HealthBar->SetPercent(Amount);
 }
 
 void UHealthBarWidget::UpdateCurrentHealthTextEvent(const FString& Amount)

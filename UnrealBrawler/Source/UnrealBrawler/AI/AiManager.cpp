@@ -1,6 +1,6 @@
 #include "AiManager.h"
 
-#include "BrawlerCharacter.h"
+#include "../BrawlerCharacter.h"
 #include "EnemyAiController.h"
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/Actor.h"
