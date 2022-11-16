@@ -1,6 +1,6 @@
 #include "AttackPlayer.h"
 
-#include "BrawlerCharacter.h"
+#include "../BrawlerCharacter.h"
 #include "EnemyAiController.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "GameFramework/Character.h"

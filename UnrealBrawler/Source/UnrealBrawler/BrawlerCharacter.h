@@ -22,7 +22,6 @@ private:
     USpringArmComponent*         SpringArmComponent         = nullptr;
     UCameraComponent*            CameraComponent            = nullptr;
     UCharacterMovementComponent* CharacterMovementComponent = nullptr;
-    UAnimInstance*               AnimInstance               = nullptr;
     UUserWidget*				 CurrentHUD					= nullptr;
     
     UPROPERTY(EditAnywhere, Category = "Camera") float CameraLag      = 15.f;
@@ -79,6 +78,7 @@ public:
     UFUNCTION(BlueprintCallable) void StartDefendingEvent();
     UFUNCTION(BlueprintCallable) void StopDefendingEvent();
     UFUNCTION(BlueprintCallable) void StartInvincibilityEvent();
+    UFUNCTION(BlueprintCallable) void StopInvincibilityEvent();
     UFUNCTION(BlueprintCallable) void DeathEvent();
     UFUNCTION(BlueprintCallable) void EnemyKilledEvent();
     UFUNCTION(BlueprintCallable) void DropEquipmentEvent(const EEquipmentType& EquipmentType);
