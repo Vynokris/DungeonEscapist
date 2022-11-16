@@ -9,6 +9,7 @@ bool UOverWidget::Initialize()
 
     this->GetRestartButton()->SetText("Restart Game");
     this->GetQuitButton()->SetText("Quit Game");
+    this->GetMenuButton()->SetText("Game Menu");
     
     return true;
 }
@@ -32,5 +33,11 @@ UButtonWidget* UOverWidget::GetRestartButton() const
 UButtonWidget* UOverWidget::GetQuitButton() const
 {
     if(IsValid(this->QuitButtonWidget)) return CastChecked<UButtonWidget>(this->QuitButtonWidget);
+    return nullptr;
+}
+
+UButtonWidget* UOverWidget::GetMenuButton() const
+{
+    if(IsValid(this->MenuButtonWidget)) return CastChecked<UButtonWidget>(this->MenuButtonWidget);
     return nullptr;
 }

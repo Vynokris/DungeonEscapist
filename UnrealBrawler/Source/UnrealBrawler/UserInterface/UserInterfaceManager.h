@@ -12,7 +12,7 @@
 #include "UserInterfaceManager.generated.h"
 
 UCLASS()
-class UNREALBRAWLER_API UGameHUD : public UUserWidget
+class UNREALBRAWLER_API UUserInterfaceManager : public UUserWidget
 {
 	GENERATED_BODY()
 
@@ -36,13 +36,16 @@ protected:
 	virtual bool Initialize() override;
 	virtual void NativeConstruct() override;
 	virtual void NativeDestruct() override;
-	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
 
 public:
 	UCounterWidget* GetCounter() const;
 	UHealthBarWidget* GetHealthBar() const;
 
-	UFUNCTION(BlueprintCallable) void GoToMainMenu();
-	UFUNCTION(BlueprintCallable) void GoToWinMenu();
-	UFUNCTION(BlueprintCallable) void GoToOverMenu();
+	UFUNCTION(BlueprintCallable) void QuitGameEvent();
+	UFUNCTION(BlueprintCallable) void PlayGameEvent();
+	UFUNCTION(BlueprintCallable) void RestartGameEvent();
+	
+	UFUNCTION(BlueprintCallable) void MenuGameEvent(const ESlateVisibility& Visibility);
+	UFUNCTION(BlueprintCallable) void OverMenuEvent(const ESlateVisibility& Visibility);
+	UFUNCTION(BlueprintCallable) void WinMenuEvent(const ESlateVisibility& Visibility);
 };

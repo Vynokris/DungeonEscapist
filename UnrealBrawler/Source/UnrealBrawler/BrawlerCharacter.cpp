@@ -78,13 +78,14 @@ void ABrawlerCharacter::BeginPlay()
         SetActorLabel("Player");
         Tags.Add("Player");
 
+        // Get GameMode for future usage
         BrawlerGameMode = Cast<AUnrealBrawlerGameModeBase>(GetWorld()->GetAuthGameMode());
         if(IsValid(BrawlerGameMode))
         {
-            BrawlerGameMode->GetGameHUD()->GetHealthBar()->UpdateCurrentHealthTextEvent(FString::FromInt(GetHealth()));
-            BrawlerGameMode->GetGameHUD()->GetHealthBar()->UpdateTotalHealthTextEvent(FString::FromInt(PlayerMaxHealth));
-            BrawlerGameMode->GetGameHUD()->GetHealthBar()->UpdateHealthEvent(GetHealth()/PlayerMaxHealth);
-            BrawlerGameMode->GetGameHUD()->GetCounter()->UpdateCounterEvent(FString::FromInt(GetKillCount()));
+            BrawlerGameMode->GetUserInterface()->GetHealthBar()->UpdateCurrentHealthTextEvent(FString::FromInt(GetHealth()));
+            BrawlerGameMode->GetUserInterface()->GetHealthBar()->UpdateTotalHealthTextEvent(FString::FromInt(PlayerMaxHealth));
+            BrawlerGameMode->GetUserInterface()->GetHealthBar()->UpdateHealthEvent(GetHealth()/PlayerMaxHealth);
+            BrawlerGameMode->GetUserInterface()->GetCounter()->UpdateCounterEvent(FString::FromInt(GetKillCount()));
         }
 
         // Give default equipment to the player.
@@ -185,8 +186,8 @@ void ABrawlerCharacter::TakeDamageEvent(const int& Amount)
     // Update UI according to new health value
     if(IsValid(BrawlerGameMode))
     {
-        BrawlerGameMode->GetGameHUD()->GetHealthBar()->UpdateCurrentHealthTextEvent(FString::FromInt(GetHealth()));
-        BrawlerGameMode->GetGameHUD()->GetHealthBar()->UpdateHealthEvent((float)Health/PlayerMaxHealth);
+        BrawlerGameMode->GetUserInterface()->GetHealthBar()->UpdateCurrentHealthTextEvent(FString::FromInt(GetHealth()));
+        BrawlerGameMode->GetUserInterface()->GetHealthBar()->UpdateHealthEvent((float)Health/PlayerMaxHealth);
     }
     
     // If the character is dead, call the death event.
@@ -275,6 +276,8 @@ void ABrawlerCharacter::DeathEvent()
     ParticleSystemComponent->DeactivateSystem();
     if (Controller && IsEnemy()) Controller->UnPossess();
 	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
+
+    BrawlerGameMode->GetUserInterface()->OverMenuEvent();
     
     DebugInfo("%s is dead!", *GetName());
 }
@@ -285,7 +288,10 @@ void ABrawlerCharacter::EnemyKilledEvent()
     DebugData("KillCount: %d", KillCount);
 
     if(!BrawlerGameMode) return;
-    if(IsValid(BrawlerGameMode)) BrawlerGameMode->GetGameHUD()->GetCounter()->UpdateCounterEvent(FString::FromInt(GetKillCount()));
+    if(IsValid(BrawlerGameMode)) BrawlerGameMode->GetUserInterface()->GetCounter()->UpdateCounterEvent(FString::FromInt(GetKillCount()));
+
+    // TODO : Replace with spawning system and enemies count alive
+    if(KillCount == 5) BrawlerGameMode->GetUserInterface()->WinMenuEvent();
 }
 
 void ABrawlerCharacter::DropEquipmentEvent(const EEquipmentType& EquipmentType)

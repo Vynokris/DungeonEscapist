@@ -7,8 +7,11 @@
 #include "MenuWidgetClass.h"
 #include "OverWidgetClass.h"
 #include "WinWidgetClass.h"
+#include "Components/Button.h"
+#include "Kismet/GameplayStatics.h"
+#include "UnrealBrawler/Utils/DebugUtils.h"
 
-bool UGameHUD::Initialize()
+bool UUserInterfaceManager::Initialize()
 {
     if(!Super::Initialize()) return false;
 
@@ -19,60 +22,84 @@ bool UGameHUD::Initialize()
     if(IsValid(this->WinMenuUserWidget))     this->WinMenuWidget       = Cast<UWinWidget>(WinMenuUserWidget);
     if(IsValid(this->OverMenuUserWidget))    this->OverMenuWidget      = Cast<UOverWidget>(OverMenuUserWidget);
     
-    //if(IsValid(this->MainMenuUserWidget)) this->GoToMainMenu();
+    this->MenuGameEvent(ESlateVisibility::Visible);
+
+    if(IsValid(this->MainMenuWidget))
+    {
+        MainMenuWidget->GetPlayButton()->GetButton()->OnClicked.AddDynamic(this, &UUserInterfaceManager::PlayGameEvent);
+        MainMenuWidget->GetQuitButton()->GetButton()->OnClicked.AddDynamic(this, &UUserInterfaceManager::QuitGameEvent);
+    }
+
+    if(IsValid(this->WinMenuWidget))
+    {
+        WinMenuWidget->GetQuitButton()->GetButton()->OnClicked.AddDynamic(this, &UUserInterfaceManager::QuitGameEvent);
+        WinMenuWidget->GetMenuButton()->GetButton()->OnClicked.AddDynamic(this, &UUserInterfaceManager::MenuGameEvent);
+        WinMenuWidget->GetRestartButton()->GetButton()->OnClicked.AddDynamic(this, &UUserInterfaceManager::RestartGameEvent);
+    }
+    
+    if(IsValid(this->OverMenuWidget))
+    {
+        OverMenuWidget->GetQuitButton()->GetButton()->OnClicked.AddDynamic(this, &UUserInterfaceManager::QuitGameEvent);
+        OverMenuWidget->GetMenuButton()->GetButton()->OnClicked.AddDynamic(this, &UUserInterfaceManager::MenuGameEvent);
+        OverMenuWidget->GetRestartButton()->GetButton()->OnClicked.AddDynamic(this, &UUserInterfaceManager::RestartGameEvent);
+    }
     
     return true;
 }
 
-void UGameHUD::NativeConstruct()
+void UUserInterfaceManager::NativeConstruct()
 {
     Super::NativeConstruct();
 }
 
-void UGameHUD::NativeDestruct()
+void UUserInterfaceManager::NativeDestruct()
 {
     Super::NativeDestruct();
 }
 
-void UGameHUD::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
-{
-    
-}
-
-UCounterWidget* UGameHUD::GetCounter() const
+UCounterWidget* UUserInterfaceManager::GetCounter() const
 {
     if(IsValid(this->CounterWidget)) return this->CounterWidget;
     return nullptr;
 }
-UHealthBarWidget* UGameHUD::GetHealthBar() const
+UHealthBarWidget* UUserInterfaceManager::GetHealthBar() const
 {
     if(IsValid(this->HealthBarWidget)) return this->HealthBarWidget;
     return nullptr;
 }
 
-void UGameHUD::GoToMainMenu()
+void UUserInterfaceManager::QuitGameEvent()
 {
-    this->MainMenuWidget->SetVisibility(ESlateVisibility::Visible);
-    
-    this->WinMenuWidget->SetVisibility(ESlateVisibility::Hidden);
-    this->OverMenuWidget->SetVisibility(ESlateVisibility::Hidden);
+    GetWorld()->GetFirstPlayerController()->ConsoleCommand("quit");
 }
 
-void UGameHUD::GoToOverMenu()
+void UUserInterfaceManager::PlayGameEvent()
 {
-    this->OverMenuWidget->SetVisibility(ESlateVisibility::Visible);
-    
-    this->MainMenuWidget->SetVisibility(ESlateVisibility::Hidden);
-    this->WinMenuWidget->SetVisibility(ESlateVisibility::Hidden);
+    this->MenuGameEvent(ESlateVisibility::Hidden);
+    this->OverMenuEvent(ESlateVisibility::Hidden);
+    this->WinMenuEvent(ESlateVisibility::Hidden);
 }
 
-void UGameHUD::GoToWinMenu()
+void UUserInterfaceManager::RestartGameEvent()
 {
-    this->WinMenuWidget->SetVisibility(ESlateVisibility::Visible);
-    
-    this->MainMenuWidget->SetVisibility(ESlateVisibility::Hidden);
-    this->OverMenuWidget->SetVisibility(ESlateVisibility::Hidden);
+    this->PlayGameEvent();
 }
+
+void UUserInterfaceManager::MenuGameEvent(const ESlateVisibility& Visibility)
+{
+    if(IsValid(this->MainMenuUserWidget)) this->MainMenuUserWidget->SetVisibility(Visibility);
+}
+
+void UUserInterfaceManager::OverMenuEvent(const ESlateVisibility& Visibility)
+{
+    if(IsValid(this->OverMenuUserWidget)) this->OverMenuUserWidget->SetVisibility(Visibility);
+}
+
+void UUserInterfaceManager::WinMenuEvent(const ESlateVisibility& Visibility)
+{
+    if(IsValid(this->WinMenuUserWidget)) this->WinMenuUserWidget->SetVisibility(Visibility);
+}
+
 
 
 

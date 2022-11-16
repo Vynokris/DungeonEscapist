@@ -10,8 +10,7 @@ bool UButtonWidget::Initialize()
 {
     if(!Super::Initialize()) return false;
 
-    this->Button->Cursor = EMouseCursor::Hand;
-    
+    this->Button->SetCursor(EMouseCursor::Hand);
     return true;
 }
 
