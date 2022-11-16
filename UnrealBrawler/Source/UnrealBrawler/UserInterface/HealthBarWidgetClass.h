@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
-#include "HealthBarWidget.generated.h"
+#include "HealthBarWidgetClass.generated.h"
 
 UCLASS()
 class UNREALBRAWLER_API UHealthBarWidget : public UUserWidget
@@ -22,7 +22,7 @@ protected:
     virtual void NativeDestruct() override;
 
 public:
-    UFUNCTION(BlueprintCallable) void UpdateHealthEvent(const int& Amount);
+    UFUNCTION(BlueprintCallable) void UpdateHealthEvent(const float& Amount);
     UFUNCTION(BlueprintCallable) void UpdateTotalHealthTextEvent(const FString& Amount);
     UFUNCTION(BlueprintCallable) void UpdateCurrentHealthTextEvent(const FString& Amount);
 };

@@ -3,8 +3,8 @@
 
 #include "DoorActor.h"
 
-#include "BrawlerCharacter.h"
-#include "DebugUtils.h"
+#include "../BrawlerCharacter.h"
+#include "../Utils/DebugUtils.h"
 #include "Components/BoxComponent.h"
 #include "Kismet/GameplayStatics.h"
 
@@ -32,7 +32,7 @@ ADoorActor::ADoorActor()
 
 void ADoorActor::BeginPlay()
 {
-	Debug("Spawning DoorActor at = %s", *this->GetActorLocation().ToString());
+	//Debug("Spawning DoorActor at = %s", *this->GetActorLocation().ToString());
 	
 	Super::BeginPlay();
 }

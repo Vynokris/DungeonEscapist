@@ -1,8 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameHUD.h"
-#include "EquipmentActor.h"
+#include "UserInterface/UserInterfaceManager.h"
 #include "GameFramework/GameModeBase.h"
 #include "UnrealBrawlerGameModeBase.generated.h"
 

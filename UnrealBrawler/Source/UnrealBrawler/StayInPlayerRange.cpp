@@ -1,6 +1,6 @@
 #include "StayInPlayerRange.h"
 
-#include "DebugUtils.h"
+#include "Utils/DebugUtils.h"
 #include "DrawDebugHelpers.h"
 #include "EnemyAiController.h"
 #include "BehaviorTree/BlackboardComponent.h"

@@ -2,8 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "AIController.h"
-#include "GameHUD.h"
-#include "EquipmentActor.h"
+#include "Actors/EquipmentActor.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"

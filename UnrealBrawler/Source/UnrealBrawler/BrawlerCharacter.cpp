@@ -1,8 +1,7 @@
 #include "BrawlerCharacter.h"
 
 #include "EnemyAiController.h"
-#include "DebugUtils.h"
-#include "EquipmentActor.h"
+#include "Utils/DebugUtils.h"
 #include "Components/CapsuleComponent.h"
 #include "Blueprint/WidgetTree.h"
 #include "NiagaraFunctionLibrary.h"
@@ -83,7 +82,8 @@ void ABrawlerCharacter::BeginPlay()
         if(IsValid(BrawlerGameMode))
         {
             BrawlerGameMode->GetGameHUD()->GetHealthBar()->UpdateCurrentHealthTextEvent(FString::FromInt(GetHealth()));
-            BrawlerGameMode->GetGameHUD()->GetHealthBar()->UpdateTotalHealthTextEvent(FString::FromInt(GetHealth()));
+            BrawlerGameMode->GetGameHUD()->GetHealthBar()->UpdateTotalHealthTextEvent(FString::FromInt(PlayerMaxHealth));
+            BrawlerGameMode->GetGameHUD()->GetHealthBar()->UpdateHealthEvent(GetHealth()/PlayerMaxHealth);
             BrawlerGameMode->GetGameHUD()->GetCounter()->UpdateCounterEvent(FString::FromInt(GetKillCount()));
         }
 
@@ -182,12 +182,21 @@ void ABrawlerCharacter::TakeDamageEvent(const int& Amount)
     Health -= Amount;
     UNiagaraFunctionLibrary::SpawnSystemAttached(BloodSplatterEffect, this->RootComponent, NAME_None, FVector(0.f), FRotator(0.f), EAttachLocation::Type::KeepRelativeOffset, true);
 
+    // Update UI according to new health value
+    if(IsValid(BrawlerGameMode))
+    {
+        BrawlerGameMode->GetGameHUD()->GetHealthBar()->UpdateCurrentHealthTextEvent(FString::FromInt(GetHealth()));
+        BrawlerGameMode->GetGameHUD()->GetHealthBar()->UpdateHealthEvent((float)Health/PlayerMaxHealth);
+    }
+    
     // If the character is dead, call the death event.
-    if (IsDead()) {
+    if (IsDead())
+    {
         DeathEvent();
         
         // If the character is an enemy, call the player's enemy killed event.
-        if (IsEnemy()) {
+        if (IsEnemy())
+        {
             TArray<AActor*> FoundActors;
             UGameplayStatics::GetAllActorsWithTag(GetWorld(), "Player", FoundActors);
             Cast<ABrawlerCharacter>(FoundActors[0])->EnemyKilledEvent();
@@ -195,12 +204,10 @@ void ABrawlerCharacter::TakeDamageEvent(const int& Amount)
     }
 
     // If the character isn't dead start a new invincibility timer.
-    else {
+    else
+    {
         StartInvincibilityEvent();
         DebugInfo("%s hit, lost %d HP, %d HP remaining", *GetName(), Amount, Health);
-
-        if(!BrawlerGameMode) return;
-        if(IsValid(BrawlerGameMode)) BrawlerGameMode->GetGameHUD()->GetHealthBar()->UpdateHealthEvent(Health);
     }
 }
 
@@ -267,7 +274,7 @@ void ABrawlerCharacter::DeathEvent()
     Health = 0;
     ParticleSystemComponent->DeactivateSystem();
     if (Controller && IsEnemy()) Controller->UnPossess();
-	GetCapsuleComponent()->SetCollisionResponseToAllChannels(ECR_Ignore);
+	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
     
     DebugInfo("%s is dead!", *GetName());
 }

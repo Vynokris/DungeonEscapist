@@ -1,7 +1,7 @@
 #include "EquipmentActor.h"
 
-#include "BrawlerCharacter.h"
-#include "DebugUtils.h"
+#include "../BrawlerCharacter.h"
+#include "../Utils/DebugUtils.h"
 #include "DrawDebugHelpers.h"
 #include "Components/BoxComponent.h"
 #include "Kismet/GameplayStatics.h"
@@ -27,7 +27,7 @@ AEquipmentActor::AEquipmentActor()
 
 void AEquipmentActor::BeginPlay()
 {
-	Debug("Spawning EquipmentActor at = %s", *this->GetActorLocation().ToString());
+	//Debug("Spawning EquipmentActor at = %s", *this->GetActorLocation().ToString());
 	
 	MeshComponent->SetCollisionResponseToAllChannels(ECR_Ignore);
 	BoxComponent->SetCollisionResponseToAllChannels(ECR_Overlap);
