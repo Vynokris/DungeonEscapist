@@ -20,18 +20,21 @@ class UNREALBRAWLER_API ABrawlerCharacter : public ACharacter
     GENERATED_BODY()
 
 private:
-    UCameraComponent*            CameraComponent            = nullptr;
     USpringArmComponent*         SpringArmComponent         = nullptr;
+    UCameraComponent*            CameraComponent            = nullptr;
     UCharacterMovementComponent* CharacterMovementComponent = nullptr;
+    UAnimInstance*               AnimInstance               = nullptr;
     UUserWidget*				 CurrentHUD					= nullptr;
     
     UPROPERTY(EditAnywhere, Category = "Camera") float CameraLag      = 15.f;
     UPROPERTY(EditAnywhere, Category = "Camera") float CameraDistance = 300.f;
     
-    UPROPERTY(EditAnywhere, Category = "Character") int PlayerMaxHealth       = 5;
-    UPROPERTY(EditAnywhere, Category = "Character") int EnemyMaxHealth        = 3;
-    UPROPERTY(EditAnywhere, Category = "Character") int AttackDamage          = 1;
-    UPROPERTY(EditAnywhere, Category = "Character") int InvincibilityDuration = 2;
+    UPROPERTY(EditAnywhere, Category = "Character") int   PlayerMaxHealth       = 5;
+    UPROPERTY(EditAnywhere, Category = "Character") int   EnemyMaxHealth        = 3;
+    UPROPERTY(EditAnywhere, Category = "Character") int   AttackDamage          = 1;
+    UPROPERTY(EditAnywhere, Category = "Character") float AttackBufferDuration  = 1.5;
+    UPROPERTY(EditAnywhere, Category = "Character") float DefenseBufferDuration = 1.5;
+    UPROPERTY(EditAnywhere, Category = "Character") int   InvincibilityDuration = 2;
     
     UPROPERTY(EditDefaultsOnly, Category = "Character") TArray<TSubclassOf<AEquipmentActor>> PlayerDefaultEquipment;
     UPROPERTY(EditDefaultsOnly, Category = "Character") TArray<TSubclassOf<AEquipmentActor>> EnemyDefaultEquipment;
@@ -47,9 +50,11 @@ private:
     bool  CharacterIsPlayer  = true;
     int   Health             = 0;
     int   KillCount          = 0;
-    bool  Attacking          = false;
-    bool  AttackBlocked      = false;
-    bool  Defending          = false;
+    bool  Attacking          = false; // Turns true when the character is attacking.
+    bool  AttackBlocked      = false; // Turns true when the character hits a shield while attacking.
+    float AttackBuffer       = 0;     // Starts ticking when the character tries to attack but is unable to.
+    bool  Defending          = false; // Turns true when the character is defending.
+    float DefenseBuffer      = 0;     // Starts ticking when the character tries to defend but is unable to.
     float InvincibilityTimer = 0;
 
     TArray<AEquipmentActor*> Equipment;

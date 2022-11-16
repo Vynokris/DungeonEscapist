@@ -1,5 +1,7 @@
 #include "MoveIntoPlayerRange.h"
 
+#include "DebugUtils.h"
+#include "DrawDebugHelpers.h"
 #include "EnemyAiController.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "GameFramework/Character.h"
@@ -22,8 +24,9 @@ EBTNodeResult::Type UMoveIntoPlayerRange::ExecuteTask(UBehaviorTreeComponent& Ow
     // Get the player and AI locations as well as their distance.
     const FVector PlayerLocation = Player->GetActorLocation();
     const FVector AiLocation     = Ai->GetPawn()->GetActorLocation();
-    const FVector AiToPlayer     = FVector(PlayerLocation.X - AiLocation.X, PlayerLocation.Y - AiLocation.Y, 0);
+    const FVector AiToPlayer     = FVector(PlayerLocation.X - AiLocation.X, PlayerLocation.Y - AiLocation.Y, AiLocation.Z);
     const float   DistFromPlayer = AiToPlayer.Size2D();
+    const FVector AiToPlayerVec = AiToPlayer / DistFromPlayer;
     Ai->CheckIfInPlayerRange(DistFromPlayer);
 
     // If the AI doesn't have line of sight to the player, make it strafe.
@@ -32,9 +35,13 @@ EBTNodeResult::Type UMoveIntoPlayerRange::ExecuteTask(UBehaviorTreeComponent& Ow
     if (GetWorld()->LineTraceSingleByChannel(HitStatic,  AiLocation, PlayerLocation, ECC_WorldStatic,  CollisionQueryParams) ||
         GetWorld()->LineTraceSingleByChannel(HitDynamic, AiLocation, PlayerLocation, ECC_WorldDynamic, CollisionQueryParams))
     {
-        const FVector AiToPlayerVec = AiToPlayer / DistFromPlayer;
-        Ai->MoveToLocation(AiLocation + AiToPlayerVec * 50.f + FVector::CrossProduct(AiToPlayerVec * 100.f, FVector::UpVector) * Ai->GetStrafeDir());
-        Ai->GetPawn()->SetActorRotation(AiToPlayer.Rotation());
+        // Randomly change direction.
+        if (FMath::RandRange(0, 50) == 0)
+            Ai->ChangeStrafeDir();
+
+        const FVector TargetLocation = AiLocation + AiToPlayerVec * 50.f + FVector::CrossProduct(AiToPlayerVec * 100.f, FVector::UpVector) * Ai->GetStrafeDir();
+        Ai->MoveToLocation(TargetLocation);
+        DrawDebugLine(GetWorld(), AiLocation, TargetLocation, FColor::Yellow, false, -1, 0, 10);
         return EBTNodeResult::Failed;
     }
 
@@ -42,6 +49,7 @@ EBTNodeResult::Type UMoveIntoPlayerRange::ExecuteTask(UBehaviorTreeComponent& Ow
     if (!Ai->IsInPlayerRange())
     {
         Ai->MoveToLocation(Player->GetActorLocation());
+        DrawDebugLine(GetWorld(), AiLocation, Player->GetActorLocation(), FColor::Yellow, false, GetWorld()->GetDeltaSeconds() * 2.5, 0, 10);
         return EBTNodeResult::Failed;
     }
 

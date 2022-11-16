@@ -1,18 +1,21 @@
 #include "StayInPlayerRange.h"
 
+#include "DebugUtils.h"
+#include "DrawDebugHelpers.h"
 #include "EnemyAiController.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "GameFramework/Character.h"
 #include "Kismet/GameplayStatics.h"
+#include "NavMesh/NavMeshBoundsVolume.h"
 
 UStayInPlayerRange::UStayInPlayerRange()
 {
     NodeName = TEXT("Stay in player range");
 }
 
-FVector ComputeStrafeVec(AEnemyAiController* Ai, const FVector& AiToPlayerDir)
+static FVector ComputeStrafeVec(AEnemyAiController* Ai, const FVector& AiToPlayerDir)
 {
-    return (AiToPlayerDir * 20.f + FVector::CrossProduct(AiToPlayerDir * 100.f, FVector::UpVector) * Ai->GetStrafeDir()) * 1.2f;
+    return (AiToPlayerDir * 15.f + FVector::CrossProduct(AiToPlayerDir, FVector::UpVector) * Ai->GetStrafeDir() * 85.f) * 1.5f;
 }
 
 EBTNodeResult::Type UStayInPlayerRange::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
@@ -26,7 +29,7 @@ EBTNodeResult::Type UStayInPlayerRange::ExecuteTask(UBehaviorTreeComponent& Owne
     // Get the player and AI locations as well as their distance.
     const FVector PlayerLocation = Player->GetActorLocation();
     const FVector AiLocation     = Ai->GetPawn()->GetActorLocation();
-    const FVector AiToPlayer     = FVector(PlayerLocation.X - AiLocation.X, PlayerLocation.Y - AiLocation.Y, 0);
+    const FVector AiToPlayer     = FVector(PlayerLocation.X - AiLocation.X, PlayerLocation.Y - AiLocation.Y, AiLocation.Z);
     const float   DistFromPlayer = AiToPlayer.Size2D();
     const FVector AiToPlayerDir  = AiToPlayer / DistFromPlayer;
     Ai->CheckIfInPlayerRange(DistFromPlayer);
@@ -49,7 +52,8 @@ EBTNodeResult::Type UStayInPlayerRange::ExecuteTask(UBehaviorTreeComponent& Owne
     }
     
     // Set the point towards which the AI should move.
-    Ai->MoveTo(AiLocation + StrafeVec);
+    Ai->MoveToLocation(AiLocation + StrafeVec);
+    DrawDebugLine(GetWorld(), AiLocation, AiLocation + StrafeVec, FColor::Green, false, GetWorld()->GetDeltaSeconds() * 2.5, 0, 10);
 
     // Finish with success.
     return EBTNodeResult::Succeeded;
