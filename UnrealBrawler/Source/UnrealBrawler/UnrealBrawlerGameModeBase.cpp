@@ -12,11 +12,7 @@ void AUnrealBrawlerGameModeBase::BeginPlay()
     if(IsValid(WidgetGameClass))
     {
         GameHUD = Cast<UGameHUD>(CreateWidget(GetWorld(), WidgetGameClass));
-        
-        if(GameHUD)
-        {
-            GameHUD->AddToViewport();
-        }
+        if(IsValid(GameHUD)) GameHUD->AddToViewport();
     }
 }
 

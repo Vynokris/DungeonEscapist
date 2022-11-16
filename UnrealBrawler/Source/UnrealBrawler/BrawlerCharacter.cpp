@@ -12,7 +12,7 @@ ABrawlerCharacter::ABrawlerCharacter()
 {
     PrimaryActorTick.bCanEverTick = true;
     bUseControllerRotationYaw = false;
-
+    
     // Setup camera spring arm.
     SpringArmComponent = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArmComponent"));
     SpringArmComponent->SetupAttachment(CastChecked<USceneComponent, UCapsuleComponent>(GetCapsuleComponent()));
@@ -39,7 +39,7 @@ ABrawlerCharacter::ABrawlerCharacter()
 void ABrawlerCharacter::BeginPlay()
 {
     Super::BeginPlay();
-
+    
     // Update camera parameters.
     SpringArmComponent->CameraLagSpeed = CameraLag;
     SpringArmComponent->TargetArmLength = CameraDistance;
@@ -75,6 +75,14 @@ void ABrawlerCharacter::BeginPlay()
         Health = PlayerMaxHealth;
         SetActorLabel("Player");
         Tags.Add("Player");
+
+        BrawlerGameMode = Cast<AUnrealBrawlerGameModeBase>(GetWorld()->GetAuthGameMode());
+        if(IsValid(BrawlerGameMode))
+        {
+            BrawlerGameMode->GetGameHUD()->GetHealthBar()->UpdateCurrentHealthTextEvent(FString::FromInt(GetHealth()));
+            BrawlerGameMode->GetGameHUD()->GetHealthBar()->UpdateTotalHealthTextEvent(FString::FromInt(GetHealth()));
+            BrawlerGameMode->GetGameHUD()->GetCounter()->UpdateCounterEvent(FString::FromInt(GetKillCount()));
+        }
 
         // Give default equipment to the player.
         for (TSubclassOf<AEquipmentActor> EquipmentPiece : PlayerDefaultEquipment)
@@ -172,6 +180,9 @@ void ABrawlerCharacter::TakeDamageEvent(const int& Amount)
     else {
         StartInvincibilityEvent();
         DebugInfo("%s hit, lost %d HP, %d HP remaining", *GetName(), Amount, Health);
+
+        if(!BrawlerGameMode) return;
+        if(IsValid(BrawlerGameMode)) BrawlerGameMode->GetGameHUD()->GetHealthBar()->UpdateHealthEvent(Health);
     }
 }
 
@@ -239,11 +250,8 @@ void ABrawlerCharacter::EnemyKilledEvent()
     KillCount++;
     DebugData("KillCount %d: ", KillCount);
 
-    if(!GameMode) return;
-    
-    AUnrealBrawlerGameModeBase* BrawlerMode = Cast<AUnrealBrawlerGameModeBase>(GameMode);
-    UGameHUD* HUD = BrawlerMode->GetGameHUD();
-    if(HUD) HUD->UpdateCounterEvent(FString::FromInt(KillCount));
+    if(!BrawlerGameMode) return;
+    if(IsValid(BrawlerGameMode)) BrawlerGameMode->GetGameHUD()->GetCounter()->UpdateCounterEvent(FString::FromInt(GetKillCount()));
 }
 
 void ABrawlerCharacter::DropEquipmentEvent(const EEquipmentType& EquipmentType)

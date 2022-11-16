@@ -40,7 +40,7 @@ private:
     UPROPERTY(EditAnywhere, Category = "VFX") float WalkingFxRate = 0.2f;
     UPROPERTY(EditAnywhere, Category = "VFX") UNiagaraSystem* BloodSplatterEffect = nullptr;
 
-    UPROPERTY(EditAnywhere, Category = "GameMode") TSubclassOf<AGameModeBase> GameMode;
+    UPROPERTY(EditAnywhere, Category = "GameMode") AUnrealBrawlerGameModeBase* BrawlerGameMode;
     
     UPROPERTY(EditAnywhere, Category = "Character Movement: Walking") float MaxEnemyWalkSpeed = 500;
 

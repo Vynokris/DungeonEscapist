@@ -3,19 +3,12 @@
 
 #include "GameHUD.h"
 
-#include "DebugUtils.h"
-#include "Components/TextBlock.h"
+#include "CounterWidget.h"
 
 bool UGameHUD::Initialize()
 {
     const bool Success = Super::Initialize();
     if(!Success) return false;
-
-    if(EnemyCounter)
-    {
-        EnemyCounter->TextDelegate.BindUFunction(this, "UpdateCounterEvent");
-        UpdateCounterEvent("0");
-    }
     
     return true;
 }
@@ -30,9 +23,13 @@ void UGameHUD::NativeDestruct()
     Super::NativeDestruct();
 }
 
-void UGameHUD::UpdateCounterEvent(const FString& Amount)
+UCounterWidget* UGameHUD::GetCounter() const
 {
-    EnemyCounter->SetText(FText::FromString(Amount));
+    return CastChecked<UCounterWidget>(CounterWidget);
+}
+UHealthBarWidget* UGameHUD::GetHealthBar() const
+{
+    return CastChecked<UHealthBarWidget>(HealthBarWidget);
 }
 
 
