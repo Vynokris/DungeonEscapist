@@ -23,6 +23,7 @@ private:
     UCameraComponent*            CameraComponent            = nullptr;
     UCharacterMovementComponent* CharacterMovementComponent = nullptr;
     UUserWidget*				 CurrentHUD					= nullptr;
+    AUnrealBrawlerGameModeBase*  BrawlerGameMode            = nullptr;
     
     UPROPERTY(EditAnywhere, Category = "Camera") float CameraLag      = 15.f;
     UPROPERTY(EditAnywhere, Category = "Camera") float CameraDistance = 300.f;
@@ -37,11 +38,9 @@ private:
     UPROPERTY(EditDefaultsOnly, Category = "Character") TArray<TSubclassOf<AEquipmentActor>> PlayerDefaultEquipment;
     UPROPERTY(EditDefaultsOnly, Category = "Character") TArray<TSubclassOf<AEquipmentActor>> EnemyDefaultEquipment;
     
-    UPROPERTY(EditAnywhere, Category = "VFX") UParticleSystemComponent* ParticleSystemComponent = nullptr;
+    UPROPERTY(EditAnywhere, Category = "VFX") UParticleSystemComponent* WalkingParticleComponent = nullptr;
     UPROPERTY(EditAnywhere, Category = "VFX") float WalkingFxRate = 0.2f;
     UPROPERTY(EditAnywhere, Category = "VFX") UNiagaraSystem* BloodSplatterEffect = nullptr;
-
-    UPROPERTY(EditAnywhere, Category = "GameMode") AUnrealBrawlerGameModeBase* BrawlerGameMode;
     
     UPROPERTY(EditAnywhere, Category = "Character Movement: Walking") float MaxEnemyWalkSpeed = 500;
 

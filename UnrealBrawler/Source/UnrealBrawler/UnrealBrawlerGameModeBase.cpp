@@ -9,8 +9,8 @@ void AUnrealBrawlerGameModeBase::BeginPlay()
     
     if(IsValid(WidgetGameClass))
     {
-        GameHUD = Cast<UUserInterfaceManager>(CreateWidget(GetWorld(), WidgetGameClass));
-        if(IsValid(GameHUD)) GameHUD->AddToViewport();
+        this->UserInterface = Cast<UUserInterfaceManager>(CreateWidget(GetWorld(), WidgetGameClass));
+        if(IsValid(this->UserInterface)) this->UserInterface->AddToViewport();
 
         APlayerController* PlayerControllerRef = UGameplayStatics::GetPlayerController(GetWorld(), 0);
         PlayerControllerRef->SetShowMouseCursor(true);
@@ -25,5 +25,7 @@ void AUnrealBrawlerGameModeBase::Tick(float DeltaSeconds)
 
 UUserInterfaceManager* AUnrealBrawlerGameModeBase::GetUserInterface()
 {
-    return GameHUD;
+    return this->UserInterface;
 }
+
+

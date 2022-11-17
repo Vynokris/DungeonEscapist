@@ -1,42 +1,42 @@
 
 
 
-#include "WinWidgetClass.h"
+#include "OverWidgetClass.h"
 
-bool UWinWidget::Initialize()
+bool UOverWidget::Initialize()
 {
     if(!Super::Initialize()) return false;
 
-    this->GetRestartButton()->SetText("Restart Game");
-    this->GetMenuButton()->SetText("Game Menu");
+    //this->GetRestartButton()->SetText("Restart Game");
     this->GetQuitButton()->SetText("Quit Game");
+    this->GetMenuButton()->SetText("Game Menu");
     
     return true;
 }
 
-void UWinWidget::NativeConstruct()
+void UOverWidget::NativeConstruct()
 {
     Super::NativeConstruct();
 }
 
-void UWinWidget::NativeDestruct()
+void UOverWidget::NativeDestruct()
 {
     Super::NativeDestruct();
 }
 
-UButtonWidget* UWinWidget::GetRestartButton() const
+/*UButtonWidget* UOverWidget::GetRestartButton() const
 {
     if(IsValid(this->RestartButtonWidget)) return CastChecked<UButtonWidget>(this->RestartButtonWidget);
     return nullptr;
-}
+}*/
 
-UButtonWidget* UWinWidget::GetQuitButton() const
+UButtonWidget* UOverWidget::GetQuitButton() const
 {
     if(IsValid(this->QuitButtonWidget)) return CastChecked<UButtonWidget>(this->QuitButtonWidget);
     return nullptr;
 }
 
-UButtonWidget* UWinWidget::GetMenuButton() const
+UButtonWidget* UOverWidget::GetMenuButton() const
 {
     if(IsValid(this->MenuButtonWidget)) return CastChecked<UButtonWidget>(this->MenuButtonWidget);
     return nullptr;

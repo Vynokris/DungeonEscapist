@@ -24,7 +24,7 @@ void UButtonWidget::NativeDestruct()
     Super::NativeDestruct();
 }
 
-void UButtonWidget::SetText(const FString& Value)
+void UButtonWidget::SetText(const FString& Value) const
 {
     if(IsValid(this->DisplayedText)) this->DisplayedText->SetText(FText::FromString(Value));
 }

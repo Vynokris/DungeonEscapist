@@ -13,7 +13,7 @@ class UNREALBRAWLER_API UOverWidget : public UUserWidget
 	GENERATED_BODY()
 
 public:
-	UPROPERTY(EditAnywhere, Category = "Over UI", meta = (BindWidget)) class UUserWidget* RestartButtonWidget;
+	//UPROPERTY(EditAnywhere, Category = "Over UI", meta = (BindWidget)) class UUserWidget* RestartButtonWidget;
 	UPROPERTY(EditAnywhere, Category = "Over UI", meta = (BindWidget)) class UUserWidget* QuitButtonWidget;
 	UPROPERTY(EditAnywhere, Category = "Over UI", meta = (BindWidget)) class UUserWidget* MenuButtonWidget;
 	
@@ -23,7 +23,7 @@ protected:
 	virtual void NativeDestruct() override;
 
 public:
-	UButtonWidget* GetRestartButton() const;
+	//UButtonWidget* GetRestartButton() const;
 	UButtonWidget* GetQuitButton() const;
 	UButtonWidget* GetMenuButton() const;
 };

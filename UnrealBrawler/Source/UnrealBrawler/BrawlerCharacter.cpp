@@ -11,6 +11,7 @@
 #define ENEMY_STENCIL_VAL 2
 #define INVINCIBILITY_STENCIL_VAL 3
 
+#pragma region Setup 
 ABrawlerCharacter::ABrawlerCharacter()
 {
     PrimaryActorTick.bCanEverTick = true;
@@ -35,8 +36,8 @@ ABrawlerCharacter::ABrawlerCharacter()
     CharacterMovementComponent->bOrientRotationToMovement     = true;
 
     // Setup walking particles.
-    ParticleSystemComponent = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("ParticleSystemComponent"));
-    ParticleSystemComponent->SetupAttachment(CastChecked<USceneComponent, UCapsuleComponent>(GetCapsuleComponent()));
+    WalkingParticleComponent = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("ParticleSystemComponent"));
+    WalkingParticleComponent->SetupAttachment(CastChecked<USceneComponent, UCapsuleComponent>(GetCapsuleComponent()));
 
     // Make an outline around characters.
     GetMesh()->SetRenderCustomDepth(true);
@@ -73,8 +74,9 @@ void ABrawlerCharacter::BeginPlay()
 
         // Give default equipment to the enemy.
         for (TSubclassOf<AEquipmentActor> EquipmentPiece : EnemyDefaultEquipment)
-            if (EquipmentPiece)
-                Cast<AEquipmentActor>(GetWorld()->SpawnActor(EquipmentPiece))->GetPickedUp(this);
+        {
+            if (EquipmentPiece) Cast<AEquipmentActor>(GetWorld()->SpawnActor(EquipmentPiece))->GetPickedUp(this);
+        }
     }
 
     // If the character is controlled by the player, treat this character as a player.
@@ -97,29 +99,9 @@ void ABrawlerCharacter::BeginPlay()
 
         // Give default equipment to the player.
         for (TSubclassOf<AEquipmentActor> EquipmentPiece : PlayerDefaultEquipment)
-            if (EquipmentPiece)
-                Cast<AEquipmentActor>(GetWorld()->SpawnActor(EquipmentPiece))->GetPickedUp(this);
-    }
-}
-
-void ABrawlerCharacter::Tick(float DeltaSeconds)
-{
-    Super::Tick(DeltaSeconds);
-    UpdateWalkingFX();
-
-    // Attack/defend whenever possible if buffers are non-zero.
-    if (DefenseBuffer > 0 && !IsAttacking() && !IsDefending()) StartDefendingEvent();
-    if (AttackBuffer  > 0 && !IsAttacking() && !IsDefending()) StartAttackingEvent();
-
-    // Decrement buffers.
-    if (AttackBuffer       > 0) AttackBuffer       -= DeltaSeconds;
-    if (DefenseBuffer      > 0) DefenseBuffer      -= DeltaSeconds;
-
-    // Decrement the invincibility timer and call the stop invincibility event when it is finished.
-    if (InvincibilityTimer > 0) {
-        InvincibilityTimer -= DeltaSeconds;
-        if (InvincibilityTimer <= 0)
-            StopInvincibilityEvent();
+        {
+            if (EquipmentPiece) Cast<AEquipmentActor>(GetWorld()->SpawnActor(EquipmentPiece))->GetPickedUp(this);
+        }
     }
 }
 
@@ -152,12 +134,43 @@ void ABrawlerCharacter::SetupPlayerInputComponent(UInputComponent* NewInputCompo
 		DropShieldBinding.ActionDelegate.GetDelegateForManualSet().BindLambda([this] { DropEquipmentEvent(Shield); });
 		NewInputComponent->AddActionBinding(DropShieldBinding);
 	}
+}
+#pragma endregion
 
-    // Enemy counter test key;
-    NewInputComponent->BindAction("TestKey", IE_Pressed, this, &ABrawlerCharacter::EnemyKilledEvent);
+
+#pragma region Update
+void ABrawlerCharacter::Tick(float DeltaSeconds)
+{
+    Super::Tick(DeltaSeconds);
+    UpdateWalkingFX();
+
+    // Attack/defend whenever possible if buffers are non-zero.
+    if (DefenseBuffer > 0 && !IsAttacking() && !IsDefending()) StartDefendingEvent();
+    if (AttackBuffer  > 0 && !IsAttacking() && !IsDefending()) StartAttackingEvent();
+
+    // Decrement buffers.
+    if (AttackBuffer       > 0) AttackBuffer       -= DeltaSeconds;
+    if (DefenseBuffer      > 0) DefenseBuffer      -= DeltaSeconds;
+
+    // Decrement the invincibility timer and call the stop invincibility event when it is finished.
+    if (InvincibilityTimer > 0) {
+        InvincibilityTimer -= DeltaSeconds;
+        if (InvincibilityTimer <= 0) StopInvincibilityEvent();
+    }
 }
 
+void ABrawlerCharacter::UpdateWalkingFX() const
+{
+    // Only show step VFX when the player is moving and not falling.
+    const bool ShouldShowFX = !IsDead() && GetVelocity().SizeSquared() > 10 && !CharacterMovementComponent->IsFalling();
+    
+    if (ShouldShowFX && WalkingParticleComponent->bWasDeactivated)        WalkingParticleComponent->ActivateSystem();
+    else if (!ShouldShowFX && !WalkingParticleComponent->bWasDeactivated) WalkingParticleComponent->DeactivateSystem();
+}
+#pragma endregion
 
+
+#pragma region Movement
 void ABrawlerCharacter::MoveForward(const float Amount)
 {
     if(IsDead() || Amount == 0) return;
@@ -174,16 +187,7 @@ void ABrawlerCharacter::MoveRight(const float Amount)
     const FVector Direction = FRotationMatrix(Controller->GetControlRotation()).GetScaledAxis(EAxis::Y);
     AddMovementInput(Direction, Amount * (IsAttacking() || IsDefending() ? 0.0001 : 1));
 }
-
-void ABrawlerCharacter::UpdateWalkingFX() const
-{
-    // Only show step VFX when the player is moving and not falling.
-    const bool ShouldShowFX = !IsDead() && GetVelocity().SizeSquared() > 10 && !CharacterMovementComponent->IsFalling();
-    if (ShouldShowFX && ParticleSystemComponent->bWasDeactivated)
-        ParticleSystemComponent->ActivateSystem();
-    else if (!ShouldShowFX && !ParticleSystemComponent->bWasDeactivated)
-        ParticleSystemComponent->DeactivateSystem();
-}
+#pragma endregion
 
 
 #pragma region Player Events
@@ -303,7 +307,7 @@ void ABrawlerCharacter::StopInvincibilityEvent()
 void ABrawlerCharacter::DeathEvent()
 {
     Health = 0;
-    ParticleSystemComponent->DeactivateSystem();
+    WalkingParticleComponent->DeactivateSystem();
     if (Controller && IsEnemy()) Controller->UnPossess();
 	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
 
@@ -329,10 +333,7 @@ void ABrawlerCharacter::DropEquipmentEvent(const EEquipmentType& EquipmentType)
     // Get the character's specified equipment piece if they have one.
     AEquipmentActor* EquipmentPiece = nullptr;
     for (AEquipmentActor* EquipmentItem : Equipment) {
-        if (EquipmentItem->GetType() == EquipmentType) {
-            EquipmentPiece = EquipmentItem;
-            break;
-        }
+        if (EquipmentItem->GetType() == EquipmentType) { EquipmentPiece = EquipmentItem; break; }
     }
 
     if (EquipmentPiece) {
@@ -344,8 +345,7 @@ void ABrawlerCharacter::DropEquipmentEvent(const EEquipmentType& EquipmentType)
 
 void ABrawlerCharacter::PickupEquipmentEvent(AEquipmentActor* NewEquipment)
 {
-    if (!HasEquipment(NewEquipment->GetType()))
-        Equipment.Add(NewEquipment);
+    if (!HasEquipment(NewEquipment->GetType())) Equipment.Add(NewEquipment);
 }
 #pragma endregion
 
