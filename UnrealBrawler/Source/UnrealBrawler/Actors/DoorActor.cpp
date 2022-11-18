@@ -27,13 +27,16 @@ ADoorActor::ADoorActor()
 	MeshComponent->SetCollisionResponseToAllChannels(ECR_Block);
 	BoxComponent->SetGenerateOverlapEvents(true);
 
+	BlockBoxComponent = CreateDefaultSubobject<UBoxComponent>("BlockBox");
+	BlockBoxComponent->SetupAttachment(RootComponent);
+	BlockBoxComponent->SetGenerateOverlapEvents(false);
+	
 	Tags.Add("Door");
 }
 
 void ADoorActor::BeginPlay()
 {
 	//Debug("Spawning DoorActor at = %s", *this->GetActorLocation().ToString());
-	
 	Super::BeginPlay();
 }
 
@@ -55,7 +58,7 @@ void ADoorActor::Tick(float DeltaSeconds)
 void ADoorActor::NotifyActorBeginOverlap(AActor* OtherActor)
 {
 	if(!OtherActor->IsA(ABrawlerCharacter::StaticClass())) return;
-
+	
 	const ABrawlerCharacter* BrawlerCharacter = Cast<ABrawlerCharacter>(OtherActor);
 	if(IsValid(BrawlerCharacter) && BrawlerCharacter->IsPlayer() && !IsClosing() && !IsClosed()) CloseDoorEvent();
 }
@@ -70,6 +73,8 @@ void ADoorActor::CloseDoorEvent()
 {
 	//DebugInfo("Pressure plate activated! Closing door!");
 	DoorClosing = true;
+	
+	BlockBoxComponent->SetCollisionResponseToAllChannels(ECR_Block);
 }
 
 bool ADoorActor::IsClosing() const
