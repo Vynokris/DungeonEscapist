@@ -33,7 +33,7 @@ EBTNodeResult::Type UMoveToPlayer::ExecuteTask(UBehaviorTreeComponent& OwnerComp
     // Stop attacking if the player is out of range.
     if (!Ai->IsInPlayerRange())
     {
-        Ai->GetBlackboard()->SetValueAsBool("Attacking", false);
+        Ai->GetBlackboard()->SetValueAsBool("ShouldAttack", false);
         return EBTNodeResult::Succeeded;
     }
     
@@ -41,7 +41,6 @@ EBTNodeResult::Type UMoveToPlayer::ExecuteTask(UBehaviorTreeComponent& OwnerComp
     if (DistFromPlayer > 150.f)
     {
         Ai->MoveToLocation(Player->GetActorLocation());
-        DrawDebugLine(GetWorld(), AiLocation, Player->GetActorLocation(), FColor::Red, false, GetWorld()->GetDeltaSeconds() * 2.5, 0, 10);
         return EBTNodeResult::Succeeded;
     }
     Ai->StopMovement();

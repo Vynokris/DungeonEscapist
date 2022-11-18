@@ -27,9 +27,9 @@ EBTNodeResult::Type UAttackPlayer::ExecuteTask(UBehaviorTreeComponent& OwnerComp
     const float   DistFromPlayer = AiToPlayer.Size2D();
     Ai->CheckIfInPlayerRange(DistFromPlayer);
 
-    // TODO.
+    // Start attack event and set should attack to false.
     Cast<ABrawlerCharacter>(Ai->GetPawn())->StartAttackingEvent();
-    AiBlackboard->SetValueAsBool("Attacking", false);
+    AiBlackboard->SetValueAsBool("ShouldAttack", false);
 
     // Fail task to end attack.
     return EBTNodeResult::Failed;

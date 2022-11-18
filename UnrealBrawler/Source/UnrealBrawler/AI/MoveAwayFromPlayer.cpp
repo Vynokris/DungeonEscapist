@@ -51,7 +51,6 @@ EBTNodeResult::Type UMoveAwayFromPlayer::ExecuteTask(UBehaviorTreeComponent& Own
     
         // Set the point towards which the AI should move.
         Ai->MoveToLocation(AiLocation + StrafeVec);
-        DrawDebugLine(GetWorld(), AiLocation, AiLocation + StrafeVec, FColor::Blue, false, GetWorld()->GetDeltaSeconds() * 2.5, 0, 10);
     }
     else
     {
