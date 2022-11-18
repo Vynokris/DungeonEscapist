@@ -72,12 +72,12 @@ private:
     void UpdateWalkingFX() const;
 
 protected:
-    virtual void BeginPlay() override;
     virtual void Tick(float DeltaSeconds) override;
     virtual void SetupPlayerInputComponent(UInputComponent* NewInputComponent) override;
     
 public:
     ABrawlerCharacter();
+    virtual void BeginPlay() override;
     
     UFUNCTION(BlueprintCallable) void TakeDamageEvent(const int& Amount);
     UFUNCTION(BlueprintCallable) void StartAttackingEvent();

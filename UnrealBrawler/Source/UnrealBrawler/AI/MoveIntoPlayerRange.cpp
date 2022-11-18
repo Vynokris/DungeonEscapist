@@ -40,7 +40,6 @@ EBTNodeResult::Type UMoveIntoPlayerRange::ExecuteTask(UBehaviorTreeComponent& Ow
 
         const FVector TargetLocation = AiLocation + AiToPlayerVec * 50.f + FVector::CrossProduct(AiToPlayerVec * 100.f, FVector::UpVector) * Ai->GetStrafeDir();
         Ai->MoveToLocation(TargetLocation);
-        DrawDebugLine(GetWorld(), AiLocation, TargetLocation, FColor::Yellow, false, -1, 0, 10);
         return EBTNodeResult::Failed;
     }
 
@@ -48,7 +47,6 @@ EBTNodeResult::Type UMoveIntoPlayerRange::ExecuteTask(UBehaviorTreeComponent& Ow
     if (!Ai->IsInPlayerRange())
     {
         Ai->MoveToLocation(Player->GetActorLocation());
-        DrawDebugLine(GetWorld(), AiLocation, Player->GetActorLocation(), FColor::Yellow, false, GetWorld()->GetDeltaSeconds() * 2.5, 0, 10);
         return EBTNodeResult::Failed;
     }
 

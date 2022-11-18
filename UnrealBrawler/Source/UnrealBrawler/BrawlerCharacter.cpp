@@ -6,6 +6,7 @@
 #include "Components/CapsuleComponent.h"
 #include "Blueprint/WidgetTree.h"
 #include "NiagaraFunctionLibrary.h"
+#include "BehaviorTree/BlackboardComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "UserInterface/Widget/HealthBarComponent.h"
 
@@ -310,10 +311,18 @@ void ABrawlerCharacter::DeathEvent()
 {
     Health = 0;
     WalkingParticleComponent->DeactivateSystem();
-    if (Controller && IsEnemy()) Controller->UnPossess();
+    GetMesh()->SetRenderCustomDepth(false);
+    for (const AEquipmentActor* EquipmentPiece : Equipment)
+        EquipmentPiece->GetMesh()->SetRenderCustomDepth(false);
 	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
+	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Ignore);
+	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_WorldStatic, ECR_Ignore);
 
-    if(IsPlayer()) BrawlerGameMode->GetUserInterface()->ShowOverMenuEvent();
+    if (IsPlayer()) BrawlerGameMode->GetUserInterface()->ShowOverMenuEvent();
+    else if (Controller && IsEnemy()) {
+        Cast<AEnemyAiController>(Controller)->GetBlackboard()->SetValueAsBool("ShouldAttack", false);
+        Controller->UnPossess();
+    }
     
     //DebugInfo("%s is dead!", *GetName());
 }
@@ -326,7 +335,7 @@ void ABrawlerCharacter::EnemyKilledEvent()
     //if(IsValid(BrawlerGameMode)) BrawlerGameMode->GetUserInterface()->GetCounter()->UpdateCounterEvent(FString::FromInt(GetKillCount()));
 
     // TODO : Replace with spawning system and enemies count alive
-    if(KillCount == 5 && IsPlayer()) BrawlerGameMode->GetUserInterface()->ShowWinMenuEvent();
+    // if(KillCount == 5 && IsPlayer()) BrawlerGameMode->GetUserInterface()->ShowWinMenuEvent();
 }
 
 void ABrawlerCharacter::DropEquipmentEvent(const EEquipmentType& EquipmentType)
