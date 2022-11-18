@@ -16,11 +16,12 @@ private:
 	float endZLocation = 145.f;
 	
 public:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Door Properties", meta = (AllowPrivateAccess = "true")) UShapeComponent*            BoxComponent	= nullptr;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Door Properties", meta = (AllowPrivateAccess = "true")) UStaticMeshComponent*       MeshComponent	= nullptr;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Door Properties", meta = (AllowPrivateAccess = "true")) UShapeComponent*      BoxComponent		= nullptr;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Door Properties", meta = (AllowPrivateAccess = "true")) UShapeComponent*      BlockBoxComponent	= nullptr;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Door Properties", meta = (AllowPrivateAccess = "true")) UStaticMeshComponent* MeshComponent		= nullptr;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Door Properties", meta = (AllowPrivateAccess = "true"))	bool						DoorClosing		= false;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Door Properties", meta = (AllowPrivateAccess = "true"))	float						ClosingRate		= 5.f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Door Properties", meta = (AllowPrivateAccess = "true"))	bool DoorClosing  = false;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Door Properties", meta = (AllowPrivateAccess = "true"))	float ClosingRate = 5.f;
 private:
 	void OpenDoorEvent();
 	void CloseDoorEvent();

@@ -1,5 +1,6 @@
 #include "BrawlerCharacter.h"
 
+#include "BrawlerInstance.h"
 #include "AI/EnemyAiController.h"
 #include "Utils/DebugUtils.h"
 #include "Components/CapsuleComponent.h"
@@ -7,6 +8,7 @@
 #include "NiagaraFunctionLibrary.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "UserInterface/Widget/HealthBarComponent.h"
 
 #define PLAYER_STENCIL_VAL 1
 #define ENEMY_STENCIL_VAL 2
@@ -43,16 +45,21 @@ ABrawlerCharacter::ABrawlerCharacter()
     // Make an outline around characters.
     GetMesh()->SetRenderCustomDepth(true);
 	GetMesh()->SetCustomDepthStencilValue(0);
+
+    HealthComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("WidgetComponent"));
 }
 
 void ABrawlerCharacter::BeginPlay()
 {
     Super::BeginPlay();
+
+    BrawlerGameMode = Cast<AUnrealBrawlerGameModeBase>(GetWorld()->GetAuthGameMode());
+    Cast<UBrawlerInstance>(GetWorld()->GetGameInstance())->SetBrawlerCaracter(this);
     
     // Update camera parameters.
     SpringArmComponent->CameraLagSpeed = CameraLag;
     SpringArmComponent->TargetArmLength = CameraDistance;
-
+    
     // If the character is controller by AI, treat this character as an enemy.
     if (AEnemyAiController* Ai = Cast<AEnemyAiController>(GetController()))
     {
@@ -72,7 +79,7 @@ void ABrawlerCharacter::BeginPlay()
 
         // Change the movement speed.
         GetCharacterMovement()->MaxWalkSpeed = 500;
-
+        
         // Give default equipment to the enemy.
         for (TSubclassOf<AEquipmentActor> EquipmentPiece : EnemyDefaultEquipment)
         {
@@ -83,27 +90,25 @@ void ABrawlerCharacter::BeginPlay()
     // If the character is controlled by the player, treat this character as a player.
     else
     {
+        // Remove de health bar displayed on top of head, since already showed in HUD
+        // HealthBarComponent->DestroyComponent();
+        
         Health = PlayerMaxHealth;
         SetActorLabel("Player");
         Tags.Add("Player");
 		GetMesh()->SetCustomDepthStencilValue(PLAYER_STENCIL_VAL);
 
-        // Get GameMode for future usage
-        BrawlerGameMode = Cast<AUnrealBrawlerGameModeBase>(GetWorld()->GetAuthGameMode());
-        if(IsValid(BrawlerGameMode))
-        {
-            BrawlerGameMode->GetUserInterface()->GetHealthBar()->UpdateCurrentHealthTextEvent(FString::FromInt(GetHealth()));
-            BrawlerGameMode->GetUserInterface()->GetHealthBar()->UpdateTotalHealthTextEvent(FString::FromInt(PlayerMaxHealth));
-            BrawlerGameMode->GetUserInterface()->GetHealthBar()->UpdateHealthEvent(GetHealth()/PlayerMaxHealth);
-            BrawlerGameMode->GetUserInterface()->GetCounter()->UpdateCounterEvent(FString::FromInt(GetKillCount()));
-        }
-
         // Give default equipment to the player.
         for (TSubclassOf<AEquipmentActor> EquipmentPiece : PlayerDefaultEquipment)
-        {
             if (EquipmentPiece) Cast<AEquipmentActor>(GetWorld()->SpawnActor(EquipmentPiece))->GetPickedUp(this);
-        }
     }
+
+    if(IsValid(HealthBarWidgetClass))
+    {
+        HealthBarComponent = CreateWidget<UHealthBarComponent>(GetWorld(), HealthBarWidgetClass);
+        HealthBarComponent->SetupHealthComponent(this);
+    }
+    //if(IsValid(KillCounterComponent)) KillCounterComponent->SetupCounterComponent(this);
 }
 
 void ABrawlerCharacter::SetupPlayerInputComponent(UInputComponent* NewInputComponent)
@@ -214,11 +219,8 @@ void ABrawlerCharacter::TakeDamageEvent(const int& Amount)
     UNiagaraFunctionLibrary::SpawnSystemAttached(BloodSplatterEffect, this->RootComponent, NAME_None, FVector(0.f), FRotator(0.f), EAttachLocation::Type::KeepRelativeOffset, true);
 
     // Update UI according to new health value
-    if(IsValid(BrawlerGameMode))
-    {
-        BrawlerGameMode->GetUserInterface()->GetHealthBar()->UpdateCurrentHealthTextEvent(FString::FromInt(GetHealth()));
-        BrawlerGameMode->GetUserInterface()->GetHealthBar()->UpdateHealthEvent((float)Health/PlayerMaxHealth);
-    }
+    /*BrawlerGameMode->GetUserInterface()->GetHealthBar()->UpdateCurrentHealthTextEvent(FString::FromInt(GetHealth()));
+    BrawlerGameMode->GetUserInterface()->GetHealthBar()->UpdateHealthEvent((float)GetHealth()/GetMaxHealth());*/
     
     // If the character is dead, call the death event.
     if (IsDead())
@@ -238,7 +240,7 @@ void ABrawlerCharacter::TakeDamageEvent(const int& Amount)
     else
     {
         StartInvincibilityEvent();
-        DebugInfo("%s hit, lost %d HP, %d HP remaining", *GetName(), Amount, Health);
+        //DebugInfo("%s hit, lost %d HP, %d HP remaining", *GetName(), Amount, Health);
     }
 }
 
@@ -253,7 +255,7 @@ void ABrawlerCharacter::StartAttackingEvent()
     Attacking = true;
     AttackBuffer = 0;
     AttackBlocked = false;
-    DebugInfo("%s is attacking.", *GetName());
+    //DebugInfo("%s is attacking.", *GetName());
 }
 
 void ABrawlerCharacter::StopAttackingEvent()
@@ -262,7 +264,7 @@ void ABrawlerCharacter::StopAttackingEvent()
 
     Attacking = false;
     AttackBlocked = false;
-    DebugInfo("%s is attacking.", *GetName());
+    //DebugInfo("%s is attacking.", *GetName());
 }
 
 void ABrawlerCharacter::AttackBlockedEvent()
@@ -270,7 +272,7 @@ void ABrawlerCharacter::AttackBlockedEvent()
     if (!IsAttacking()) return;
 
     AttackBlocked = true;
-    DebugInfo("%s's attack was blocked.", *GetName());
+    //DebugInfo("%s's attack was blocked.", *GetName());
 }
 
 void ABrawlerCharacter::StartDefendingEvent()
@@ -283,7 +285,7 @@ void ABrawlerCharacter::StartDefendingEvent()
     
     Defending = true;
     DefenseBuffer = 0;
-    DebugInfo("%s started defending.", *GetName());
+    //DebugInfo("%s started defending.", *GetName());
 }
 
 void ABrawlerCharacter::StopDefendingEvent()
@@ -292,7 +294,7 @@ void ABrawlerCharacter::StopDefendingEvent()
     if (!IsDefending()) return;
     
     Defending = false;
-    DebugInfo("%s stopped defending.", *GetName());
+    //DebugInfo("%s stopped defending.", *GetName());
 }
 
 void ABrawlerCharacter::StartRollingEvent()
@@ -359,16 +361,15 @@ void ABrawlerCharacter::DeathEvent()
         Controller->UnPossess();
     }
     
-    DebugInfo("%s is dead!", *GetName());
+    //DebugInfo("%s is dead!", *GetName());
 }
 
 void ABrawlerCharacter::EnemyKilledEvent()
 {
     KillCount++;
-    DebugData("KillCount: %d", KillCount);
-
-    if(!BrawlerGameMode) return;
-    if(IsValid(BrawlerGameMode)) BrawlerGameMode->GetUserInterface()->GetCounter()->UpdateCounterEvent(FString::FromInt(GetKillCount()));
+    //DebugData("KillCount: %d", KillCount);
+    
+    //if(IsValid(BrawlerGameMode)) BrawlerGameMode->GetUserInterface()->GetCounter()->UpdateCounterEvent(FString::FromInt(GetKillCount()));
 
     // TODO : Replace with spawning system and enemies count alive
     // if(KillCount == 5 && IsPlayer()) BrawlerGameMode->GetUserInterface()->ShowWinMenuEvent();
@@ -385,7 +386,7 @@ void ABrawlerCharacter::DropEquipmentEvent(const EEquipmentType& EquipmentType)
     if (EquipmentPiece) {
         EquipmentPiece->GetDropped(this);
         Equipment.Remove(EquipmentPiece);
-        DebugInfo("%s dropped equipment piece.", *GetName());
+        //DebugInfo("%s dropped equipment piece.", *GetName());
     }
 }
 
@@ -410,6 +411,11 @@ int ABrawlerCharacter::IsEnemy() const
 int ABrawlerCharacter::GetHealth() const
 {
     return Health;
+}
+
+int ABrawlerCharacter::GetMaxHealth() const
+{
+    return IsPlayer() ? PlayerMaxHealth : EnemyMaxHealth;
 }
 
 int ABrawlerCharacter::GetAttackDamage() const
@@ -462,5 +468,16 @@ bool ABrawlerCharacter::HasEquipment(const EEquipmentType& EquipmentType) const
         }
     }
     return HasSpecifiedEquipment;
+}
+
+UWidgetComponent* ABrawlerCharacter::GetHealthComponent() const
+{
+    if(IsValid(HealthComponent)) return HealthComponent;
+    return nullptr;
+}
+
+UHealthBarComponent* ABrawlerCharacter::GetHealthBarComponent() const
+{
+    return IsValid(HealthBarComponent) ? HealthBarComponent : nullptr;
 }
 #pragma endregion
