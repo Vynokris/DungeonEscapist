@@ -1,10 +1,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "BrawlerInstance.h"
 #include "UserInterface/UserInterfaceManager.h"
 #include "GameFramework/GameModeBase.h"
-#include "Kismet/GameplayStatics.h"
 #include "UnrealBrawlerGameModeBase.generated.h"
 
 UCLASS()

@@ -10,6 +10,16 @@ void UBrawlerInstance::Init()
     this->IsGameRestart = 0;
 }
 
+void UBrawlerInstance::Shutdown()
+{
+    Super::Shutdown();
+}
+
+void UBrawlerInstance::StartGameInstance()
+{
+    Super::StartGameInstance();
+}
+
 bool UBrawlerInstance::GetGameRestart() const
 {
     return this->IsGameRestart;
@@ -18,7 +28,18 @@ bool UBrawlerInstance::GetGameRestart() const
 void UBrawlerInstance::SetGameRestart(const bool& IsRestart)
 {
     this->IsGameRestart = IsRestart;
-    DebugInfo("%d", this->IsGameRestart);
+    //DebugInfo("%d", this->IsGameRestart);
+}
+
+ABrawlerCharacter* UBrawlerInstance::GetBrawlerCaracter() const
+{
+
+    return IsValid(BrawlerCharacter) ? BrawlerCharacter : nullptr;
+}
+
+void UBrawlerInstance::SetBrawlerCaracter(ABrawlerCharacter* Character)
+{
+    BrawlerCharacter = Character;
 }
 
 /*UUserInterfaceManager* UBrawlerInstance::GetUserInterfaceManager() const

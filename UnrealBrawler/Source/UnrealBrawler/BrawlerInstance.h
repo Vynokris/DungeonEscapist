@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "BrawlerCharacter.h"
 #include "Engine/GameInstance.h"
 #include "BrawlerInstance.generated.h"
 
@@ -13,15 +14,19 @@ class UNREALBRAWLER_API UBrawlerInstance : public UGameInstance
 
 private:
 	bool IsGameRestart = 0;
-	//UUserInterfaceManager* UserInterfaceManager = nullptr;
+	ABrawlerCharacter* BrawlerCharacter = nullptr;
 
 protected:
 	virtual void Init() override;
+	virtual void Shutdown() override;
+	virtual void StartGameInstance() override;
 	
 public:
 	bool GetGameRestart() const;
 	void SetGameRestart(const bool& IsRestart);
 
-	/*UUserInterfaceManager* GetUserInterfaceManager() const;
-	void SetUserInterfaceManager(UUserInterfaceManager* UserInterfaceManager);*/
+	ABrawlerCharacter* GetBrawlerCaracter() const;
+	void SetBrawlerCaracter(ABrawlerCharacter* Character);
+	
+	
 };

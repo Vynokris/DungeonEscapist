@@ -11,6 +11,8 @@
 #include "Blueprint/UserWidget.h"
 #include "NiagaraComponent.h"
 #include "UnrealBrawlerGameModeBase.h"
+#include "Components/WidgetComponent.h"
+#include "UserInterface/Widget/HealthBarComponent.h"
 #include "BrawlerCharacter.generated.h"
 
 UCLASS()
@@ -24,6 +26,9 @@ private:
     UCharacterMovementComponent* CharacterMovementComponent = nullptr;
     UUserWidget*				 CurrentHUD					= nullptr;
     AUnrealBrawlerGameModeBase*  BrawlerGameMode            = nullptr;
+
+    UHealthBarComponent*         HealthBarComponent         = nullptr;
+    UWidgetComponent *           HealthComponent            = nullptr;
     
     UPROPERTY(EditAnywhere, Category = "Camera") float CameraLag      = 15.f;
     UPROPERTY(EditAnywhere, Category = "Camera") float CameraDistance = 300.f;
@@ -37,12 +42,16 @@ private:
     
     UPROPERTY(EditDefaultsOnly, Category = "Character") TArray<TSubclassOf<AEquipmentActor>> PlayerDefaultEquipment;
     UPROPERTY(EditDefaultsOnly, Category = "Character") TArray<TSubclassOf<AEquipmentActor>> EnemyDefaultEquipment;
-    
+
+    UPROPERTY(EditAnywhere, Category = "VFX") UNiagaraSystem*           BloodSplatterEffect      = nullptr;
+    UPROPERTY(EditAnywhere, Category = "VFX") float                     BloodFxSize              = 10.f;
     UPROPERTY(EditAnywhere, Category = "VFX") UParticleSystemComponent* WalkingParticleComponent = nullptr;
-    UPROPERTY(EditAnywhere, Category = "VFX") float WalkingFxRate = 0.2f;
-    UPROPERTY(EditAnywhere, Category = "VFX") UNiagaraSystem* BloodSplatterEffect = nullptr;
+    UPROPERTY(EditAnywhere, Category = "VFX") float                     WalkingFxRate            = 0.2f;
     
     UPROPERTY(EditAnywhere, Category = "Character Movement: Walking") float MaxEnemyWalkSpeed = 500;
+
+    UPROPERTY(EditAnywhere, Category = "UI") TSubclassOf<UUserWidget> HealthBarWidgetClass   = nullptr;
+    //UPROPERTY(EditAnywhere, Category = "UI") TSubclassOf<UUserWidget> KillCounterWidgetClass = nullptr;
 
     bool  CharacterIsPlayer  = true;
     int   Health             = 0;
@@ -86,6 +95,7 @@ public:
     UFUNCTION(BlueprintCallable) int  IsPlayer()	     const;
     UFUNCTION(BlueprintCallable) int  IsEnemy()		     const;
     UFUNCTION(BlueprintCallable) int  GetHealth()	     const;
+    UFUNCTION(BlueprintCallable) int  GetMaxHealth()     const;
     UFUNCTION(BlueprintCallable) int  GetAttackDamage()  const;
     UFUNCTION(BlueprintCallable) int  GetKillCount()     const;
     UFUNCTION(BlueprintCallable) bool IsAttacking()	     const;
@@ -94,4 +104,7 @@ public:
     UFUNCTION(BlueprintCallable) bool IsInvincible()     const;
     UFUNCTION(BlueprintCallable) bool IsDead()           const;
     UFUNCTION(BlueprintCallable) bool HasEquipment(const EEquipmentType& EquipmentType) const;
+
+    UFUNCTION(BlueprintCallable) UWidgetComponent*    GetHealthComponent()    const;
+    UFUNCTION(BlueprintCallable) UHealthBarComponent* GetHealthBarComponent() const;
 };

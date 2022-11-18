@@ -20,5 +20,7 @@ protected:
 	virtual void NativeDestruct() override;
 
 public:
+	UFUNCTION(BlueprintCallable) void SetupCounterComponent(const AActor* Actor);
+	
 	UFUNCTION(BlueprintCallable) void UpdateCounterEvent(const FString& Amount);
 };

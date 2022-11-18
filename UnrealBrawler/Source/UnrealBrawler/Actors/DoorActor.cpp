@@ -62,13 +62,13 @@ void ADoorActor::NotifyActorBeginOverlap(AActor* OtherActor)
 
 void ADoorActor::OpenDoorEvent()
 {
-	DebugInfo("Pressure plate activated! Openning door!");
+	//DebugInfo("Pressure plate activated! Openning door!");
 	DoorClosing = false;
 }
 
 void ADoorActor::CloseDoorEvent()
 {
-	DebugInfo("Pressure plate activated! Closing door!");
+	//DebugInfo("Pressure plate activated! Closing door!");
 	DoorClosing = true;
 }
 

@@ -10,9 +10,6 @@
 bool UUserInterfaceManager::Initialize()
 {
     if(!Super::Initialize()) return false;
-    
-    if(IsValid(this->CounterUserWidget))     this->CounterWidget       = Cast<UCounterWidget>(CounterUserWidget);
-    if(IsValid(this->HealthBarUserWidget))   this->HealthBarWidget     = Cast<UHealthBarWidget>(HealthBarUserWidget);
 
     if(IsValid(this->MainMenuUserWidget))    this->MainMenuWidget      = Cast<UMenuWidget>(MainMenuUserWidget);
     if(IsValid(this->WinMenuUserWidget))     this->WinMenuWidget       = Cast<UWinWidget>(WinMenuUserWidget);
@@ -69,14 +66,13 @@ void UUserInterfaceManager::PlayGameEvent()
 {
     UBrawlerInstance* BrawlerInstance = CastChecked<UBrawlerInstance>(UGameplayStatics::GetGameInstance(GetWorld()));
     if(BrawlerInstance->GetGameRestart()) UGameplayStatics::OpenLevel(this, FName(*GetWorld()->GetName()), false);
-    BrawlerInstance->SetGameRestart(0);
+    BrawlerInstance->SetGameRestart(false);
     
     this->HideOverMenuEvent();
     this->HideWinMenuEvent();
     this->HideMenuGameEvent();
-    
-    this->GetCounter()->SetVisibility(ESlateVisibility::Visible);
-    this->GetHealthBar()->SetVisibility(ESlateVisibility::Visible);
+
+    BrawlerInstance->GetBrawlerCaracter()->GetHealthBarComponent()->SetVisibility(ESlateVisibility::Visible);
 }
 
 /*void UUserInterfaceManager::RestartGameEvent()
@@ -93,11 +89,15 @@ void UUserInterfaceManager::ShowMenuGameEvent()
         this->MainMenuUserWidget->SetVisibility(ESlateVisibility::Visible);
         this->UpdateNavigation(this->MainMenuUserWidget);
 
-        UBrawlerInstance* BrawlerInstance = CastChecked<UBrawlerInstance>(UGameplayStatics::GetGameInstance(GetWorld()));
-        if(BrawlerInstance->GetGameRestart() == 1)
+        if(IsValid(UGameplayStatics::GetGameInstance(GetWorld())))
         {
-            UGameplayStatics::OpenLevel(this, FName(*GetWorld()->GetName()), false);
-            BrawlerInstance->SetGameRestart(0);
+            UBrawlerInstance* BrawlerInstance = CastChecked<UBrawlerInstance>(UGameplayStatics::GetGameInstance(GetWorld()));
+            
+            if(BrawlerInstance->GetGameRestart())
+            {
+                UGameplayStatics::OpenLevel(this, FName(*GetWorld()->GetName()), false);
+                BrawlerInstance->SetGameRestart(false);
+            }
         }
     }
 }
@@ -113,7 +113,7 @@ void UUserInterfaceManager::ShowOverMenuEvent()
     this->UpdateNavigation(this->OverMenuUserWidget);
 
     UBrawlerInstance* BrawlerInstance = CastChecked<UBrawlerInstance>(UGameplayStatics::GetGameInstance(GetWorld()));
-    BrawlerInstance->SetGameRestart(1);
+    BrawlerInstance->SetGameRestart(true);
 }
 void UUserInterfaceManager::HideOverMenuEvent()
 {
@@ -154,17 +154,6 @@ void UUserInterfaceManager::UpdateNavigation(const UUserWidget* Widget) const
 
 
 #pragma region Getter & Setter
-UCounterWidget* UUserInterfaceManager::GetCounter() const
-{
-    if(IsValid(this->CounterWidget)) return this->CounterWidget;
-    return nullptr;
-}
-UHealthBarWidget* UUserInterfaceManager::GetHealthBar() const
-{
-    if(IsValid(this->HealthBarWidget)) return this->HealthBarWidget;
-    return nullptr;
-}
-
 UMenuWidget* UUserInterfaceManager::GetMainMenu() const
 {
     if(IsValid(this->MainMenuWidget)) return this->MainMenuWidget;
