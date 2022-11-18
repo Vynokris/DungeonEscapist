@@ -123,7 +123,10 @@ void ABrawlerCharacter::SetupPlayerInputComponent(UInputComponent* NewInputCompo
 	
 	// Defend key.
 	NewInputComponent->BindAction("Defend", IE_Pressed,  this, &ABrawlerCharacter::StartDefendingEvent);
-	NewInputComponent->BindAction("Defend", IE_Released, this, &ABrawlerCharacter::StopDefendingEvent);
+    NewInputComponent->BindAction("Defend", IE_Released, this, &ABrawlerCharacter::StopDefendingEvent);
+
+    // Roll key.
+    NewInputComponent->BindAction("Roll", IE_Pressed, this, &ABrawlerCharacter::StartRollingEvent);
 	
 	// Drop keys.
 	{
@@ -146,17 +149,26 @@ void ABrawlerCharacter::Tick(float DeltaSeconds)
     UpdateWalkingFX();
 
     // Attack/defend whenever possible if buffers are non-zero.
-    if (DefenseBuffer > 0 && !IsAttacking() && !IsDefending()) StartDefendingEvent();
-    if (AttackBuffer  > 0 && !IsAttacking() && !IsDefending()) StartAttackingEvent();
+    const float MaxBuffer = FMath::Max3(RollBuffer, DefenseBuffer, AttackBuffer);
+    const bool  IsntDoingAnything = !IsAttacking() && !IsDefending() && !IsRolling();
+    if (MaxBuffer == RollBuffer    && RollBuffer    > 0 && IsntDoingAnything) StartRollingEvent  ();
+    if (MaxBuffer == DefenseBuffer && DefenseBuffer > 0 && IsntDoingAnything) StartDefendingEvent();
+    if (MaxBuffer == AttackBuffer  && AttackBuffer  > 0 && IsntDoingAnything) StartAttackingEvent();
 
     // Decrement buffers.
-    if (AttackBuffer       > 0) AttackBuffer       -= DeltaSeconds;
-    if (DefenseBuffer      > 0) DefenseBuffer      -= DeltaSeconds;
+    if (AttackBuffer  > 0) AttackBuffer  -= DeltaSeconds;
+    if (DefenseBuffer > 0) DefenseBuffer -= DeltaSeconds;
+    if (RollBuffer    > 0) RollBuffer    -= DeltaSeconds;
 
     // Decrement the invincibility timer and call the stop invincibility event when it is finished.
     if (InvincibilityTimer > 0) {
         InvincibilityTimer -= DeltaSeconds;
         if (InvincibilityTimer <= 0) StopInvincibilityEvent();
+    }
+
+    // Add velocity to the player if he is rolling.
+    if (IsRolling()) {
+        GetCharacterMovement()->Launch(GetActorForwardVector() * RollVelocity);
     }
 }
 
@@ -235,8 +247,8 @@ void ABrawlerCharacter::StartAttackingEvent()
     // Make sure the player isn't dead and has a weapon before attacking.
     if (IsDead() || !HasEquipment(Weapon)) return;
 
-    // If the player is currently attacking or defending, start the attack buffer.
-    if (IsAttacking() || IsDefending()) { AttackBuffer = AttackBufferDuration; return; }
+    // If the player is currently attacking, defending or rolling, start the attack buffer.
+    if (IsAttacking() || IsDefending() || IsRolling()) { AttackBuffer = AttackBufferDuration; return; }
     
     Attacking = true;
     AttackBuffer = 0;
@@ -266,8 +278,8 @@ void ABrawlerCharacter::StartDefendingEvent()
     // Make sure the player isn't dead and has a shield before defending.
     if (IsDead() || !HasEquipment(Shield)) return;
 
-    // If the player is currently attacking or defending, start the defense buffer.
-    if (IsAttacking() || IsDefending()) { DefenseBuffer = DefenseBufferDuration; return; }
+    // If the player is currently attacking, defending or rolling, start the defense buffer.
+    if (IsAttacking() || IsDefending() || IsRolling()) { DefenseBuffer = DefenseBufferDuration; return; }
     
     Defending = true;
     DefenseBuffer = 0;
@@ -283,10 +295,35 @@ void ABrawlerCharacter::StopDefendingEvent()
     DebugInfo("%s stopped defending.", *GetName());
 }
 
-void ABrawlerCharacter::StartInvincibilityEvent()
+void ABrawlerCharacter::StartRollingEvent()
+{
+    // Make sure the player isn't dead before rolling.
+    if (IsDead()) return;
+
+    // If the player is currently attacking, defending or rolling, start the roll buffer.
+    if (IsAttacking() || IsDefending() || IsRolling()) { RollBuffer = RollBufferDuration; return; }
+    
+    Rolling = true;
+    RollBuffer = 0;
+    StartInvincibilityEvent(RollInvincibilityDuration);
+    DebugInfo("%s started rolling.", *GetName());
+}
+
+void ABrawlerCharacter::StopRollingEvent()
+{
+    if (!IsRolling()) return;
+
+    Rolling = false;;
+    DebugInfo("%s stopped rolling.", *GetName());
+}
+
+void ABrawlerCharacter::StartInvincibilityEvent(const float& Duration)
 {
     if (!IsPlayer()) return;
-    InvincibilityTimer = InvincibilityDuration;
+    if (Duration == -1)
+        InvincibilityTimer = InvincibilityDuration;
+    else
+        InvincibilityTimer = Duration;
 
     // Change the outline color of the character and his equipment to the invincibility color.
     GetMesh()->SetCustomDepthStencilValue(INVINCIBILITY_STENCIL_VAL);
@@ -403,6 +440,11 @@ bool ABrawlerCharacter::IsDefending() const
 bool ABrawlerCharacter::IsInvincible() const
 {
     return InvincibilityTimer > 0;
+}
+
+bool ABrawlerCharacter::IsRolling() const
+{
+    return Rolling;
 }
 
 bool ABrawlerCharacter::IsDead() const

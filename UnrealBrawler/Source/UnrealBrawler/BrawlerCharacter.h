@@ -28,21 +28,25 @@ private:
     UPROPERTY(EditAnywhere, Category = "Camera") float CameraLag      = 15.f;
     UPROPERTY(EditAnywhere, Category = "Camera") float CameraDistance = 300.f;
     
-    UPROPERTY(EditAnywhere, Category = "Character") int   PlayerMaxHealth       = 5;
-    UPROPERTY(EditAnywhere, Category = "Character") int   EnemyMaxHealth        = 3;
-    UPROPERTY(EditAnywhere, Category = "Character") int   AttackDamage          = 1;
-    UPROPERTY(EditAnywhere, Category = "Character") float AttackBufferDuration  = 1.5;
-    UPROPERTY(EditAnywhere, Category = "Character") float DefenseBufferDuration = 1.5;
-    UPROPERTY(EditAnywhere, Category = "Character") int   InvincibilityDuration = 2;
-    
+    UPROPERTY(EditAnywhere,     Category = "Character") int   PlayerMaxHealth           = 5;
+    UPROPERTY(EditAnywhere,     Category = "Character") int   EnemyMaxHealth            = 3;
+    UPROPERTY(EditAnywhere,     Category = "Character") int   AttackDamage              = 1;
+    UPROPERTY(EditAnywhere,     Category = "Character") float RollInvincibilityDuration = 0.5;
+    UPROPERTY(EditAnywhere,     Category = "Character") int   InvincibilityDuration     = 2;
     UPROPERTY(EditDefaultsOnly, Category = "Character") TArray<TSubclassOf<AEquipmentActor>> PlayerDefaultEquipment;
     UPROPERTY(EditDefaultsOnly, Category = "Character") TArray<TSubclassOf<AEquipmentActor>> EnemyDefaultEquipment;
+    
+    UPROPERTY(EditAnywhere, Category = "Input") float AttackBufferDuration  = 1.5;
+    UPROPERTY(EditAnywhere, Category = "Input") float DefenseBufferDuration = 1.5;
+    UPROPERTY(EditAnywhere, Category = "Input") float RollBufferDuration    = 1.5;
     
     UPROPERTY(EditAnywhere, Category = "VFX") UParticleSystemComponent* WalkingParticleComponent = nullptr;
     UPROPERTY(EditAnywhere, Category = "VFX") float WalkingFxRate = 0.2f;
     UPROPERTY(EditAnywhere, Category = "VFX") UNiagaraSystem* BloodSplatterEffect = nullptr;
     
     UPROPERTY(EditAnywhere, Category = "Character Movement: Walking") float MaxEnemyWalkSpeed = 500;
+    
+    UPROPERTY(EditAnywhere, Category = "Character Movement: Rolling") float RollVelocity = 1000;
 
     bool  CharacterIsPlayer  = true;
     int   Health             = 0;
@@ -52,6 +56,8 @@ private:
     float AttackBuffer       = 0;     // Starts ticking when the character tries to attack but is unable to.
     bool  Defending          = false; // Turns true when the character is defending.
     float DefenseBuffer      = 0;     // Starts ticking when the character tries to defend but is unable to.
+    bool  Rolling            = false; // Turns true when the character is rolling.
+    float RollBuffer         = 0;     // Starts ticking when the character tries to roll but is unable to.
     float InvincibilityTimer = 0;
 
     TArray<AEquipmentActor*> Equipment;
@@ -76,7 +82,9 @@ public:
     UFUNCTION(BlueprintCallable) void AttackBlockedEvent();
     UFUNCTION(BlueprintCallable) void StartDefendingEvent();
     UFUNCTION(BlueprintCallable) void StopDefendingEvent();
-    UFUNCTION(BlueprintCallable) void StartInvincibilityEvent();
+    UFUNCTION(BlueprintCallable) void StartRollingEvent();
+    UFUNCTION(BlueprintCallable) void StopRollingEvent();
+    UFUNCTION(BlueprintCallable) void StartInvincibilityEvent(const float& Duration = -1);
     UFUNCTION(BlueprintCallable) void StopInvincibilityEvent();
     UFUNCTION(BlueprintCallable) void DeathEvent();
     UFUNCTION(BlueprintCallable) void EnemyKilledEvent();
@@ -92,6 +100,7 @@ public:
     UFUNCTION(BlueprintCallable) bool WasAttackBlocked() const;
     UFUNCTION(BlueprintCallable) bool IsDefending()	     const;
     UFUNCTION(BlueprintCallable) bool IsInvincible()     const;
+    UFUNCTION(BlueprintCallable) bool IsRolling()	     const;
     UFUNCTION(BlueprintCallable) bool IsDead()           const;
     UFUNCTION(BlueprintCallable) bool HasEquipment(const EEquipmentType& EquipmentType) const;
 };
