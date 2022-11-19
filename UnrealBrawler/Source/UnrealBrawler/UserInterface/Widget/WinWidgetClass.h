@@ -13,9 +13,11 @@ class UNREALBRAWLER_API UWinWidget : public UUserWidget
 	GENERATED_BODY()
 
 public:
-	//UPROPERTY(EditAnywhere, Category = "Win UI", meta = (BindWidget)) class UUserWidget* RestartButtonWidget;
 	UPROPERTY(EditAnywhere, Category = "Win UI", meta = (BindWidget)) class UUserWidget* MenuButtonWidget;
 	UPROPERTY(EditAnywhere, Category = "Win UI", meta = (BindWidget)) class UUserWidget* QuitButtonWidget;
+
+	UPROPERTY(Transient, meta = (BindWidgetAnim)) class UWidgetAnimation* FadeInAnimation;
+	UPROPERTY(Transient, meta = (BindWidgetAnim)) class UWidgetAnimation* FadeOutAnimation;
 	
 protected:
 	virtual bool Initialize() override;
@@ -23,7 +25,11 @@ protected:
 	virtual void NativeDestruct() override;
 
 public:
-	//UButtonWidget* GetRestartButton() const;
 	UButtonWidget* GetMenuButton() const;
 	UButtonWidget* GetQuitButton() const;
+
+	UWidgetAnimation* GetFadeAnimation(FString AnimationName) const;
+	
+	void PlayFadeIn();
+	void PlayFadeOut();
 };

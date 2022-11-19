@@ -3,13 +3,13 @@
 
 #include "WinWidgetClass.h"
 
+#pragma region Setup
 bool UWinWidget::Initialize()
 {
     if(!Super::Initialize()) return false;
-
-    //this->GetRestartButton()->SetText("Restart Game");
-    this->GetMenuButton()->SetText("Game Menu");
-    this->GetQuitButton()->SetText("Quit Game");
+    
+    this->GetMenuButton()->SetText(FText::FromString("Game Menu"));
+    this->GetQuitButton()->SetText(FText::FromString("Quit Game"));
     
     return true;
 }
@@ -23,21 +23,43 @@ void UWinWidget::NativeDestruct()
 {
     Super::NativeDestruct();
 }
+#pragma endregion
 
-/*UButtonWidget* UWinWidget::GetRestartButton() const
+
+#pragma region Misc
+void UWinWidget::PlayFadeIn()
 {
-    if(IsValid(this->RestartButtonWidget)) return CastChecked<UButtonWidget>(this->RestartButtonWidget);
-    return nullptr;
-}*/
+    if(IsValid(FadeInAnimation)) PlayAnimation(FadeInAnimation, 0, 1);
+}
 
+void UWinWidget::PlayFadeOut()
+{
+    if(IsValid(FadeOutAnimation)) PlayAnimation(FadeOutAnimation, 0, 1);
+}
+#pragma endregion
+
+
+#pragma region Getter & Setter
 UButtonWidget* UWinWidget::GetQuitButton() const
 {
-    if(IsValid(this->QuitButtonWidget)) return CastChecked<UButtonWidget>(this->QuitButtonWidget);
-    return nullptr;
+    return IsValid(this->QuitButtonWidget) ? CastChecked<UButtonWidget>(this->QuitButtonWidget) : nullptr;
 }
 
 UButtonWidget* UWinWidget::GetMenuButton() const
 {
-    if(IsValid(this->MenuButtonWidget)) return CastChecked<UButtonWidget>(this->MenuButtonWidget);
-    return nullptr;
+    return IsValid(this->MenuButtonWidget) ? CastChecked<UButtonWidget>(this->MenuButtonWidget) : nullptr;
 }
+
+UWidgetAnimation* UWinWidget::GetFadeAnimation(FString AnimationName) const
+{
+    if(AnimationName != "OUT" || AnimationName != "IN") return nullptr;
+    const int AnimationIndex = AnimationName == "IN" ? 0 : 1;
+    
+    switch (AnimationIndex)
+    {
+    case 0: return IsValid(FadeInAnimation) ? FadeInAnimation : nullptr;
+    case 1: return IsValid(FadeInAnimation) ? FadeInAnimation : nullptr;
+    default: return nullptr;
+    }
+}
+#pragma endregion

@@ -8,6 +8,7 @@
 #include "UnrealBrawler/BrawlerCharacter.h"
 #include "UnrealBrawler/Utils/DebugUtils.h"
 
+#pragma region Setup
 bool UHealthBarComponent::Initialize()
 {
     if(!Super::Initialize()) return false;
@@ -28,23 +29,21 @@ void UHealthBarComponent::NativeDestruct()
 void UHealthBarComponent::SetupHealthComponent(const AActor* Actor)
 {
     if(IsValid(Actor)) {
-        const ABrawlerCharacter* BrawlerCharacter = Cast<ABrawlerCharacter>(Actor);
-
-        // Setup UI for player and enemies with respective data
-        UpdateHealthEvent((float)BrawlerCharacter->GetHealth()/BrawlerCharacter->GetMaxHealth());
-        UpdateCurrentHealthTextEvent(FString::FromInt(BrawlerCharacter->GetHealth()));
-        UpdateTotalHealthTextEvent(FString::FromInt(BrawlerCharacter->GetMaxHealth()));
         
+        const ABrawlerCharacter* BrawlerCharacter = Cast<ABrawlerCharacter>(Actor);
+        if(IsValid(HealthBar)) HealthBar->SetPercent((float)BrawlerCharacter->GetHealth()/BrawlerCharacter->GetMaxHealth());
+        if(IsValid(CurrentHealthText)) CurrentHealthText->SetText(FText::AsNumber(BrawlerCharacter->GetHealth()));
+        if(IsValid(TotalHealthText)) TotalHealthText->SetText(FText::AsNumber(BrawlerCharacter->GetMaxHealth()));
         
         if(BrawlerCharacter->IsPlayer())
         {
-            this->AddToViewport();
-            this->SetPositionInViewport(FVector2D(50,50));
-            this->SetVisibility(ESlateVisibility::Hidden);
+            AddToViewport();
+            SetPositionInViewport(FVector2D(50,50));
+            SetVisibility(ESlateVisibility::Hidden);
             return;
         }
 
-        BrawlerCharacter->GetHealthComponent()->AttachToComponent(BrawlerCharacter->GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
+        //BrawlerCharacter->GetHealthComponent()->AttachToComponent(BrawlerCharacter->GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
         
         GetCurrentHealthText()->SetVisibility(ESlateVisibility::Hidden);
         GetTotalHealthText  ()->SetVisibility(ESlateVisibility::Hidden);
@@ -52,25 +51,22 @@ void UHealthBarComponent::SetupHealthComponent(const AActor* Actor)
         HealthBar->SetFillColorAndOpacity(FLinearColor(255,0,0));
     }
 }
+#pragma endregion
 
+
+#pragma region Events
 void UHealthBarComponent::UpdateHealthEvent(const float& Amount)
 {
     if(IsValid(HealthBar)) HealthBar->SetPercent(Amount);
+    if(IsValid(CurrentHealthText)) CurrentHealthText->SetText(FText::AsNumber(Amount));
 }
+#pragma endregion
 
-void UHealthBarComponent::UpdateCurrentHealthTextEvent(const FString& Amount)
-{
-    if(IsValid(CurrentHealthText)) CurrentHealthText->SetText(FText::FromString(Amount));
-}
 
+#pragma region Getter & Setter
 UProgressBar* UHealthBarComponent::GetHealthBar() const
 {
     return IsValid(HealthBar) ? HealthBar : nullptr;
-}
-
-void UHealthBarComponent::UpdateTotalHealthTextEvent(const FString& Amount)
-{
-    if(IsValid(TotalHealthText)) TotalHealthText->SetText(FText::FromString(Amount));
 }
 
 UTextBlock* UHealthBarComponent::GetCurrentHealthText() const
@@ -87,4 +83,4 @@ UTextBlock* UHealthBarComponent::GetSeparatorText() const
 {
     return IsValid(SeparatorText) ? SeparatorText : nullptr;
 }
-
+#pragma endregion

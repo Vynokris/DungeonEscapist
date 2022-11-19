@@ -1,25 +1,25 @@
 
 
 
-#include "OverWidgetClass.h"
+#include "PauseWidget.h"
 
 #pragma region Setup
-bool UOverWidget::Initialize()
+bool UPauseWidget::Initialize()
 {
     if(!Super::Initialize()) return false;
     
-    this->GetQuitButton()->SetText(FText::FromString("Quit Game"));
+    this->GetResumeButton()->SetText(FText::FromString("Resume Game"));
     this->GetMenuButton()->SetText(FText::FromString("Game Menu"));
     
     return true;
 }
 
-void UOverWidget::NativeConstruct()
+void UPauseWidget::NativeConstruct()
 {
     Super::NativeConstruct();
 }
 
-void UOverWidget::NativeDestruct()
+void UPauseWidget::NativeDestruct()
 {
     Super::NativeDestruct();
 }
@@ -27,12 +27,12 @@ void UOverWidget::NativeDestruct()
 
 
 #pragma region Misc
-void UOverWidget::PlayFadeIn()
+void UPauseWidget::PlayFadeIn()
 {
     if(IsValid(FadeInAnimation)) PlayAnimation(FadeInAnimation, 0, 1);
 }
 
-void UOverWidget::PlayFadeOut()
+void UPauseWidget::PlayFadeOut()
 {
     if(IsValid(FadeOutAnimation)) PlayAnimation(FadeOutAnimation, 0, 1);
 }
@@ -40,17 +40,17 @@ void UOverWidget::PlayFadeOut()
 
 
 #pragma region Getter & Setter
-UButtonWidget* UOverWidget::GetQuitButton() const
+UButtonWidget* UPauseWidget::GetResumeButton() const
 {
-    return IsValid(this->QuitButtonWidget) ? CastChecked<UButtonWidget>(this->QuitButtonWidget) : nullptr;
+    return IsValid(this->ResumeButtonWidget) ? CastChecked<UButtonWidget>(this->ResumeButtonWidget) : nullptr;
 }
 
-UButtonWidget* UOverWidget::GetMenuButton() const
+UButtonWidget* UPauseWidget::GetMenuButton() const
 {
     return IsValid(this->MenuButtonWidget) ? CastChecked<UButtonWidget>(this->MenuButtonWidget) : nullptr;
 }
 
-UWidgetAnimation* UOverWidget::GetFadeAnimation(FString AnimationName) const
+UWidgetAnimation* UPauseWidget::GetFadeAnimation(FString AnimationName) const
 {
     if(AnimationName != "OUT" || AnimationName != "IN") return nullptr;
     const int AnimationIndex = AnimationName == "IN" ? 0 : 1;

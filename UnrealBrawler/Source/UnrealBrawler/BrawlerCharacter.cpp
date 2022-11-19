@@ -9,6 +9,7 @@
 #include "BehaviorTree/BlackboardComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "UserInterface/Widget/HealthBarComponent.h"
+#include "UserInterface/Widget/KillCOunterComponent.h"
 
 #define PLAYER_STENCIL_VAL 1
 #define ENEMY_STENCIL_VAL 2
@@ -46,7 +47,7 @@ ABrawlerCharacter::ABrawlerCharacter()
     GetMesh()->SetRenderCustomDepth(true);
 	GetMesh()->SetCustomDepthStencilValue(0);
 
-    HealthComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("WidgetComponent"));
+    //HealthComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("WidgetComponent"));
 }
 
 void ABrawlerCharacter::BeginPlay()
@@ -85,6 +86,8 @@ void ABrawlerCharacter::BeginPlay()
         {
             if (EquipmentPiece) Cast<AEquipmentActor>(GetWorld()->SpawnActor(EquipmentPiece))->GetPickedUp(this);
         }
+
+        if(EnemyMaxHealth > 1) SetActorScale3D(GetActorScale()+FVector(EnemyMaxHealth*0.05f));
     }
 
     // If the character is controlled by the player, treat this character as a player.
@@ -103,12 +106,24 @@ void ABrawlerCharacter::BeginPlay()
             if (EquipmentPiece) Cast<AEquipmentActor>(GetWorld()->SpawnActor(EquipmentPiece))->GetPickedUp(this);
     }
 
-    if(IsValid(HealthBarWidgetClass))
+    /*if(IsValid(HealthBarWidgetClass))
     {
         HealthBarComponent = CreateWidget<UHealthBarComponent>(GetWorld(), HealthBarWidgetClass);
         HealthBarComponent->SetupHealthComponent(this);
+    }*/
+    
+    if(IsValid(KillCounterWidgetClass))
+    {
+        KillCounterComponent = CreateWidget<UKillCounterComponent>(GetWorld(), KillCounterWidgetClass);
+
+        if(IsValid(KillCounterComponent))
+        {
+            KillCounterComponent->SetupCounterComponent(this);
+            KillCounterComponent->AddToViewport();
+            KillCounterComponent->SetPositionInViewport(FVector2D(50,50));
+            //KillCounterComponent->SetAnchorsInViewport(FAnchors());
+        }
     }
-    //if(IsValid(KillCounterComponent)) KillCounterComponent->SetupCounterComponent(this);
 }
 
 void ABrawlerCharacter::SetupPlayerInputComponent(UInputComponent* NewInputComponent)
@@ -132,7 +147,10 @@ void ABrawlerCharacter::SetupPlayerInputComponent(UInputComponent* NewInputCompo
 
     // Roll key.
     NewInputComponent->BindAction("Roll", IE_Pressed, this, &ABrawlerCharacter::StartRollingEvent);
-	
+
+    // Pause key.
+    NewInputComponent->BindAction("Pause", IE_Pressed, this, &ABrawlerCharacter::OpenPauseMenu);
+    
 	// Drop keys.
 	{
 		FInputActionBinding DropWeaponBinding("DropWeapon", IE_Pressed);
@@ -394,6 +412,13 @@ void ABrawlerCharacter::PickupEquipmentEvent(AEquipmentActor* NewEquipment)
 {
     if (!HasEquipment(NewEquipment->GetType())) Equipment.Add(NewEquipment);
 }
+
+void ABrawlerCharacter::OpenPauseMenu()
+{
+    if(BrawlerGameMode->GetUserInterface()->GetPauseMenu()->IsVisible()) return;
+    
+    BrawlerGameMode->GetUserInterface()->ShowPauseMenuEvent();
+}
 #pragma endregion
 
 
@@ -470,7 +495,7 @@ bool ABrawlerCharacter::HasEquipment(const EEquipmentType& EquipmentType) const
     return HasSpecifiedEquipment;
 }
 
-UWidgetComponent* ABrawlerCharacter::GetHealthComponent() const
+/*UWidgetComponent* ABrawlerCharacter::GetHealthComponent() const
 {
     if(IsValid(HealthComponent)) return HealthComponent;
     return nullptr;
@@ -479,5 +504,5 @@ UWidgetComponent* ABrawlerCharacter::GetHealthComponent() const
 UHealthBarComponent* ABrawlerCharacter::GetHealthBarComponent() const
 {
     return IsValid(HealthBarComponent) ? HealthBarComponent : nullptr;
-}
+}*/
 #pragma endregion

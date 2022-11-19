@@ -21,6 +21,6 @@ protected:
 	virtual void NativeDestruct() override;
 
 public:
-	void SetText(const FString& Value) const;
+	void SetText(const FText& Value) const;
 	UButton* GetButton() const;
 };

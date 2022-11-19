@@ -6,11 +6,13 @@
 #include "Components/Button.h"
 #include "Components/TextBlock.h"
 
+#pragma region Setup
 bool UButtonWidget::Initialize()
 {
     if(!Super::Initialize()) return false;
 
-    this->Button->SetCursor(EMouseCursor::Hand);
+    Button->SetCursor(EMouseCursor::Hand);
+    
     return true;
 }
 
@@ -23,14 +25,17 @@ void UButtonWidget::NativeDestruct()
 {
     Super::NativeDestruct();
 }
+#pragma endregion
 
-void UButtonWidget::SetText(const FString& Value) const
+
+#pragma region Getter & Setter
+void UButtonWidget::SetText(const FText& Value) const
 {
-    if(IsValid(this->DisplayedText)) this->DisplayedText->SetText(FText::FromString(Value));
+    if(IsValid(DisplayedText)) DisplayedText->SetText(Value);
 }
 
 UButton* UButtonWidget::GetButton() const
 {
-    if(IsValid(this->Button)) return this->Button;
-    return nullptr;
+    return IsValid(Button) ? Button : nullptr;
 }
+#pragma endregion

@@ -7,6 +7,7 @@
 #include "Widget/OverWidgetClass.h"
 #include "Widget/WinWidgetClass.h"
 #include "Blueprint/UserWidget.h"
+#include "Widget/PauseWidget.h"
 #include "UserInterfaceManager.generated.h"
 
 class UBrawlerInstance;
@@ -17,18 +18,18 @@ class UNREALBRAWLER_API UUserInterfaceManager : public UUserWidget
 
 private:
 	UMenuWidget*		MainMenuWidget		= nullptr;
-	UWinWidget*			WinMenuWidget		= nullptr;
+	UPauseWidget*		PauseMenuWidget		= nullptr;
 	UOverWidget*		OverMenuWidget		= nullptr;
-
-	APlayerController*	BrawlerController	= nullptr;
+	UWinWidget*			WinMenuWidget		= nullptr;
 	
 public:
-	UPROPERTY(EditAnywhere, Category = "MENU UI", meta = (BindWidget))	class UUserWidget*		MainMenuUserWidget		= nullptr;
-	UPROPERTY(EditAnywhere, Category = "MENU UI", meta = (BindWidget))	class UUserWidget*		WinMenuUserWidget		= nullptr;
-	UPROPERTY(EditAnywhere, Category = "MENU UI", meta = (BindWidget))	class UUserWidget*		OverMenuUserWidget		= nullptr;
-
+	UPROPERTY(EditAnywhere, Category = "Menu UI", meta = (BindWidget))	class UUserWidget*		MainMenuUserWidget		= nullptr;
+	UPROPERTY(EditAnywhere, Category = "Menu UI", meta = (BindWidget))	class UUserWidget*		WinMenuUserWidget		= nullptr;
+	UPROPERTY(EditAnywhere, Category = "Menu UI", meta = (BindWidget))	class UUserWidget*		OverMenuUserWidget		= nullptr;
+	UPROPERTY(EditAnywhere, Category = "Menu UI", meta = (BindWidget))	class UUserWidget*		PauseMenuUserWidget		= nullptr;
+	
 private:
-	void UpdateNavigation(const UUserWidget* Widget) const;
+	void UpdateNavigation(const UUserWidget* UserWidget) const;
 	
 protected:
 	virtual bool Initialize() override;
@@ -37,16 +38,18 @@ protected:
 
 public:
 	UMenuWidget*		GetMainMenu()	const;
-	UWinWidget*			GetWinMenu()	const;
+	UPauseWidget*		GetPauseMenu()	const;
 	UOverWidget*		GetOverMenu()	const;
-
-	UBrawlerInstance*	GetBrawlerInstance() const;
+	UWinWidget*			GetWinMenu()	const;
 	
 	UFUNCTION(BlueprintCallable) void QuitGameEvent();
 	UFUNCTION(BlueprintCallable) void PlayGameEvent();
 	
-	UFUNCTION(BlueprintCallable) void ShowMenuGameEvent();
-	UFUNCTION(BlueprintCallable) void HideMenuGameEvent();
+	UFUNCTION(BlueprintCallable) void ShowMainMenuEvent();
+	UFUNCTION(BlueprintCallable) void HideMainMenuEvent();
+
+	UFUNCTION(BlueprintCallable) void ShowPauseMenuEvent();
+	UFUNCTION(BlueprintCallable) void HidePauseMenuEvent();
 	
 	UFUNCTION(BlueprintCallable) void ShowOverMenuEvent();
 	UFUNCTION(BlueprintCallable) void HideOverMenuEvent();

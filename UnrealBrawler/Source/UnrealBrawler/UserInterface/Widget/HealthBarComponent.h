@@ -27,8 +27,6 @@ public:
     UFUNCTION(BlueprintCallable) void SetupHealthComponent(const AActor* OwnerActor);
     
     UFUNCTION(BlueprintCallable) void UpdateHealthEvent(const float& Amount);
-    UFUNCTION(BlueprintCallable) void UpdateTotalHealthTextEvent(const FString& Amount);
-    UFUNCTION(BlueprintCallable) void UpdateCurrentHealthTextEvent(const FString& Amount);
 
     UProgressBar* GetHealthBar() const;
     UTextBlock* GetCurrentHealthText() const;

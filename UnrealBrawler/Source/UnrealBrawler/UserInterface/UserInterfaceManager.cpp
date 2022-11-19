@@ -5,18 +5,17 @@
 #include "Components/Button.h"
 #include "Kismet/GameplayStatics.h"
 #include "UnrealBrawler/BrawlerInstance.h"
+#include "UnrealBrawler/Utils/DebugUtils.h"
 
 #pragma region Setup
 bool UUserInterfaceManager::Initialize()
 {
     if(!Super::Initialize()) return false;
 
-    if(IsValid(this->MainMenuUserWidget))    this->MainMenuWidget      = Cast<UMenuWidget>(MainMenuUserWidget);
-    if(IsValid(this->WinMenuUserWidget))     this->WinMenuWidget       = Cast<UWinWidget>(WinMenuUserWidget);
-    if(IsValid(this->OverMenuUserWidget))    this->OverMenuWidget      = Cast<UOverWidget>(OverMenuUserWidget);
-    
-    /*if(this->GetBrawlerInstance()->GetGameRestart() == false && !this->GetMainMenu()->IsVisible())*/
-    this->ShowMenuGameEvent();
+    if(IsValid(this->MainMenuUserWidget))  this->MainMenuWidget  = Cast<UMenuWidget>(MainMenuUserWidget);
+    if(IsValid(this->WinMenuUserWidget))   this->WinMenuWidget   = Cast<UWinWidget>(WinMenuUserWidget);
+    if(IsValid(this->OverMenuUserWidget))  this->OverMenuWidget  = Cast<UOverWidget>(OverMenuUserWidget);
+    if(IsValid(this->PauseMenuUserWidget)) this->PauseMenuWidget = Cast<UPauseWidget>(PauseMenuUserWidget);
 
     if(IsValid(this->MainMenuWidget))
     {
@@ -27,18 +26,20 @@ bool UUserInterfaceManager::Initialize()
     if(IsValid(this->WinMenuWidget))
     {
         WinMenuWidget->GetQuitButton()->GetButton()->OnClicked.AddDynamic(this, &UUserInterfaceManager::QuitGameEvent);
-        WinMenuWidget->GetMenuButton()->GetButton()->OnClicked.AddDynamic(this, &UUserInterfaceManager::ShowMenuGameEvent);
-        //WinMenuWidget->GetRestartButton()->GetButton()->OnClicked.AddDynamic(this, &UUserInterfaceManager::RestartGameEvent);
+        WinMenuWidget->GetMenuButton()->GetButton()->OnClicked.AddDynamic(this, &UUserInterfaceManager::ShowMainMenuEvent);
+    }
+
+    if(IsValid(this->PauseMenuWidget))
+    {
+        PauseMenuWidget->GetResumeButton()->GetButton()->OnClicked.AddDynamic(this, &UUserInterfaceManager::HidePauseMenuEvent);
+        PauseMenuWidget->GetMenuButton()->GetButton()->OnClicked.AddDynamic(this, &UUserInterfaceManager::ShowMainMenuEvent);
     }
     
     if(IsValid(this->OverMenuWidget))
     {
         OverMenuWidget->GetQuitButton()->GetButton()->OnClicked.AddDynamic(this, &UUserInterfaceManager::QuitGameEvent);
-        OverMenuWidget->GetMenuButton()->GetButton()->OnClicked.AddDynamic(this, &UUserInterfaceManager::ShowMenuGameEvent);
-        //OverMenuWidget->GetRestartButton()->GetButton()->OnClicked.AddDynamic(this, &UUserInterfaceManager::RestartGameEvent);
+        OverMenuWidget->GetMenuButton()->GetButton()->OnClicked.AddDynamic(this, &UUserInterfaceManager::ShowMainMenuEvent);
     }
-
-    //if(this->BrawlerInstance->GetUserInterfaceManager() == nullptr) this->BrawlerInstance->SetUserInterfaceManager(this);
     
     return true;
 }
@@ -46,7 +47,8 @@ bool UUserInterfaceManager::Initialize()
 void UUserInterfaceManager::NativeConstruct()
 {
     Super::NativeConstruct();
-    this->BrawlerController = Cast<APlayerController>(GEngine->GetFirstLocalPlayerController(GetWorld()));
+
+    this->ShowMainMenuEvent();
 }
 
 void UUserInterfaceManager::NativeDestruct()
@@ -59,7 +61,7 @@ void UUserInterfaceManager::NativeDestruct()
 #pragma region Events
 void UUserInterfaceManager::QuitGameEvent()
 {
-    this->BrawlerController->ConsoleCommand("quit");
+    Cast<APlayerController>(GEngine->GetFirstLocalPlayerController(GetWorld()))->ConsoleCommand("quit");
 }
 
 void UUserInterfaceManager::PlayGameEvent()
@@ -67,32 +69,25 @@ void UUserInterfaceManager::PlayGameEvent()
     UBrawlerInstance* BrawlerInstance = CastChecked<UBrawlerInstance>(UGameplayStatics::GetGameInstance(GetWorld()));
     if(BrawlerInstance->GetGameRestart()) UGameplayStatics::OpenLevel(this, FName(*GetWorld()->GetName()), false);
     BrawlerInstance->SetGameRestart(false);
-    
-    this->HideOverMenuEvent();
-    this->HideWinMenuEvent();
-    this->HideMenuGameEvent();
 
-    BrawlerInstance->GetBrawlerCaracter()->GetHealthBarComponent()->SetVisibility(ESlateVisibility::Visible);
+    HideMainMenuEvent();
+    HideOverMenuEvent();
+    HideWinMenuEvent();
+
+    //BrawlerInstance->GetBrawlerCaracter()->GetHealthBarComponent()->SetVisibility(ESlateVisibility::Visible);
 }
 
-/*void UUserInterfaceManager::RestartGameEvent()
+void UUserInterfaceManager::ShowMainMenuEvent()
 {
-    this->GetBrawlerInstance()->SetGameRestart(true);
-    UGameplayStatics::OpenLevel(this, FName(*GetWorld()->GetName()), false);
-    this->PlayGameEvent();
-}*/
-
-void UUserInterfaceManager::ShowMenuGameEvent()
-{
-    if(IsValid(this->MainMenuUserWidget))
+    if(IsValid(MainMenuWidget))
     {
-        this->MainMenuUserWidget->SetVisibility(ESlateVisibility::Visible);
-        this->UpdateNavigation(this->MainMenuUserWidget);
+        MainMenuWidget->SetVisibility(ESlateVisibility::Visible);
+        MainMenuWidget->PlayFadeIn();
+        UpdateNavigation(MainMenuWidget);
 
-        if(IsValid(UGameplayStatics::GetGameInstance(GetWorld())))
+        if(IsValid(GetWorld()))
         {
             UBrawlerInstance* BrawlerInstance = CastChecked<UBrawlerInstance>(UGameplayStatics::GetGameInstance(GetWorld()));
-            
             if(BrawlerInstance->GetGameRestart())
             {
                 UGameplayStatics::OpenLevel(this, FName(*GetWorld()->GetName()), false);
@@ -101,35 +96,74 @@ void UUserInterfaceManager::ShowMenuGameEvent()
         }
     }
 }
-void UUserInterfaceManager::HideMenuGameEvent()
+void UUserInterfaceManager::HideMainMenuEvent()
 {
-    if(IsValid(this->MainMenuUserWidget)) this->MainMenuUserWidget->SetVisibility(ESlateVisibility::Hidden);
-    this->UpdateNavigation(this->MainMenuUserWidget);
+    if(IsValid(MainMenuWidget))
+    {
+        MainMenuWidget->PlayFadeOut();
+        MainMenuWidget->SetVisibility(ESlateVisibility::Hidden);
+        UpdateNavigation(MainMenuWidget);
+    }
 }
 
 void UUserInterfaceManager::ShowOverMenuEvent()
 {
-    if(IsValid(this->OverMenuUserWidget)) this->OverMenuUserWidget->SetVisibility(ESlateVisibility::Visible);
-    this->UpdateNavigation(this->OverMenuUserWidget);
+    if(IsValid(OverMenuWidget))
+    {
+        OverMenuWidget->SetVisibility(ESlateVisibility::Visible);
+        OverMenuWidget->PlayFadeIn();
+        UpdateNavigation(OverMenuWidget);
+    }
 
     UBrawlerInstance* BrawlerInstance = CastChecked<UBrawlerInstance>(UGameplayStatics::GetGameInstance(GetWorld()));
     BrawlerInstance->SetGameRestart(true);
 }
 void UUserInterfaceManager::HideOverMenuEvent()
 {
-    if(IsValid(this->OverMenuUserWidget)) this->OverMenuUserWidget->SetVisibility(ESlateVisibility::Hidden);
-    this->UpdateNavigation(this->OverMenuUserWidget);
+    if(IsValid(OverMenuWidget))
+    {
+        OverMenuWidget->PlayFadeOut();
+        OverMenuWidget->SetVisibility(ESlateVisibility::Hidden);
+        UpdateNavigation(OverMenuWidget);
+    }
+}
+
+void UUserInterfaceManager::ShowPauseMenuEvent()
+{
+    if(IsValid(PauseMenuWidget))
+    {
+        PauseMenuWidget->SetVisibility(ESlateVisibility::Visible);
+        PauseMenuWidget->PlayFadeIn();
+        UpdateNavigation(PauseMenuWidget);
+    }
+}
+void UUserInterfaceManager::HidePauseMenuEvent()
+{
+    if(IsValid(PauseMenuWidget))
+    {
+        PauseMenuWidget->PlayFadeOut();
+        PauseMenuWidget->SetVisibility(ESlateVisibility::Hidden);
+        UpdateNavigation(PauseMenuWidget);
+    }
 }
 
 void UUserInterfaceManager::ShowWinMenuEvent()
 {
-    if(IsValid(this->WinMenuUserWidget)) this->WinMenuUserWidget->SetVisibility(ESlateVisibility::Visible);
-    this->UpdateNavigation(this->WinMenuUserWidget);
+    if(IsValid(WinMenuWidget))
+    {
+        WinMenuWidget->SetVisibility(ESlateVisibility::Visible);
+        WinMenuWidget->PlayFadeIn();
+        UpdateNavigation(WinMenuWidget);
+    }
 }
 void UUserInterfaceManager::HideWinMenuEvent()
 {
-    if(IsValid(this->WinMenuUserWidget)) this->WinMenuUserWidget->SetVisibility(ESlateVisibility::Hidden);
-    this->UpdateNavigation(this->WinMenuUserWidget);
+    if(IsValid(WinMenuWidget))
+    {
+        WinMenuWidget->PlayFadeOut();
+        WinMenuWidget->SetVisibility(ESlateVisibility::Hidden);
+        UpdateNavigation(WinMenuWidget);
+    }
 }
 #pragma endregion
 
@@ -137,17 +171,20 @@ void UUserInterfaceManager::HideWinMenuEvent()
 #pragma region Misc 
 void UUserInterfaceManager::UpdateNavigation(const UUserWidget* Widget) const
 {
-    if(IsValid(this->BrawlerController))
+    APlayerController* ABrawlerController = nullptr;
+    if(IsValid(GetWorld())) ABrawlerController = Cast<APlayerController>(GEngine->GetFirstLocalPlayerController(GetWorld()));;
+    
+    if(IsValid(ABrawlerController))
     {
         if (Widget->IsVisible())
         {
-            this->BrawlerController->SetPause(true);
-            this->BrawlerController->SetShowMouseCursor(true);
+            ABrawlerController->SetPause(true);
+            ABrawlerController->SetShowMouseCursor(true);
             return;
         }
 
-        this->BrawlerController->SetPause(false);
-        this->BrawlerController->SetShowMouseCursor(false);
+        ABrawlerController->SetPause(false);
+        ABrawlerController->SetShowMouseCursor(false);
     } 
 }
 #pragma endregion
@@ -156,27 +193,23 @@ void UUserInterfaceManager::UpdateNavigation(const UUserWidget* Widget) const
 #pragma region Getter & Setter
 UMenuWidget* UUserInterfaceManager::GetMainMenu() const
 {
-    if(IsValid(this->MainMenuWidget)) return this->MainMenuWidget;
-    return nullptr;
+    return IsValid(MainMenuWidget) ? MainMenuWidget : nullptr;
+}
+
+UPauseWidget* UUserInterfaceManager::GetPauseMenu() const
+{
+    return IsValid(PauseMenuWidget) ? PauseMenuWidget : nullptr;
 }
 
 UWinWidget*	UUserInterfaceManager::GetWinMenu()	const
 {
-    if(IsValid(this->WinMenuWidget)) return this->WinMenuWidget;
-    return nullptr;
+    return IsValid(WinMenuWidget) ? WinMenuWidget : nullptr;
 }
 
 UOverWidget* UUserInterfaceManager::GetOverMenu() const
 {
-    if(IsValid(this->OverMenuWidget)) return this->OverMenuWidget;
-    return nullptr;
+    return IsValid(OverMenuWidget) ? OverMenuWidget : nullptr;
 }
-
-/*UBrawlerInstance* UUserInterfaceManager::GetBrawlerInstance() const
-{
-    if(IsValid(this->BrawlerInstance)) return this->BrawlerInstance;
-    return nullptr;
-}*/
 #pragma endregion
 
 

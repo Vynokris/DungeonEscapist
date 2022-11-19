@@ -4,10 +4,10 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
-#include "CounterWidgetClass.generated.h"
+#include "KillCOunterComponent.generated.h"
 
 UCLASS()
-class UNREALBRAWLER_API UCounterWidget : public UUserWidget
+class UNREALBRAWLER_API UKillCounterComponent : public UUserWidget
 {
 	GENERATED_BODY()
 	
@@ -22,5 +22,5 @@ protected:
 public:
 	UFUNCTION(BlueprintCallable) void SetupCounterComponent(const AActor* Actor);
 	
-	UFUNCTION(BlueprintCallable) void UpdateCounterEvent(const FString& Amount);
+	UFUNCTION(BlueprintCallable) void UpdateCounterEvent(const FText& Amount);
 };
