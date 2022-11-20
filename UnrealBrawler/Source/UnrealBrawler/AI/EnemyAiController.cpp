@@ -10,7 +10,7 @@
 AEnemyAiController::AEnemyAiController(const FObjectInitializer& ObjectInitializer)
 {
     // Get the behavior tree.
-    static ConstructorHelpers::FObjectFinder<UBehaviorTree> Obj(TEXT("BehaviorTree'/Game/Blueprints/AI/BrawlerNpcBehavior.BrawlerNpcBehavior'"));
+    static ConstructorHelpers::FObjectFinder<UBehaviorTree> Obj(TEXT("BehaviorTree'/Game/Blueprints/AI/AiBehavior.AiBehavior'"));
     if (Obj.Succeeded()) {
         BehaviorTree = Obj.Object;
     }
