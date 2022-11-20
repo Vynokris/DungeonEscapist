@@ -13,8 +13,8 @@ class UNREALBRAWLER_API UBrawlerInstance : public UGameInstance
 	GENERATED_BODY()
 
 private:
-	bool IsGameRestart = 0;
-	ABrawlerCharacter* BrawlerCharacter = nullptr;
+	bool IsGameRestart = false;
+	bool IsGameWin = false;
 
 protected:
 	virtual void Init() override;
@@ -25,8 +25,6 @@ public:
 	bool GetGameRestart() const;
 	void SetGameRestart(const bool& IsRestart);
 
-	ABrawlerCharacter* GetBrawlerCaracter() const;
-	void SetBrawlerCaracter(ABrawlerCharacter* Character);
-	
-	
+	bool GetGameWin() const;
+	void SetGameWin(const bool& IsWin);
 };

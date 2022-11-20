@@ -24,9 +24,9 @@ protected:
     virtual void NativeDestruct() override;
 
 public:
-    UFUNCTION(BlueprintCallable) void SetupHealthComponent(const AActor* OwnerActor);
+    UFUNCTION(BlueprintCallable) void SetupHealthComponent(AActor* OwnerActor);
     
-    UFUNCTION(BlueprintCallable) void UpdateHealthEvent(const float& Amount);
+    UFUNCTION(BlueprintCallable) void UpdateHealthEvent(AActor* Actor, const int& Current, const int& Max);
 
     UProgressBar* GetHealthBar() const;
     UTextBlock* GetCurrentHealthText() const;

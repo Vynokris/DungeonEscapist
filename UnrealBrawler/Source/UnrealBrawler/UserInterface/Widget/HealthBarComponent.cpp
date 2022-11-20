@@ -26,39 +26,37 @@ void UHealthBarComponent::NativeDestruct()
     Super::NativeDestruct();
 }
 
-void UHealthBarComponent::SetupHealthComponent(const AActor* Actor)
+void UHealthBarComponent::SetupHealthComponent(AActor* Actor)
 {
-    if(IsValid(Actor)) {
-        
-        const ABrawlerCharacter* BrawlerCharacter = Cast<ABrawlerCharacter>(Actor);
-        if(IsValid(HealthBar)) HealthBar->SetPercent((float)BrawlerCharacter->GetHealth()/BrawlerCharacter->GetMaxHealth());
-        if(IsValid(CurrentHealthText)) CurrentHealthText->SetText(FText::AsNumber(BrawlerCharacter->GetHealth()));
-        if(IsValid(TotalHealthText)) TotalHealthText->SetText(FText::AsNumber(BrawlerCharacter->GetMaxHealth()));
-        
-        if(BrawlerCharacter->IsPlayer())
-        {
-            AddToViewport();
-            SetPositionInViewport(FVector2D(50,50));
-            SetVisibility(ESlateVisibility::Hidden);
-            return;
-        }
+    if(!IsValid(Actor)) return;
+    const ABrawlerCharacter* BrawlerCharacter = Cast<ABrawlerCharacter>(Actor);
+    
+    if(IsValid(CurrentHealthText)) CurrentHealthText->SetText(FText::AsNumber(BrawlerCharacter->GetHealth()));
+    if(IsValid(TotalHealthText))   TotalHealthText  ->SetText(FText::AsNumber(BrawlerCharacter->GetMaxHealth()));
+    if(IsValid(HealthBar))         HealthBar        ->SetPercent((float)BrawlerCharacter->GetHealth()/BrawlerCharacter->GetMaxHealth());
 
-        //BrawlerCharacter->GetHealthComponent()->AttachToComponent(BrawlerCharacter->GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
-        
+    if(BrawlerCharacter->IsEnemy())
+    {
         GetCurrentHealthText()->SetVisibility(ESlateVisibility::Hidden);
         GetTotalHealthText  ()->SetVisibility(ESlateVisibility::Hidden);
         GetSeparatorText    ()->SetVisibility(ESlateVisibility::Hidden);
-        HealthBar->SetFillColorAndOpacity(FLinearColor(255,0,0));
+        GetHealthBar        ()->SetFillColorAndOpacity(FLinearColor(255,0,0));
+        BrawlerCharacter->GetHealthBarWidgetComponent()->SetWidget(this);
     }
 }
 #pragma endregion
 
 
 #pragma region Events
-void UHealthBarComponent::UpdateHealthEvent(const float& Amount)
+void UHealthBarComponent::UpdateHealthEvent(AActor* Actor, const int& Current, const int& Max)
 {
-    if(IsValid(HealthBar)) HealthBar->SetPercent(Amount);
-    if(IsValid(CurrentHealthText)) CurrentHealthText->SetText(FText::AsNumber(Amount));
+    if(!IsValid(Actor)) return;
+    const ABrawlerCharacter* BrawlerCharacter = Cast<ABrawlerCharacter>(Actor);
+    
+    if(IsValid(HealthBar)) HealthBar->SetPercent((float)Current/Max);
+    if(IsValid(CurrentHealthText)) CurrentHealthText->SetText(FText::AsNumber(Current));
+    
+    if(BrawlerCharacter->IsEnemy()) BrawlerCharacter->GetHealthBarWidgetComponent()->SetWidget(this);
 }
 #pragma endregion
 

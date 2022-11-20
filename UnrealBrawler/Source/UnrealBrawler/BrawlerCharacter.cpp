@@ -1,12 +1,13 @@
 #include "BrawlerCharacter.h"
 
-#include "BrawlerInstance.h"
 #include "AI/EnemyAiController.h"
 #include "Utils/DebugUtils.h"
 #include "Components/CapsuleComponent.h"
 #include "Blueprint/WidgetTree.h"
 #include "NiagaraFunctionLibrary.h"
 #include "BehaviorTree/BlackboardComponent.h"
+#include "Components/ProgressBar.h"
+#include "Components/TextBlock.h"
 #include "Kismet/GameplayStatics.h"
 #include "UserInterface/Widget/HealthBarComponent.h"
 #include "UserInterface/Widget/KillCOunterComponent.h"
@@ -47,19 +48,19 @@ ABrawlerCharacter::ABrawlerCharacter()
     GetMesh()->SetRenderCustomDepth(true);
 	GetMesh()->SetCustomDepthStencilValue(0);
 
-    //HealthComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("WidgetComponent"));
+    HealthBarWidgetComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("HealthBarComponent"));
+    HealthBarWidgetComponent->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
 }
 
 void ABrawlerCharacter::BeginPlay()
 {
     Super::BeginPlay();
-
-    BrawlerGameMode = Cast<AUnrealBrawlerGameModeBase>(GetWorld()->GetAuthGameMode());
-    Cast<UBrawlerInstance>(GetWorld()->GetGameInstance())->SetBrawlerCaracter(this);
     
     // Update camera parameters.
     SpringArmComponent->CameraLagSpeed = CameraLag;
     SpringArmComponent->TargetArmLength = CameraDistance;
+
+    UserInterface = Cast<UUserInterfaceManager>(CreateWidget(GetWorld(), GameWidgetHUD));
     
     // If the character is controller by AI, treat this character as an enemy.
     if (AEnemyAiController* Ai = Cast<AEnemyAiController>(GetController()))
@@ -87,14 +88,16 @@ void ABrawlerCharacter::BeginPlay()
             if (EquipmentPiece) Cast<AEquipmentActor>(GetWorld()->SpawnActor(EquipmentPiece))->GetPickedUp(this);
         }
 
-        if(EnemyMaxHealth > 1) SetActorScale3D(GetActorScale()+FVector(EnemyMaxHealth*0.05f));
+        if(EnemyMaxHealth > 1) SetActorScale3D(GetActorScale() + FVector(EnemyMaxHealth * 0.05f));
     }
 
     // If the character is controlled by the player, treat this character as a player.
     else
     {
+        UserInterface->AddToViewport();
+        UserInterface->ShowMainMenuEvent();
         // Remove de health bar displayed on top of head, since already showed in HUD
-        // HealthBarComponent->DestroyComponent();
+        GetHealthBarWidgetComponent()->DestroyComponent();
         
         Health = PlayerMaxHealth;
         SetActorLabel("Player");
@@ -104,26 +107,11 @@ void ABrawlerCharacter::BeginPlay()
         // Give default equipment to the player.
         for (TSubclassOf<AEquipmentActor> EquipmentPiece : PlayerDefaultEquipment)
             if (EquipmentPiece) Cast<AEquipmentActor>(GetWorld()->SpawnActor(EquipmentPiece))->GetPickedUp(this);
+
+        UserInterface->GetCounterComponent()->SetupCounterComponent(this);
     }
 
-    /*if(IsValid(HealthBarWidgetClass))
-    {
-        HealthBarComponent = CreateWidget<UHealthBarComponent>(GetWorld(), HealthBarWidgetClass);
-        HealthBarComponent->SetupHealthComponent(this);
-    }*/
-    
-    if(IsValid(KillCounterWidgetClass))
-    {
-        KillCounterComponent = CreateWidget<UKillCounterComponent>(GetWorld(), KillCounterWidgetClass);
-
-        if(IsValid(KillCounterComponent))
-        {
-            KillCounterComponent->SetupCounterComponent(this);
-            KillCounterComponent->AddToViewport();
-            KillCounterComponent->SetPositionInViewport(FVector2D(50,50));
-            //KillCounterComponent->SetAnchorsInViewport(FAnchors());
-        }
-    }
+     UserInterface->GetHealthBarComponent()->SetupHealthComponent(this);
 }
 
 void ABrawlerCharacter::SetupPlayerInputComponent(UInputComponent* NewInputComponent)
@@ -237,8 +225,8 @@ void ABrawlerCharacter::TakeDamageEvent(const int& Amount)
     UNiagaraFunctionLibrary::SpawnSystemAttached(BloodSplatterEffect, this->RootComponent, NAME_None, FVector(0.f), FRotator(0.f), EAttachLocation::Type::KeepRelativeOffset, true);
 
     // Update UI according to new health value
-    /*BrawlerGameMode->GetUserInterface()->GetHealthBar()->UpdateCurrentHealthTextEvent(FString::FromInt(GetHealth()));
-    BrawlerGameMode->GetUserInterface()->GetHealthBar()->UpdateHealthEvent((float)GetHealth()/GetMaxHealth());*/
+    
+    UserInterface->GetHealthBarComponent()->UpdateHealthEvent(this, GetHealth(), GetMaxHealth());
     
     // If the character is dead, call the death event.
     if (IsDead())
@@ -248,6 +236,7 @@ void ABrawlerCharacter::TakeDamageEvent(const int& Amount)
         // If the character is an enemy, call the player's enemy killed event.
         if (IsEnemy())
         {
+            HealthBarWidgetComponent->DestroyComponent();
             TArray<AActor*> FoundActors;
             UGameplayStatics::GetAllActorsWithTag(GetWorld(), "Player", FoundActors);
             Cast<ABrawlerCharacter>(FoundActors[0])->EnemyKilledEvent();
@@ -340,10 +329,8 @@ void ABrawlerCharacter::StopRollingEvent()
 void ABrawlerCharacter::StartInvincibilityEvent(const float& Duration)
 {
     if (!IsPlayer()) return;
-    if (Duration == -1)
-        InvincibilityTimer = InvincibilityDuration;
-    else
-        InvincibilityTimer = Duration;
+    if (Duration == -1) InvincibilityTimer = InvincibilityDuration;
+    else InvincibilityTimer = Duration;
 
     // Change the outline color of the character and his equipment to the invincibility color.
     GetMesh()->SetCustomDepthStencilValue(INVINCIBILITY_STENCIL_VAL);
@@ -367,13 +354,15 @@ void ABrawlerCharacter::DeathEvent()
     Health = 0;
     WalkingParticleComponent->DeactivateSystem();
     GetMesh()->SetRenderCustomDepth(false);
+    
     for (const AEquipmentActor* EquipmentPiece : Equipment)
         EquipmentPiece->GetMesh()->SetRenderCustomDepth(false);
+    
 	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
 	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Ignore);
 	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_WorldStatic, ECR_Ignore);
 
-    if (IsPlayer()) BrawlerGameMode->GetUserInterface()->ShowOverMenuEvent();
+    if (IsPlayer()) UserInterface->ShowOverMenuEvent();
     else if (Controller && IsEnemy()) {
         Cast<AEnemyAiController>(Controller)->GetBlackboard()->SetValueAsBool("ShouldAttack", false);
         Controller->UnPossess();
@@ -387,7 +376,7 @@ void ABrawlerCharacter::EnemyKilledEvent()
     KillCount++;
     //DebugData("KillCount: %d", KillCount);
     
-    //if(IsValid(BrawlerGameMode)) BrawlerGameMode->GetUserInterface()->GetCounter()->UpdateCounterEvent(FString::FromInt(GetKillCount()));
+    UserInterface->GetCounterComponent()->UpdateCounterEvent(FText::AsNumber(GetKillCount()));
 
     // TODO : Replace with spawning system and enemies count alive
     // if(KillCount == 5 && IsPlayer()) BrawlerGameMode->GetUserInterface()->ShowWinMenuEvent();
@@ -415,9 +404,8 @@ void ABrawlerCharacter::PickupEquipmentEvent(AEquipmentActor* NewEquipment)
 
 void ABrawlerCharacter::OpenPauseMenu()
 {
-    if(BrawlerGameMode->GetUserInterface()->GetPauseMenu()->IsVisible()) return;
-    
-    BrawlerGameMode->GetUserInterface()->ShowPauseMenuEvent();
+    if(UserInterface->GetPauseMenu()->IsVisible()) return;
+    UserInterface->ShowPauseMenuEvent();
 }
 #pragma endregion
 
@@ -495,14 +483,8 @@ bool ABrawlerCharacter::HasEquipment(const EEquipmentType& EquipmentType) const
     return HasSpecifiedEquipment;
 }
 
-/*UWidgetComponent* ABrawlerCharacter::GetHealthComponent() const
+UWidgetComponent* ABrawlerCharacter::GetHealthBarWidgetComponent() const
 {
-    if(IsValid(HealthComponent)) return HealthComponent;
-    return nullptr;
+    return IsValid(HealthBarWidgetComponent) ? HealthBarWidgetComponent : nullptr;
 }
-
-UHealthBarComponent* ABrawlerCharacter::GetHealthBarComponent() const
-{
-    return IsValid(HealthBarComponent) ? HealthBarComponent : nullptr;
-}*/
 #pragma endregion

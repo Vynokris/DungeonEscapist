@@ -12,30 +12,29 @@ bool UUserInterfaceManager::Initialize()
 {
     if(!Super::Initialize()) return false;
 
-    if(IsValid(this->MainMenuUserWidget))  this->MainMenuWidget  = Cast<UMenuWidget>(MainMenuUserWidget);
-    if(IsValid(this->WinMenuUserWidget))   this->WinMenuWidget   = Cast<UWinWidget>(WinMenuUserWidget);
-    if(IsValid(this->OverMenuUserWidget))  this->OverMenuWidget  = Cast<UOverWidget>(OverMenuUserWidget);
-    if(IsValid(this->PauseMenuUserWidget)) this->PauseMenuWidget = Cast<UPauseWidget>(PauseMenuUserWidget);
-
-    if(IsValid(this->MainMenuWidget))
+    const UMenuWidget* MainMenuWidget = GetMainMenu();
+    if(IsValid(MainMenuWidget))
     {
         MainMenuWidget->GetPlayButton()->GetButton()->OnClicked.AddDynamic(this, &UUserInterfaceManager::PlayGameEvent);
         MainMenuWidget->GetQuitButton()->GetButton()->OnClicked.AddDynamic(this, &UUserInterfaceManager::QuitGameEvent);
     }
 
-    if(IsValid(this->WinMenuWidget))
+    const UWinWidget* WinMenuWidget = GetWinMenu();
+    if(IsValid(WinMenuWidget))
     {
         WinMenuWidget->GetQuitButton()->GetButton()->OnClicked.AddDynamic(this, &UUserInterfaceManager::QuitGameEvent);
         WinMenuWidget->GetMenuButton()->GetButton()->OnClicked.AddDynamic(this, &UUserInterfaceManager::ShowMainMenuEvent);
     }
 
-    if(IsValid(this->PauseMenuWidget))
+    const UPauseWidget* PauseMenuWidget = GetPauseMenu();
+    if(IsValid(PauseMenuWidget))
     {
         PauseMenuWidget->GetResumeButton()->GetButton()->OnClicked.AddDynamic(this, &UUserInterfaceManager::HidePauseMenuEvent);
         PauseMenuWidget->GetMenuButton()->GetButton()->OnClicked.AddDynamic(this, &UUserInterfaceManager::ShowMainMenuEvent);
     }
-    
-    if(IsValid(this->OverMenuWidget))
+
+    const UOverWidget* OverMenuWidget = GetOverMenu();
+    if(IsValid(OverMenuWidget))
     {
         OverMenuWidget->GetQuitButton()->GetButton()->OnClicked.AddDynamic(this, &UUserInterfaceManager::QuitGameEvent);
         OverMenuWidget->GetMenuButton()->GetButton()->OnClicked.AddDynamic(this, &UUserInterfaceManager::ShowMainMenuEvent);
@@ -47,8 +46,6 @@ bool UUserInterfaceManager::Initialize()
 void UUserInterfaceManager::NativeConstruct()
 {
     Super::NativeConstruct();
-
-    this->ShowMainMenuEvent();
 }
 
 void UUserInterfaceManager::NativeDestruct()
@@ -66,19 +63,20 @@ void UUserInterfaceManager::QuitGameEvent()
 
 void UUserInterfaceManager::PlayGameEvent()
 {
-    UBrawlerInstance* BrawlerInstance = CastChecked<UBrawlerInstance>(UGameplayStatics::GetGameInstance(GetWorld()));
-    if(BrawlerInstance->GetGameRestart()) UGameplayStatics::OpenLevel(this, FName(*GetWorld()->GetName()), false);
-    BrawlerInstance->SetGameRestart(false);
+    /*UBrawlerInstance* BrawlerInstance = CastChecked<UBrawlerInstance>(UGameplayStatics::GetGameInstance(GetWorld()));
+    if(BrawlerInstance->GetGameRestart())
+    {
+        UGameplayStatics::OpenLevel(this, FName(*GetWorld()->GetName()), false);
+        BrawlerInstance->SetGameRestart(false);
+    }*/
 
     HideMainMenuEvent();
-    HideOverMenuEvent();
-    HideWinMenuEvent();
-
-    //BrawlerInstance->GetBrawlerCaracter()->GetHealthBarComponent()->SetVisibility(ESlateVisibility::Visible);
 }
 
 void UUserInterfaceManager::ShowMainMenuEvent()
 {
+    HideGameUI();
+    UMenuWidget* MainMenuWidget = GetMainMenu();
     if(IsValid(MainMenuWidget))
     {
         MainMenuWidget->SetVisibility(ESlateVisibility::Visible);
@@ -98,6 +96,9 @@ void UUserInterfaceManager::ShowMainMenuEvent()
 }
 void UUserInterfaceManager::HideMainMenuEvent()
 {
+    ShowGameUI();
+    UMenuWidget* MainMenuWidget = GetMainMenu();
+    
     if(IsValid(MainMenuWidget))
     {
         MainMenuWidget->PlayFadeOut();
@@ -108,6 +109,9 @@ void UUserInterfaceManager::HideMainMenuEvent()
 
 void UUserInterfaceManager::ShowOverMenuEvent()
 {
+    HideGameUI();
+    UOverWidget* OverMenuWidget = GetOverMenu();
+    
     if(IsValid(OverMenuWidget))
     {
         OverMenuWidget->SetVisibility(ESlateVisibility::Visible);
@@ -120,6 +124,9 @@ void UUserInterfaceManager::ShowOverMenuEvent()
 }
 void UUserInterfaceManager::HideOverMenuEvent()
 {
+    ShowGameUI();
+    UOverWidget* OverMenuWidget = GetOverMenu();
+    
     if(IsValid(OverMenuWidget))
     {
         OverMenuWidget->PlayFadeOut();
@@ -130,6 +137,9 @@ void UUserInterfaceManager::HideOverMenuEvent()
 
 void UUserInterfaceManager::ShowPauseMenuEvent()
 {
+    HideGameUI();
+    UPauseWidget* PauseMenuWidget = GetPauseMenu();
+    
     if(IsValid(PauseMenuWidget))
     {
         PauseMenuWidget->SetVisibility(ESlateVisibility::Visible);
@@ -139,6 +149,9 @@ void UUserInterfaceManager::ShowPauseMenuEvent()
 }
 void UUserInterfaceManager::HidePauseMenuEvent()
 {
+    ShowGameUI();
+    UPauseWidget* PauseMenuWidget = GetPauseMenu();
+    
     if(IsValid(PauseMenuWidget))
     {
         PauseMenuWidget->PlayFadeOut();
@@ -149,6 +162,9 @@ void UUserInterfaceManager::HidePauseMenuEvent()
 
 void UUserInterfaceManager::ShowWinMenuEvent()
 {
+    HideGameUI();
+    UWinWidget* WinMenuWidget = GetWinMenu();
+    
     if(IsValid(WinMenuWidget))
     {
         WinMenuWidget->SetVisibility(ESlateVisibility::Visible);
@@ -158,12 +174,27 @@ void UUserInterfaceManager::ShowWinMenuEvent()
 }
 void UUserInterfaceManager::HideWinMenuEvent()
 {
+    ShowGameUI();
+    UWinWidget* WinMenuWidget = GetWinMenu();
+    
     if(IsValid(WinMenuWidget))
     {
         WinMenuWidget->PlayFadeOut();
         WinMenuWidget->SetVisibility(ESlateVisibility::Hidden);
         UpdateNavigation(WinMenuWidget);
     }
+}
+
+void UUserInterfaceManager::ShowGameUI()
+{
+    if(IsValid(KillCounterComponent)) KillCounterComponent->SetVisibility(ESlateVisibility::Visible);
+    if(IsValid(HealthBarComponent)) HealthBarComponent->SetVisibility(ESlateVisibility::Visible);
+}
+
+void UUserInterfaceManager::HideGameUI()
+{
+    if(IsValid(KillCounterComponent)) KillCounterComponent->SetVisibility(ESlateVisibility::Hidden);
+    if(IsValid(HealthBarComponent)) HealthBarComponent->SetVisibility(ESlateVisibility::Hidden);
 }
 #pragma endregion
 
@@ -193,22 +224,32 @@ void UUserInterfaceManager::UpdateNavigation(const UUserWidget* Widget) const
 #pragma region Getter & Setter
 UMenuWidget* UUserInterfaceManager::GetMainMenu() const
 {
-    return IsValid(MainMenuWidget) ? MainMenuWidget : nullptr;
+    return IsValid(MainMenuUserWidget) ? Cast<UMenuWidget>(MainMenuUserWidget) : nullptr;
 }
 
 UPauseWidget* UUserInterfaceManager::GetPauseMenu() const
 {
-    return IsValid(PauseMenuWidget) ? PauseMenuWidget : nullptr;
+    return IsValid(PauseMenuUserWidget) ? Cast<UPauseWidget>(PauseMenuUserWidget) : nullptr;
 }
 
 UWinWidget*	UUserInterfaceManager::GetWinMenu()	const
 {
-    return IsValid(WinMenuWidget) ? WinMenuWidget : nullptr;
+    return IsValid(WinMenuUserWidget) ? Cast<UWinWidget>(WinMenuUserWidget) : nullptr;
+}
+
+UKillCounterComponent* UUserInterfaceManager::GetCounterComponent() const
+{
+    return IsValid(KillCounterComponent) ? Cast<UKillCounterComponent>(KillCounterComponent) : nullptr;
+}
+
+UHealthBarComponent* UUserInterfaceManager::GetHealthBarComponent() const
+{
+    return IsValid(HealthBarComponent) ? Cast<UHealthBarComponent>(HealthBarComponent) : nullptr;
 }
 
 UOverWidget* UUserInterfaceManager::GetOverMenu() const
 {
-    return IsValid(OverMenuWidget) ? OverMenuWidget : nullptr;
+    return IsValid(OverMenuUserWidget) ? Cast<UOverWidget>(OverMenuUserWidget) : nullptr;
 }
 #pragma endregion
 

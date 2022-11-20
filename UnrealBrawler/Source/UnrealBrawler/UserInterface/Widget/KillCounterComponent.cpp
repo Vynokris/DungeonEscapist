@@ -25,13 +25,8 @@ void UKillCounterComponent::NativeDestruct()
 
 void UKillCounterComponent::SetupCounterComponent(const AActor* Actor)
 {
-    if(IsValid(Actor))
-    {
-        const ABrawlerCharacter* BrawlerCharacter = Cast<ABrawlerCharacter>(Actor);
-        if(BrawlerCharacter->IsEnemy()) return;
-        
-        if(IsValid(this->CurrentEnemyKilled)) this->CurrentEnemyKilled->SetText(FText::AsNumber(BrawlerCharacter->GetKillCount()));
-    }
+    if(IsValid(Actor) && IsValid(CurrentEnemyKilled))
+        CurrentEnemyKilled->SetText(FText::AsNumber(Cast<ABrawlerCharacter>(Actor)->GetKillCount()));
 }
 #pragma endregion
 

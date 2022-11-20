@@ -9,6 +9,7 @@
 #include "Blueprint/AIBlueprintHelperLibrary.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "NavMesh/NavMeshBoundsVolume.h"
+#include "UnrealBrawler/BrawlerInstance.h"
 
 AAiManager::AAiManager()
 {
@@ -84,7 +85,7 @@ void AAiManager::ManageWaves(const float& DeltaTime)
 
 		// End the game after the right amount of waves have been beaten.
 		else {
-			Cast<AUnrealBrawlerGameModeBase>(GetWorld()->GetAuthGameMode())->GetUserInterface()->ShowWinMenuEvent();
+			CastChecked<UBrawlerInstance>(UGameplayStatics::GetGameInstance(GetWorld()))->SetGameWin(true);
 		}
 	}
 }

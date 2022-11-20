@@ -7,6 +7,8 @@
 #include "Widget/OverWidgetClass.h"
 #include "Widget/WinWidgetClass.h"
 #include "Blueprint/UserWidget.h"
+#include "Widget/HealthBarComponent.h"
+#include "Widget/KillCOunterComponent.h"
 #include "Widget/PauseWidget.h"
 #include "UserInterfaceManager.generated.h"
 
@@ -16,17 +18,14 @@ class UNREALBRAWLER_API UUserInterfaceManager : public UUserWidget
 {
 	GENERATED_BODY()
 
-private:
-	UMenuWidget*		MainMenuWidget		= nullptr;
-	UPauseWidget*		PauseMenuWidget		= nullptr;
-	UOverWidget*		OverMenuWidget		= nullptr;
-	UWinWidget*			WinMenuWidget		= nullptr;
-	
 public:
 	UPROPERTY(EditAnywhere, Category = "Menu UI", meta = (BindWidget))	class UUserWidget*		MainMenuUserWidget		= nullptr;
 	UPROPERTY(EditAnywhere, Category = "Menu UI", meta = (BindWidget))	class UUserWidget*		WinMenuUserWidget		= nullptr;
 	UPROPERTY(EditAnywhere, Category = "Menu UI", meta = (BindWidget))	class UUserWidget*		OverMenuUserWidget		= nullptr;
 	UPROPERTY(EditAnywhere, Category = "Menu UI", meta = (BindWidget))	class UUserWidget*		PauseMenuUserWidget		= nullptr;
+
+	UPROPERTY(EditAnywhere, Category = "Menu UI", meta = (BindWidget))	class UUserWidget*		KillCounterComponent	= nullptr;
+	UPROPERTY(EditAnywhere, Category = "Menu UI", meta = (BindWidget))	class UUserWidget*		HealthBarComponent		= nullptr;
 	
 private:
 	void UpdateNavigation(const UUserWidget* UserWidget) const;
@@ -41,6 +40,9 @@ public:
 	UPauseWidget*		GetPauseMenu()	const;
 	UOverWidget*		GetOverMenu()	const;
 	UWinWidget*			GetWinMenu()	const;
+
+	UKillCounterComponent* GetCounterComponent() const;
+	UHealthBarComponent* GetHealthBarComponent() const;
 	
 	UFUNCTION(BlueprintCallable) void QuitGameEvent();
 	UFUNCTION(BlueprintCallable) void PlayGameEvent();
@@ -56,4 +58,7 @@ public:
 	
 	UFUNCTION(BlueprintCallable) void ShowWinMenuEvent();
 	UFUNCTION(BlueprintCallable) void HideWinMenuEvent();
+
+	UFUNCTION(BlueprintCallable) void ShowGameUI();
+	UFUNCTION(BlueprintCallable) void HideGameUI();
 };
