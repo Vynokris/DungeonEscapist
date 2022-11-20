@@ -45,6 +45,7 @@ ABrawlerCharacter::ABrawlerCharacter()
     GetMesh()->SetRenderCustomDepth(true);
 	GetMesh()->SetCustomDepthStencilValue(0);
 
+    // Setup health bar widget.
     HealthBarWidgetComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("HealthBarComponent"));
     HealthBarWidgetComponent->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
 }
@@ -58,57 +59,58 @@ void ABrawlerCharacter::BeginPlay()
     SpringArmComponent->TargetArmLength = CameraDistance;
 
     UserInterface = Cast<UUserInterfaceManager>(CreateWidget(GetWorld(), GameWidgetHUD));
-    
-    // If the character is controller by AI, treat this character as an enemy.
-    if (AEnemyAiController* Ai = Cast<AEnemyAiController>(GetController()))
-    {
-        CharacterIsPlayer = false;
-        Health = EnemyMaxHealth;
-        Tags.Add("Enemy");
-		GetMesh()->SetCustomDepthStencilValue(ENEMY_STENCIL_VAL);
-
-        // Force the enemy to always face the player.
-        CharacterMovementComponent->bUseControllerDesiredRotation = true;
-        CharacterMovementComponent->bOrientRotationToMovement     = false;
-        Ai->SetFocus(Cast<AActor>(UGameplayStatics::GetPlayerCharacter(GetWorld(), 0)), EAIFocusPriority::Gameplay);
-
-        // Remove the camera and spring arm.
-        GetComponentByClass(UCameraComponent   ::StaticClass())->DestroyComponent();
-        GetComponentByClass(USpringArmComponent::StaticClass())->DestroyComponent();
-
-        // Change the movement speed.
-        GetCharacterMovement()->MaxWalkSpeed = 500;
-        
-        // Give default equipment to the enemy.
-        for (TSubclassOf<AEquipmentActor> EquipmentPiece : EnemyDefaultEquipment)
-        {
-            if (EquipmentPiece) Cast<AEquipmentActor>(GetWorld()->SpawnActor(EquipmentPiece))->GetPickedUp(this);
-        }
-
-        if(EnemyMaxHealth > 1) SetActorScale3D(GetActorScale() + FVector(EnemyMaxHealth * 0.05f));
-    }
 
     // If the character is controlled by the player, treat this character as a player.
-    else
+    if (IsValid(Controller) && Controller->IsA<APlayerController>())
     {
-        UserInterface->AddToViewport();
-        UserInterface->ShowMainMenuEvent();
-        // Remove de health bar displayed on top of head, since already showed in HUD
-        GetHealthBarWidgetComponent()->DestroyComponent();
-        
+        // Make the character a player.
         Health = PlayerMaxHealth;
-        SetActorLabel("Player");
-        Tags.Add("Player");
 		GetMesh()->SetCustomDepthStencilValue(PLAYER_STENCIL_VAL);
+        Tags.Add("Player");
+        SetActorLabel("Player");
 
         // Give default equipment to the player.
         for (TSubclassOf<AEquipmentActor> EquipmentPiece : PlayerDefaultEquipment)
             if (EquipmentPiece) Cast<AEquipmentActor>(GetWorld()->SpawnActor(EquipmentPiece))->GetPickedUp(this);
+        
+        // Remove the health bar displayed above the player's head, since it is already showed in HUD.
+        GetHealthBarWidgetComponent()->DestroyComponent();
 
+        // Add the hud to the player's screen and show the main menu.
+        UserInterface->AddToViewport();
+        UserInterface->ShowMainMenuEvent();
         UserInterface->GetCounterComponent()->SetupCounterComponent(this);
     }
+    
+    // If the character is controlled by AI, treat this character as an enemy.
+    else
+    {
+        // Make the character an enemy.
+        CharacterIsPlayer = false;
+        Health = EnemyMaxHealth;
+        GetCharacterMovement()->MaxWalkSpeed = 500;
+		GetMesh()->SetCustomDepthStencilValue(ENEMY_STENCIL_VAL);
+        Tags.Add("Enemy");
 
-     UserInterface->GetHealthBarComponent()->SetupHealthComponent(this);
+        // Force the enemy to always face the player.
+        CharacterMovementComponent->bUseControllerDesiredRotation = true;
+        CharacterMovementComponent->bOrientRotationToMovement     = false;
+        if (AEnemyAiController* Ai = Cast<AEnemyAiController>(Controller))
+            Ai->SetFocus(Cast<AActor>(UGameplayStatics::GetPlayerCharacter(GetWorld(), 0)), EAIFocusPriority::Gameplay);
+
+        // Remove the camera and spring arm.
+        GetComponentByClass(UCameraComponent   ::StaticClass())->DestroyComponent();
+        GetComponentByClass(USpringArmComponent::StaticClass())->DestroyComponent();
+        
+        // Give default equipment to the enemy.
+        for (TSubclassOf<AEquipmentActor> EquipmentPiece : EnemyDefaultEquipment)
+            if (EquipmentPiece) Cast<AEquipmentActor>(GetWorld()->SpawnActor(EquipmentPiece))->GetPickedUp(this);
+
+        // Scale the enemy depending on its health.
+        if(EnemyMaxHealth > 1) SetActorScale3D(GetActorScale() + FVector(EnemyMaxHealth * 0.05f));
+    }
+    
+    UserInterface->GetHealthBarComponent()->SetupHealthComponent(this);
 }
 
 void ABrawlerCharacter::SetupPlayerInputComponent(UInputComponent* NewInputComponent)
@@ -156,9 +158,8 @@ void ABrawlerCharacter::Tick(float DeltaSeconds)
     Super::Tick(DeltaSeconds);
     UpdateWalkingFX();
     UpdateTimers(DeltaSeconds);
-    if (IsPlayer()) {
+    if (IsPlayer())
         UpdateRoll();
-    }
 }
 
 void ABrawlerCharacter::UpdateWalkingFX() const
@@ -239,10 +240,15 @@ void ABrawlerCharacter::TakeDamageEvent(const int& Amount)
 
     // Take damage and show damage particles.
     Health -= Amount;
-    UNiagaraFunctionLibrary::SpawnSystemAttached(BloodSplatterEffect, this->RootComponent, NAME_None, FVector(0.f), FRotator(0.f), EAttachLocation::Type::KeepRelativeOffset, true);
+    UNiagaraFunctionLibrary::SpawnSystemAttached(BloodSplatterEffect,
+                                                 this->RootComponent,
+                                                 NAME_None,
+                                                 FVector(0.f),
+                                                 FRotator(0.f),
+                                                 EAttachLocation::Type::KeepRelativeOffset,
+                                                 true);
 
     // Update UI according to new health value
-    
     UserInterface->GetHealthBarComponent()->UpdateHealthEvent(this, GetHealth(), GetMaxHealth());
     
     // If the character is dead, call the death event.
@@ -251,9 +257,7 @@ void ABrawlerCharacter::TakeDamageEvent(const int& Amount)
         DeathEvent();
         
         // If the character is an enemy, call the player's enemy killed event.
-        if (IsEnemy())
-        {
-            HealthBarWidgetComponent->DestroyComponent();
+        if (IsEnemy()) {
             TArray<AActor*> FoundActors;
             UGameplayStatics::GetAllActorsWithTag(GetWorld(), "Player", FoundActors);
             Cast<ABrawlerCharacter>(FoundActors[0])->EnemyKilledEvent();
@@ -264,7 +268,6 @@ void ABrawlerCharacter::TakeDamageEvent(const int& Amount)
     else
     {
         StartInvincibilityEvent();
-        // DebugInfo("%s hit, lost %d HP, %d HP remaining", *GetName(), Amount, Health);
     }
 }
 
@@ -276,10 +279,9 @@ void ABrawlerCharacter::StartAttackingEvent()
     // If the player is currently attacking, defending or rolling, start the attack buffer.
     if (IsAttacking() || IsDefending() || IsRolling() || AttackCooldown > 0) { AttackBuffer = AttackBufferDuration; return; }
     
-    Attacking = true;
-    AttackBuffer = 0;
+    Attacking     = true;
+    AttackBuffer  = 0;
     AttackBlocked = false;
-    // DebugInfo("%s is attacking.", *GetName());
 }
 
 void ABrawlerCharacter::StopAttackingEvent()
@@ -289,7 +291,6 @@ void ABrawlerCharacter::StopAttackingEvent()
     Attacking      = false;
     AttackBlocked  = false;
     AttackCooldown = AttackCooldownDuration;
-    // DebugInfo("%s stopped attacking.", *GetName());
 }
 
 void ABrawlerCharacter::AttackBlockedEvent()
@@ -297,7 +298,6 @@ void ABrawlerCharacter::AttackBlockedEvent()
     if (!IsAttacking()) return;
 
     AttackBlocked = true;
-    // DebugInfo("%s's attack was blocked.", *GetName());
 }
 
 void ABrawlerCharacter::StartDefendingEvent()
@@ -310,7 +310,6 @@ void ABrawlerCharacter::StartDefendingEvent()
     
     Defending = true;
     TryingToDefend = false;
-    // DebugInfo("%s started defending.", *GetName());
 }
 
 void ABrawlerCharacter::StopDefendingEvent()
@@ -319,7 +318,6 @@ void ABrawlerCharacter::StopDefendingEvent()
     if (!IsDefending()) return;
     
     Defending = false;
-    // DebugInfo("%s stopped defending.", *GetName());
 }
 
 void ABrawlerCharacter::StartRollingEvent()
@@ -333,7 +331,6 @@ void ABrawlerCharacter::StartRollingEvent()
     Rolling    = true;
     RollBuffer = 0;
     StartInvincibilityEvent(RollInvincibilityDuration);
-    // DebugInfo("%s started rolling.", *GetName());
 }
 
 void ABrawlerCharacter::StopRollingEvent()
@@ -343,14 +340,16 @@ void ABrawlerCharacter::StopRollingEvent()
     Rolling      = false;
     RollCooldown = RollCooldownDuration;
     StopInvincibilityEvent();
-    // DebugInfo("%s stopped rolling.", *GetName());
 }
 
 void ABrawlerCharacter::StartInvincibilityEvent(const float& Duration)
 {
+    // Give invincibility only to the player.
     if (!IsPlayer()) return;
+
+    // Start the invincibility timer.
     if (Duration == -1) InvincibilityTimer = InvincibilityDuration;
-    else InvincibilityTimer = Duration;
+    else                InvincibilityTimer = Duration;
 
     // Change the outline color of the character and his equipment to the invincibility color.
     GetMesh()->SetCustomDepthStencilValue(INVINCIBILITY_STENCIL_VAL);
@@ -372,34 +371,31 @@ void ABrawlerCharacter::StopInvincibilityEvent()
 void ABrawlerCharacter::DeathEvent()
 {
     Health = 0;
+    
+    // Disable step particles, outline and collisions.
     WalkingParticleComponent->DeactivateSystem();
     GetMesh()->SetRenderCustomDepth(false);
-    
-    for (const AEquipmentActor* EquipmentPiece : Equipment)
-        EquipmentPiece->GetMesh()->SetRenderCustomDepth(false);
-    
-	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
-	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Ignore);
 	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_WorldStatic, ECR_Ignore);
 
+    // Notify equipment pieces about the death of their parent.
+    for (const AEquipmentActor* EquipmentPiece : Equipment)
+        EquipmentPiece->ParentDeathEvent();
+
+    // If the player died, show the game over menu.
     if (IsPlayer()) UserInterface->ShowOverMenuEvent();
+
+    // If an enemy died, destroy its health bar and un-possess it.
     else if (Controller && IsEnemy()) {
+        HealthBarWidgetComponent->DestroyComponent();
         Cast<AEnemyAiController>(Controller)->GetBlackboard()->SetValueAsBool("ShouldAttack", false);
         Controller->UnPossess();
     }
-    
-    // DebugInfo("%s is dead!", *GetName());
 }
 
 void ABrawlerCharacter::EnemyKilledEvent()
 {
     KillCount++;
-    // DebugData("KillCount: %d", KillCount);
-    
     UserInterface->GetCounterComponent()->UpdateCounterEvent(FText::AsNumber(GetKillCount()));
-
-    // TODO : Replace with spawning system and enemies count alive
-    // if(KillCount == 5 && IsPlayer()) BrawlerGameMode->GetUserInterface()->ShowWinMenuEvent();
 }
 
 void ABrawlerCharacter::DropEquipmentEvent(const EEquipmentType& EquipmentType)
@@ -410,10 +406,10 @@ void ABrawlerCharacter::DropEquipmentEvent(const EEquipmentType& EquipmentType)
         if (EquipmentItem->GetType() == EquipmentType) { EquipmentPiece = EquipmentItem; break; }
     }
 
+    // Drop the specified equipment piece.
     if (EquipmentPiece) {
         EquipmentPiece->GetDropped(this);
         Equipment.Remove(EquipmentPiece);
-        // DebugInfo("%s dropped equipment piece.", *GetName());
     }
 }
 

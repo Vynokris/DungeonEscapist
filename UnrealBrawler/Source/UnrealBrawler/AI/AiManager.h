@@ -4,6 +4,7 @@
 #include "GameFramework/Actor.h"
 #include "UnrealBrawler/BrawlerCharacter.h"
 #include "AiManager.generated.h"
+class ATriggerBox;
 class ANavMeshBoundsVolume;
 class AEnemyAiController;
 
@@ -31,11 +32,16 @@ private:
 	
 	// Should be set to the BrawlerCharacter blueprint instance.
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Behavior", meta = (AllowPrivateAccess = "true"))
-	TSubclassOf<ABrawlerCharacter> BrawlerCharacterBP;
+	TSubclassOf<ABrawlerCharacter> BrawlerCharacterBP = nullptr;
+	
+	// The trigger used to start spawning enemies when the player leaves it.
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Behavior", meta = (AllowPrivateAccess = "true"))
+	ATriggerBox* EntranceTrigger = nullptr;
 	
 
-	bool  WaveEnded      = false;
-	int   CurWave        = 1;
+	bool  WavesStarted   = false;
+	bool  WaveEnded      = true;
+	int   CurWave        = 0;
 	float WaveCooldown   = 0;
 	float AttackCooldown = 0;
 	ANavMeshBoundsVolume* NavMeshBounds;
@@ -46,6 +52,8 @@ public:
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
 
+	UFUNCTION()
+	void StartWaves        (AActor* OverlappedActor, AActor* OtherActor);
 	void SpawnEnemies      (const int& Count, const FBox& SpawnArea);
 	void ManageWaves       (const float& DeltaTime);
 	void ManageEnemyAttacks(const float& DeltaTime);

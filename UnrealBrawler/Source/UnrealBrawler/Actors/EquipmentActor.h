@@ -34,6 +34,7 @@ public:
 
     void GetPickedUp(ABrawlerCharacter* NewParentCharacter);
     void GetDropped (const ABrawlerCharacter* CurParentCharacter);
+    void ParentDeathEvent() const;
     
     bool WasPickedUp() const;
     EEquipmentType GetType() const;

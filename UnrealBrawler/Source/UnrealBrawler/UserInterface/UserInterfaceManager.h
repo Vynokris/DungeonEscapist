@@ -1,5 +1,3 @@
-
-
 #pragma once
 
 #include "CoreMinimal.h"
@@ -19,13 +17,15 @@ class UNREALBRAWLER_API UUserInterfaceManager : public UUserWidget
 	GENERATED_BODY()
 
 public:
-	UPROPERTY(EditAnywhere, Category = "Menu UI", meta = (BindWidget))	class UUserWidget*		MainMenuUserWidget		= nullptr;
-	UPROPERTY(EditAnywhere, Category = "Menu UI", meta = (BindWidget))	class UUserWidget*		WinMenuUserWidget		= nullptr;
-	UPROPERTY(EditAnywhere, Category = "Menu UI", meta = (BindWidget))	class UUserWidget*		OverMenuUserWidget		= nullptr;
-	UPROPERTY(EditAnywhere, Category = "Menu UI", meta = (BindWidget))	class UUserWidget*		PauseMenuUserWidget		= nullptr;
+	// Widgets.
+	UPROPERTY(EditAnywhere, Category = "Menu UI", meta = (BindWidget)) UUserWidget* MainMenuUserWidget   = nullptr;
+	UPROPERTY(EditAnywhere, Category = "Menu UI", meta = (BindWidget)) UUserWidget* WinMenuUserWidget    = nullptr;
+	UPROPERTY(EditAnywhere, Category = "Menu UI", meta = (BindWidget)) UUserWidget* OverMenuUserWidget   = nullptr;
+	UPROPERTY(EditAnywhere, Category = "Menu UI", meta = (BindWidget)) UUserWidget* PauseMenuUserWidget  = nullptr;
 
-	UPROPERTY(EditAnywhere, Category = "Menu UI", meta = (BindWidget))	class UUserWidget*		KillCounterComponent	= nullptr;
-	UPROPERTY(EditAnywhere, Category = "Menu UI", meta = (BindWidget))	class UUserWidget*		HealthBarComponent		= nullptr;
+	// Components.
+	UPROPERTY(EditAnywhere, Category = "Menu UI", meta = (BindWidget)) UUserWidget* KillCounterComponent = nullptr;
+	UPROPERTY(EditAnywhere, Category = "Menu UI", meta = (BindWidget)) UUserWidget* HealthBarComponent   = nullptr;
 	
 private:
 	void UpdateNavigation(const UUserWidget* UserWidget) const;
@@ -36,13 +36,13 @@ protected:
 	virtual void NativeDestruct() override;
 
 public:
-	UMenuWidget*		GetMainMenu()	const;
-	UPauseWidget*		GetPauseMenu()	const;
-	UOverWidget*		GetOverMenu()	const;
-	UWinWidget*			GetWinMenu()	const;
+	UMenuWidget*  GetMainMenu()  const;
+	UPauseWidget* GetPauseMenu() const;
+	UOverWidget*  GetOverMenu()  const;
+	UWinWidget*	  GetWinMenu()   const;
 
-	UKillCounterComponent* GetCounterComponent() const;
-	UHealthBarComponent* GetHealthBarComponent() const;
+	UKillCounterComponent* GetCounterComponent()   const;
+	UHealthBarComponent*   GetHealthBarComponent() const;
 	
 	UFUNCTION(BlueprintCallable) void QuitGameEvent();
 	UFUNCTION(BlueprintCallable) void PlayGameEvent();

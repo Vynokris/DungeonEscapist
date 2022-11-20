@@ -41,7 +41,10 @@ void UHealthBarComponent::SetupHealthComponent(AActor* Actor)
         GetTotalHealthText  ()->SetVisibility(ESlateVisibility::Hidden);
         GetSeparatorText    ()->SetVisibility(ESlateVisibility::Hidden);
         GetHealthBar        ()->SetFillColorAndOpacity(FLinearColor(255,0,0));
-        BrawlerCharacter->GetHealthBarWidgetComponent()->SetWidget(this);
+        if (IsValid(BrawlerCharacter->GetHealthBarWidgetComponent()))
+            BrawlerCharacter->GetHealthBarWidgetComponent()->SetWidget(this);
+        else
+            Debug("I don't even fucking know anymore.");
     }
 }
 #pragma endregion

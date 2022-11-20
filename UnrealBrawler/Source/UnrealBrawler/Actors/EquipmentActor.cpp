@@ -63,23 +63,23 @@ void AEquipmentActor::Tick(float DeltaSeconds)
 void AEquipmentActor::NotifyActorBeginOverlap(AActor* OtherActor)
 {
 	// Get picked up only by the player.
-	if (!WasPickedUp())
-	{
-		if (OtherActor->Tags.Contains("Player"))
+	if (!WasPickedUp()) {
+		if (OtherActor->Tags.Contains("Player")) {
 			GetPickedUp(Cast<ABrawlerCharacter>(OtherActor));
-		return;
+		}
 	}
 
-	if (Cast<AActor>(ParentCharacter) != OtherActor)
+	// If the equipment is held, let it perform actions only if its parent character isn't dead and isn't the one the equipment collided with.
+	else if (!ParentCharacter->IsDead() && Cast<AActor>(ParentCharacter) != OtherActor)
 	{
 		switch (EquipmentType)
 		{
 		case Weapon:
+			// Let player and enemies damage each other with a weapon.
 			if (ParentCharacter->IsAttacking() && !ParentCharacter->WasAttackBlocked())
 			{
 				if (ABrawlerCharacter* OtherCharacter = Cast<ABrawlerCharacter>(OtherActor))
 				{
-					// Let player and enemies damage each other.
 					if ((ParentCharacter->IsEnemy()  &&  OtherCharacter->IsPlayer()) ||
 						(ParentCharacter->IsPlayer() && !OtherCharacter->IsPlayer()))
 					{
@@ -90,7 +90,7 @@ void AEquipmentActor::NotifyActorBeginOverlap(AActor* OtherActor)
 			break;
 			
 		case Shield:
-			// If the shield was hit by a weapon, block the other actor's attack.
+			// If the shield was hit by a weapon, block the other character's attack.
 			if (ParentCharacter->IsDefending() && OtherActor->Tags.Contains("Weapon"))
 				if (ABrawlerCharacter* OtherCharacter = Cast<AEquipmentActor>(OtherActor)->ParentCharacter)
 					OtherCharacter->AttackBlockedEvent();
@@ -140,6 +140,12 @@ void AEquipmentActor::GetDropped(const ABrawlerCharacter* CurParentCharacter)
 	MeshComponent->SetCustomDepthStencilValue(EQUIPMENT_STENCIL_VAL);
 	ParentCharacter = nullptr;
 	PlayFloatingAnimation = true;
+}
+
+void AEquipmentActor::ParentDeathEvent() const
+{
+	GetMesh()->SetRenderCustomDepth(false);
+	BoxComponent->SetCollisionResponseToChannel(ECC_WorldStatic, ECR_Ignore);
 }
 
 bool AEquipmentActor::WasPickedUp() const

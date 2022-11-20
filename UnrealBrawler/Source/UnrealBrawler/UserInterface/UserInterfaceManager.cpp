@@ -1,11 +1,7 @@
-
-
-
 #include "UserInterfaceManager.h"
 #include "Components/Button.h"
 #include "Kismet/GameplayStatics.h"
 #include "UnrealBrawler/BrawlerInstance.h"
-#include "UnrealBrawler/Utils/DebugUtils.h"
 
 #pragma region Setup
 bool UUserInterfaceManager::Initialize()
@@ -94,6 +90,7 @@ void UUserInterfaceManager::ShowMainMenuEvent()
         }
     }
 }
+
 void UUserInterfaceManager::HideMainMenuEvent()
 {
     ShowGameUI();
@@ -122,6 +119,7 @@ void UUserInterfaceManager::ShowOverMenuEvent()
     UBrawlerInstance* BrawlerInstance = CastChecked<UBrawlerInstance>(UGameplayStatics::GetGameInstance(GetWorld()));
     BrawlerInstance->SetGameRestart(true);
 }
+
 void UUserInterfaceManager::HideOverMenuEvent()
 {
     ShowGameUI();
@@ -147,6 +145,7 @@ void UUserInterfaceManager::ShowPauseMenuEvent()
         UpdateNavigation(PauseMenuWidget);
     }
 }
+
 void UUserInterfaceManager::HidePauseMenuEvent()
 {
     ShowGameUI();
@@ -172,6 +171,7 @@ void UUserInterfaceManager::ShowWinMenuEvent()
         UpdateNavigation(WinMenuWidget);
     }
 }
+
 void UUserInterfaceManager::HideWinMenuEvent()
 {
     ShowGameUI();
