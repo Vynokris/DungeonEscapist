@@ -1,13 +1,10 @@
 #include "BrawlerCharacter.h"
 
 #include "AI/EnemyAiController.h"
-#include "Utils/DebugUtils.h"
 #include "Components/CapsuleComponent.h"
 #include "Blueprint/WidgetTree.h"
 #include "NiagaraFunctionLibrary.h"
 #include "BehaviorTree/BlackboardComponent.h"
-#include "Components/ProgressBar.h"
-#include "Components/TextBlock.h"
 #include "Kismet/GameplayStatics.h"
 #include "UserInterface/Widget/HealthBarComponent.h"
 #include "UserInterface/Widget/KillCOunterComponent.h"
@@ -158,28 +155,9 @@ void ABrawlerCharacter::Tick(float DeltaSeconds)
 {
     Super::Tick(DeltaSeconds);
     UpdateWalkingFX();
-
-    // Attack/defend whenever possible if buffers are non-zero.
-    const float MaxBuffer = FMath::Max3(RollBuffer, DefenseBuffer, AttackBuffer);
-    const bool  IsntDoingAnything = !IsAttacking() && !IsDefending() && !IsRolling();
-    if (MaxBuffer == RollBuffer    && RollBuffer    > 0 && IsntDoingAnything) StartRollingEvent  ();
-    if (MaxBuffer == DefenseBuffer && DefenseBuffer > 0 && IsntDoingAnything) StartDefendingEvent();
-    if (MaxBuffer == AttackBuffer  && AttackBuffer  > 0 && IsntDoingAnything) StartAttackingEvent();
-
-    // Decrement buffers.
-    if (AttackBuffer  > 0) AttackBuffer  -= DeltaSeconds;
-    if (DefenseBuffer > 0) DefenseBuffer -= DeltaSeconds;
-    if (RollBuffer    > 0) RollBuffer    -= DeltaSeconds;
-
-    // Decrement the invincibility timer and call the stop invincibility event when it is finished.
-    if (InvincibilityTimer > 0) {
-        InvincibilityTimer -= DeltaSeconds;
-        if (InvincibilityTimer <= 0) StopInvincibilityEvent();
-    }
-
-    // Add velocity to the player if he is rolling.
-    if (IsRolling()) {
-        GetCharacterMovement()->Launch(GetActorForwardVector() * RollVelocity);
+    UpdateTimers(DeltaSeconds);
+    if (IsPlayer()) {
+        UpdateRoll();
     }
 }
 
@@ -188,8 +166,47 @@ void ABrawlerCharacter::UpdateWalkingFX() const
     // Only show step VFX when the player is moving and not falling.
     const bool ShouldShowFX = !IsDead() && GetVelocity().SizeSquared() > 10 && !CharacterMovementComponent->IsFalling();
     
-    if (ShouldShowFX && WalkingParticleComponent->bWasDeactivated)        WalkingParticleComponent->ActivateSystem();
+    if      (ShouldShowFX  &&  WalkingParticleComponent->bWasDeactivated) WalkingParticleComponent->ActivateSystem();
     else if (!ShouldShowFX && !WalkingParticleComponent->bWasDeactivated) WalkingParticleComponent->DeactivateSystem();
+}
+
+void ABrawlerCharacter::UpdateTimers(const float& DeltaSeconds)
+{
+    // Make sure the player isn't doing anything.
+    if (!IsAttacking() && !IsDefending() && !IsRolling())
+    {
+        // Check what action he should perform based on the buffers.
+        const float MaxBuffer = FMath::Max((AttackCooldown > 0 ? 0 : AttackBuffer),
+                                           (RollCooldown   > 0 ? 0 : RollBuffer  ));
+        const bool  ShouldAttack      = (MaxBuffer == AttackBuffer  && AttackBuffer  > 0 && AttackCooldown <= 0);
+        const bool  ShouldRoll        = (MaxBuffer == RollBuffer    && RollBuffer    > 0 && RollCooldown <= 0);
+        const bool  ShouldDefend      = TryingToDefend && !ShouldAttack && !ShouldRoll;
+    
+        // Attack/defend whenever possible if buffers are non-zero.
+        if      (ShouldAttack) StartAttackingEvent();
+        else if (ShouldDefend) StartDefendingEvent();
+        else if (ShouldRoll  ) StartRollingEvent  ();
+    }
+
+    // Decrement buffers and cooldowns.
+    if (AttackBuffer   > 0) AttackBuffer   -= DeltaSeconds;
+    if (RollBuffer     > 0) RollBuffer     -= DeltaSeconds;
+    if (AttackCooldown > 0) AttackCooldown -= DeltaSeconds;
+    if (RollCooldown   > 0) RollCooldown   -= DeltaSeconds;
+
+    // Decrement the invincibility timer and call the stop invincibility event when it is finished.
+    if (InvincibilityTimer > 0) {
+        InvincibilityTimer -= DeltaSeconds;
+        if (InvincibilityTimer <= 0) StopInvincibilityEvent();
+    }
+}
+
+void ABrawlerCharacter::UpdateRoll() const
+{
+    // Add velocity to the player if he is rolling.
+    if (IsRolling()) {
+        GetCharacterMovement()->Launch(GetActorForwardVector() * RollVelocity);
+    }
 }
 #pragma endregion
 
@@ -247,7 +264,7 @@ void ABrawlerCharacter::TakeDamageEvent(const int& Amount)
     else
     {
         StartInvincibilityEvent();
-        //DebugInfo("%s hit, lost %d HP, %d HP remaining", *GetName(), Amount, Health);
+        // DebugInfo("%s hit, lost %d HP, %d HP remaining", *GetName(), Amount, Health);
     }
 }
 
@@ -257,21 +274,22 @@ void ABrawlerCharacter::StartAttackingEvent()
     if (IsDead() || !HasEquipment(Weapon)) return;
 
     // If the player is currently attacking, defending or rolling, start the attack buffer.
-    if (IsAttacking() || IsDefending() || IsRolling()) { AttackBuffer = AttackBufferDuration; return; }
+    if (IsAttacking() || IsDefending() || IsRolling() || AttackCooldown > 0) { AttackBuffer = AttackBufferDuration; return; }
     
     Attacking = true;
     AttackBuffer = 0;
     AttackBlocked = false;
-    //DebugInfo("%s is attacking.", *GetName());
+    // DebugInfo("%s is attacking.", *GetName());
 }
 
 void ABrawlerCharacter::StopAttackingEvent()
 {
-    if(!IsAttacking()) return;
+    if (!IsAttacking()) return;
 
-    Attacking = false;
-    AttackBlocked = false;
-    //DebugInfo("%s is attacking.", *GetName());
+    Attacking      = false;
+    AttackBlocked  = false;
+    AttackCooldown = AttackCooldownDuration;
+    // DebugInfo("%s stopped attacking.", *GetName());
 }
 
 void ABrawlerCharacter::AttackBlockedEvent()
@@ -279,7 +297,7 @@ void ABrawlerCharacter::AttackBlockedEvent()
     if (!IsAttacking()) return;
 
     AttackBlocked = true;
-    //DebugInfo("%s's attack was blocked.", *GetName());
+    // DebugInfo("%s's attack was blocked.", *GetName());
 }
 
 void ABrawlerCharacter::StartDefendingEvent()
@@ -288,20 +306,20 @@ void ABrawlerCharacter::StartDefendingEvent()
     if (IsDead() || !HasEquipment(Shield)) return;
 
     // If the player is currently attacking, defending or rolling, start the defense buffer.
-    if (IsAttacking() || IsDefending() || IsRolling()) { DefenseBuffer = DefenseBufferDuration; return; }
+    if (IsAttacking() || IsDefending() || IsRolling()) { TryingToDefend = true; AttackBuffer = 0; RollBuffer = 0; return; }
     
     Defending = true;
-    DefenseBuffer = 0;
-    //DebugInfo("%s started defending.", *GetName());
+    TryingToDefend = false;
+    // DebugInfo("%s started defending.", *GetName());
 }
 
 void ABrawlerCharacter::StopDefendingEvent()
 {
-    DefenseBuffer = 0;
+    TryingToDefend = false;
     if (!IsDefending()) return;
     
     Defending = false;
-    //DebugInfo("%s stopped defending.", *GetName());
+    // DebugInfo("%s stopped defending.", *GetName());
 }
 
 void ABrawlerCharacter::StartRollingEvent()
@@ -310,20 +328,22 @@ void ABrawlerCharacter::StartRollingEvent()
     if (IsDead()) return;
 
     // If the player is currently attacking, defending or rolling, start the roll buffer.
-    if (IsAttacking() || IsDefending() || IsRolling()) { RollBuffer = RollBufferDuration; return; }
+    if (IsAttacking() || IsDefending() || IsRolling() || RollCooldown > 0) { RollBuffer = RollBufferDuration; return; }
     
-    Rolling = true;
+    Rolling    = true;
     RollBuffer = 0;
     StartInvincibilityEvent(RollInvincibilityDuration);
-    DebugInfo("%s started rolling.", *GetName());
+    // DebugInfo("%s started rolling.", *GetName());
 }
 
 void ABrawlerCharacter::StopRollingEvent()
 {
     if (!IsRolling()) return;
 
-    Rolling = false;;
-    DebugInfo("%s stopped rolling.", *GetName());
+    Rolling      = false;
+    RollCooldown = RollCooldownDuration;
+    StopInvincibilityEvent();
+    // DebugInfo("%s stopped rolling.", *GetName());
 }
 
 void ABrawlerCharacter::StartInvincibilityEvent(const float& Duration)
@@ -368,13 +388,13 @@ void ABrawlerCharacter::DeathEvent()
         Controller->UnPossess();
     }
     
-    //DebugInfo("%s is dead!", *GetName());
+    // DebugInfo("%s is dead!", *GetName());
 }
 
 void ABrawlerCharacter::EnemyKilledEvent()
 {
     KillCount++;
-    //DebugData("KillCount: %d", KillCount);
+    // DebugData("KillCount: %d", KillCount);
     
     UserInterface->GetCounterComponent()->UpdateCounterEvent(FText::AsNumber(GetKillCount()));
 
@@ -393,7 +413,7 @@ void ABrawlerCharacter::DropEquipmentEvent(const EEquipmentType& EquipmentType)
     if (EquipmentPiece) {
         EquipmentPiece->GetDropped(this);
         Equipment.Remove(EquipmentPiece);
-        //DebugInfo("%s dropped equipment piece.", *GetName());
+        // DebugInfo("%s dropped equipment piece.", *GetName());
     }
 }
 

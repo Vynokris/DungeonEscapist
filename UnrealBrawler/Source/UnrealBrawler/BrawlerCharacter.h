@@ -37,9 +37,10 @@ private:
     UPROPERTY(EditDefaultsOnly, Category = "Character") TArray<TSubclassOf<AEquipmentActor>> PlayerDefaultEquipment;
     UPROPERTY(EditDefaultsOnly, Category = "Character") TArray<TSubclassOf<AEquipmentActor>> EnemyDefaultEquipment;
     
-    UPROPERTY(EditAnywhere, Category = "Input") float AttackBufferDuration  = 1.5;
-    UPROPERTY(EditAnywhere, Category = "Input") float DefenseBufferDuration = 1.5;
-    UPROPERTY(EditAnywhere, Category = "Input") float RollBufferDuration    = 1.5;
+    UPROPERTY(EditAnywhere, Category = "Input") float AttackBufferDuration   = 1.5;
+    UPROPERTY(EditAnywhere, Category = "Input") float RollBufferDuration     = 1.5;
+    UPROPERTY(EditAnywhere, Category = "Input") float AttackCooldownDuration = 0.2;
+    UPROPERTY(EditAnywhere, Category = "Input") float RollCooldownDuration   = 0.5;
     
     UPROPERTY(EditAnywhere, Category = "VFX") UNiagaraSystem*           BloodSplatterEffect      = nullptr;
     UPROPERTY(EditAnywhere, Category = "VFX") float                     BloodFxSize              = 10.f;
@@ -59,10 +60,12 @@ private:
     bool  Attacking          = false; // Turns true when the character is attacking.
     bool  AttackBlocked      = false; // Turns true when the character hits a shield while attacking.
     float AttackBuffer       = 0;     // Starts ticking when the character tries to attack but is unable to.
+    float AttackCooldown     = 0;     // Starts ticking when the character stops attacking and prevents starting an attack until it is done.
     bool  Defending          = false; // Turns true when the character is defending.
-    float DefenseBuffer      = 0;     // Starts ticking when the character tries to defend but is unable to.
+    bool  TryingToDefend     = false; // Turns to true when the character tries to defend but is unable to.
     bool  Rolling            = false; // Turns true when the character is rolling.
     float RollBuffer         = 0;     // Starts ticking when the character tries to roll but is unable to.
+    float RollCooldown       = 0;     // Starts ticking when the character stops rolling and prevents starting an roll until it is done.
     float InvincibilityTimer = 0;
 
     TArray<AEquipmentActor*> Equipment;
@@ -72,6 +75,8 @@ private:
     void MoveRight  (const float Amount);
 
     void UpdateWalkingFX() const;
+    void UpdateTimers(const float& DeltaSeconds);
+    void UpdateRoll() const;
 
 protected:
     virtual void Tick(float DeltaSeconds) override;
