@@ -10,7 +10,6 @@
 #include "Kismet/KismetMathLibrary.h"
 #include "NavMesh/NavMeshBoundsVolume.h"
 #include "UnrealBrawler/BrawlerInstance.h"
-#include "UnrealBrawler/Utils/DebugUtils.h"
 
 AAiManager::AAiManager()
 {
@@ -102,7 +101,6 @@ void AAiManager::ManageWaves(const float& DeltaTime)
             WaveCooldown = 0;
             WaveEnded    = false;
             AiEnemies.Empty();
-            Debug("Starting wave %d", CurWave);
             SpawnEnemies(FMath::RandRange(4, 6), NavMeshBounds->GetBounds().GetBox());
         }
 

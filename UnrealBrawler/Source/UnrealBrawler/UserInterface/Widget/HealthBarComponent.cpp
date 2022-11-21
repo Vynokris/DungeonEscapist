@@ -6,7 +6,6 @@
 #include "Components/ProgressBar.h"
 #include "Components/TextBlock.h"
 #include "UnrealBrawler/BrawlerCharacter.h"
-#include "UnrealBrawler/Utils/DebugUtils.h"
 
 #pragma region Setup
 bool UHealthBarComponent::Initialize()
@@ -38,11 +37,8 @@ void UHealthBarComponent::SetupHealthComponent(AActor* Actor)
     if(BrawlerCharacter->IsEnemy())
     {
         GetHealthBar()->SetFillColorAndOpacity(FLinearColor(255,0,0));
-        
         if (IsValid(BrawlerCharacter->GetHealthBarWidgetComponent()))
             BrawlerCharacter->GetHealthBarWidgetComponent()->SetWidget(this);
-        else
-            Debug("I don't even fucking know anymore.");
     }
 }
 #pragma endregion

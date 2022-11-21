@@ -2,7 +2,6 @@
 
 #include "Actors/DoorActor.h"
 #include "Kismet/GameplayStatics.h"
-#include "Utils/DebugUtils.h"
 
 void UBrawlerInstance::Init()
 {
@@ -29,7 +28,6 @@ bool UBrawlerInstance::GetGameRestart() const
 void UBrawlerInstance::SetGameRestart(const bool& IsRestart)
 {
     IsGameRestart = IsRestart;
-    DebugData("IsGameRestart is now %d ", IsGameWin);
 }
 
 bool UBrawlerInstance::GetGameWin() const
@@ -50,7 +48,5 @@ void UBrawlerInstance::SetGameWin(const bool& IsWin)
             ExitDoor = Cast<ADoorActor>(Actor);
     if (IsValid(ExitDoor))
         ExitDoor->MoveDoorEvent();
-    
-    DebugData("IsGameWin is now %d ", IsGameWin);
 }
 

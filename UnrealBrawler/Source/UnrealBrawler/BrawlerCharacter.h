@@ -120,4 +120,5 @@ public:
     UFUNCTION(BlueprintCallable) bool HasEquipment(const EEquipmentType& EquipmentType) const;
 
     UFUNCTION(BlueprintCallable) UWidgetComponent* GetHealthBarWidgetComponent() const;
+    UFUNCTION(BlueprintCallable) UUserInterfaceManager* GetUserInterface() const;
 };

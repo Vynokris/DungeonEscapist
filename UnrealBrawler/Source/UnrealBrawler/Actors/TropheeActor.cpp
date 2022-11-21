@@ -1,6 +1,3 @@
-
-
-
 #include "TropheeActor.h"
 
 #include "Components/BoxComponent.h"
@@ -56,7 +53,9 @@ void ATropheeActor::NotifyActorBeginOverlap(AActor* OtherActor)
 
 	if (OtherActor->Tags.Contains("Player"))
 	{
-		// TODO -> Show win game event + check instance is gameWin
+		const ABrawlerCharacter* Player = Cast<ABrawlerCharacter>(OtherActor);
+		if (IsValid(Player))
+			Player->GetUserInterface()->ShowWinMenuEvent();
 		Destroy();
 	}
 }

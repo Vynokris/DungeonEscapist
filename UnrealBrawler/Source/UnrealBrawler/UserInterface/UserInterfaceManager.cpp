@@ -2,7 +2,6 @@
 #include "Components/Button.h"
 #include "Kismet/GameplayStatics.h"
 #include "UnrealBrawler/BrawlerInstance.h"
-#include "UnrealBrawler/Utils/DebugUtils.h"
 
 #pragma region Setup
 bool UUserInterfaceManager::Initialize()

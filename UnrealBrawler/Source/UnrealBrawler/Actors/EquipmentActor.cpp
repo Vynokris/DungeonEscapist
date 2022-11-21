@@ -1,7 +1,6 @@
 #include "EquipmentActor.h"
 
 #include "../BrawlerCharacter.h"
-#include "../Utils/DebugUtils.h"
 #include "DrawDebugHelpers.h"
 #include "Components/BoxComponent.h"
 #include "Kismet/GameplayStatics.h"

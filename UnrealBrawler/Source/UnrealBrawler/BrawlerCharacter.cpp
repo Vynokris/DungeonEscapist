@@ -405,8 +405,9 @@ void ABrawlerCharacter::DeathEvent()
 void ABrawlerCharacter::EnemyKilledEvent()
 {
     KillCount++;
+    CharacterScore = GetScore() + FMath::RandRange(100, 1000);
     UserInterface->GetCounterComponent()->UpdateCounterEvent(FText::AsNumber(GetKillCount()));
-    UserInterface->GetScoreComponent()->UpdateScoreEvent(FText::AsNumber(GetScore() + FMath::RandRange(100, 1000)));
+    UserInterface->GetScoreComponent()->UpdateScoreEvent(FText::AsNumber(CharacterScore));
 }
 
 void ABrawlerCharacter::DropEquipmentEvent(const EEquipmentType& EquipmentType)
@@ -519,5 +520,10 @@ bool ABrawlerCharacter::HasEquipment(const EEquipmentType& EquipmentType) const
 UWidgetComponent* ABrawlerCharacter::GetHealthBarWidgetComponent() const
 {
     return IsValid(HealthBarWidgetComponent) ? HealthBarWidgetComponent : nullptr;
+}
+
+UUserInterfaceManager* ABrawlerCharacter::GetUserInterface() const
+{
+    return IsValid(UserInterface) ? UserInterface : nullptr;
 }
 #pragma endregion
