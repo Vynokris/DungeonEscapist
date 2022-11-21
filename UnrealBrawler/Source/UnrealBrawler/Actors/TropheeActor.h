@@ -12,9 +12,6 @@ class UNREALBRAWLER_API ATropheeActor : public AActor
 {
 	GENERATED_BODY()
 
-private:
-	ABrawlerCharacter* ParentCharacter = nullptr;
-	
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Trophee Properties", meta = (AllowPrivateAccess = "true")) UShapeComponent*      BoxComponent  = nullptr;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Trophee Properties", meta = (AllowPrivateAccess = "true")) UStaticMeshComponent* MeshComponent = nullptr;
@@ -26,7 +23,6 @@ protected:
 
 public:	
 	ATropheeActor();
-
-	bool WasPickedUp() const;
+	
 	UStaticMeshComponent* GetMesh() const;
 };

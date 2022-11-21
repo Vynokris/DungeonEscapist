@@ -29,16 +29,11 @@ ATropheeActor::ATropheeActor()
 	Tags.Add("Trophee");
 }
 
-bool ATropheeActor::WasPickedUp() const
-{
-	return ParentCharacter != nullptr;
-}
-
 void ATropheeActor::BeginPlay()
 {
 	Super::BeginPlay();
 }
-#pragma regionend
+#pragma endregion
 
 
 #pragma region Update
@@ -54,7 +49,7 @@ void ATropheeActor::NotifyActorBeginOverlap(AActor* OtherActor)
 {
 	Super::NotifyActorBeginOverlap(OtherActor);
 }
-#pragma regionend
+#pragma endregion
 
 
 #pragma region Getter & Setter
@@ -62,5 +57,5 @@ UStaticMeshComponent* ATropheeActor::GetMesh() const
 {
 	return IsValid(MeshComponent) ? MeshComponent : nullptr;
 }
-#pragma regionend
+#pragma endregion
 
