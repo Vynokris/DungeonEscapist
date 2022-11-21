@@ -1,7 +1,10 @@
 #include "BrawlerInstance.h"
 
 #include "Actors/DoorActor.h"
+#include "Actors/TropheeActor.h"
 #include "Kismet/GameplayStatics.h"
+
+#define INVINCIBILITY_STENCIL_VAL 3
 
 void UBrawlerInstance::Init()
 {
@@ -48,5 +51,10 @@ void UBrawlerInstance::SetGameWin(const bool& IsWin)
             ExitDoor = Cast<ADoorActor>(Actor);
     if (IsValid(ExitDoor))
         ExitDoor->MoveDoorEvent();
+
+    // Make the trophee shine.
+    UGameplayStatics::GetAllActorsWithTag(GetWorld(), "Trophee", FoundActors);
+    if (FoundActors.Num() > 0 && IsValid(FoundActors[0]))
+        Cast<ATropheeActor>(FoundActors[0])->GetMesh()->SetCustomDepthStencilValue(INVINCIBILITY_STENCIL_VAL);
 }
 

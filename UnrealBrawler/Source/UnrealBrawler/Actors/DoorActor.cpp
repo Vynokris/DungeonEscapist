@@ -3,6 +3,8 @@
 #include "Engine/TriggerBox.h"
 #include "Kismet/GameplayStatics.h"
 
+#define EQUIPMENT_STENCIL_VAL 4
+
 // Sets default values
 ADoorActor::ADoorActor()
 {
@@ -13,6 +15,8 @@ ADoorActor::ADoorActor()
 
 	MeshComponent = CreateDefaultSubobject<UStaticMeshComponent>("DoorMesh");
 	MeshComponent->SetupAttachment(RootComponent);
+	MeshComponent->SetRenderCustomDepth(false);
+	MeshComponent->SetCustomDepthStencilValue(EQUIPMENT_STENCIL_VAL);
 
 	Tags.Add("Door");
 }
@@ -58,6 +62,7 @@ void ADoorActor::Tick(float DeltaSeconds)
 				DoorClosed = false;
 				DoorMoving = false;
 				SetActorLocation({ GetActorLocation().X, GetActorLocation().Y, ZLocationOpen });
+				MeshComponent->SetRenderCustomDepth(false);
 			}
 		}
 		else
@@ -67,6 +72,7 @@ void ADoorActor::Tick(float DeltaSeconds)
 				DoorClosed = true;
 				DoorMoving = false;
 				SetActorLocation({ GetActorLocation().X, GetActorLocation().Y, ZLocationClosed });
+				MeshComponent->SetRenderCustomDepth(false);
 			}
 		}
 	}
@@ -85,6 +91,7 @@ void ADoorActor::OnTrigger(AActor* OverlappedActor, AActor* OtherActor)
 void ADoorActor::MoveDoorEvent()
 {
 	DoorMoving = true;
+	MeshComponent->SetRenderCustomDepth(true);
 }
 
 bool ADoorActor::IsMoving() const
