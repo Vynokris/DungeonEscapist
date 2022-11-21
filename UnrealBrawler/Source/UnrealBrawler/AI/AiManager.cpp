@@ -21,6 +21,7 @@ void AAiManager::BeginPlay()
 {
     Super::BeginPlay();
 
+    // Start spawning waves when the player leaves the entrance trigger.
     if (EntranceTrigger)
         EntranceTrigger->OnActorEndOverlap.AddDynamic(this, &AAiManager::StartWaves);
 
@@ -108,6 +109,7 @@ void AAiManager::ManageWaves(const float& DeltaTime)
         // End the game after the right amount of waves have been beaten.
         else {
             CastChecked<UBrawlerInstance>(UGameplayStatics::GetGameInstance(GetWorld()))->SetGameWin(true);
+            WavesStarted = false;
         }
     }
 }

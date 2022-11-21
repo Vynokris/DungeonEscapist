@@ -1,4 +1,7 @@
 #include "BrawlerInstance.h"
+
+#include "Actors/DoorActor.h"
+#include "Kismet/GameplayStatics.h"
 #include "Utils/DebugUtils.h"
 
 void UBrawlerInstance::Init()
@@ -16,6 +19,7 @@ void UBrawlerInstance::StartGameInstance()
 {
     Super::StartGameInstance();
 }
+
 
 bool UBrawlerInstance::GetGameRestart() const
 {
@@ -36,6 +40,17 @@ bool UBrawlerInstance::GetGameWin() const
 void UBrawlerInstance::SetGameWin(const bool& IsWin)
 {
     IsGameWin = IsWin;
+
+    // Open the exit door when the game is won.
+    TArray<AActor*> FoundActors;
+    UGameplayStatics::GetAllActorsWithTag(GetWorld(), "Door", FoundActors);
+    ADoorActor* ExitDoor = nullptr;
+    for (AActor* Actor : FoundActors)
+        if (!ExitDoor || ExitDoor->GetActorLocation().Y < Actor->GetActorLocation().Y)
+            ExitDoor = Cast<ADoorActor>(Actor);
+    if (IsValid(ExitDoor))
+        ExitDoor->MoveDoorEvent();
+    
     DebugData("IsGameWin is now %d ", IsGameWin);
 }
 

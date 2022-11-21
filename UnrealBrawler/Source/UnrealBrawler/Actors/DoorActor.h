@@ -22,11 +22,6 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Door Properties", meta = (AllowPrivateAccess = "true"))	float                 ClosingRate     = 200;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Door Properties", meta = (AllowPrivateAccess = "true")) ATriggerBox*          EntranceTrigger = nullptr;
 	
-private:
-	void MoveDoorEvent();
-	bool IsMoving() const;
-	bool IsClosed() const;
-	
 protected:
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaSeconds) override;
@@ -36,4 +31,8 @@ protected:
 	
 public:
 	ADoorActor();
+	
+	UFUNCTION(BlueprintCallable) void MoveDoorEvent();
+	UFUNCTION(BlueprintCallable) bool IsMoving() const;
+	UFUNCTION(BlueprintCallable) bool IsClosed() const;
 };
