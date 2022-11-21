@@ -1,11 +1,6 @@
-
-
-
 #include "DoorActor.h"
-
 #include "../BrawlerCharacter.h"
-#include "../Utils/DebugUtils.h"
-#include "Components/BoxComponent.h"
+#include "Engine/TriggerBox.h"
 #include "Kismet/GameplayStatics.h"
 
 // Sets default values
@@ -16,67 +11,85 @@ ADoorActor::ADoorActor()
 	USceneComponent* DoorRootComponent = CreateDefaultSubobject<USceneComponent>("DoorRoot");
 	RootComponent  = DoorRootComponent;
 
-
 	MeshComponent = CreateDefaultSubobject<UStaticMeshComponent>("DoorMesh");
 	MeshComponent->SetupAttachment(RootComponent);
-	MeshComponent->SetCollisionResponseToAllChannels(ECR_Overlap);
-	MeshComponent->SetGenerateOverlapEvents(true);
 
-	BoxComponent = CreateDefaultSubobject<UBoxComponent>("DoorBox");
-	BoxComponent->SetupAttachment(RootComponent);
-	MeshComponent->SetCollisionResponseToAllChannels(ECR_Block);
-	BoxComponent->SetGenerateOverlapEvents(true);
-
-	BlockBoxComponent = CreateDefaultSubobject<UBoxComponent>("BlockBox");
-	BlockBoxComponent->SetupAttachment(RootComponent);
-	BlockBoxComponent->SetGenerateOverlapEvents(false);
-	
 	Tags.Add("Door");
 }
 
 void ADoorActor::BeginPlay()
 {
-	//Debug("Spawning DoorActor at = %s", *this->GetActorLocation().ToString());
 	Super::BeginPlay();
+
+	// Setup the trigger callback.
+	if (EntranceTrigger)
+		EntranceTrigger->OnActorBeginOverlap.AddDynamic(this, &ADoorActor::OnTrigger);
+
+	// Get the door mesh size.
+	FVector BoundingBoxLocation, BoundingBoxExtent;
+	float BoundingSphereRadius;
+	UKismetSystemLibrary::GetComponentBounds(MeshComponent, BoundingBoxLocation, BoundingBoxExtent, BoundingSphereRadius);
+
+	// Setup the door closed and open positions.
+	if (IsClosed())
+	{
+		ZLocationClosed = GetActorLocation().Z;
+		ZLocationOpen   = ZLocationClosed - BoundingBoxExtent.Z * 2;
+	}
+	else
+	{
+		ZLocationOpen   = GetActorLocation().Z;
+		ZLocationClosed = ZLocationOpen + BoundingBoxExtent.Z * 2;
+	}
 }
 
 void ADoorActor::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
 
-	if(IsClosing() && !IsClosed())
+	if (IsMoving())
 	{
-		MeshComponent->AddRelativeLocation(FVector (0,0, endZLocation/ClosingRate * DeltaSeconds));
-		if(MeshComponent->GetRelativeLocation().Z >= endZLocation)
+		AddActorWorldOffset({ 0,0, ClosingRate * (IsClosed() ? -1 : 1) * DeltaSeconds });
+		
+		if (IsClosed())
 		{
-			DoorClosed = true;
-			DoorClosing = false;
+			if (GetActorLocation().Z <= ZLocationOpen)
+			{
+				DoorClosed = false;
+				DoorMoving = false;
+				SetActorLocation({ GetActorLocation().X, GetActorLocation().Y, ZLocationOpen });
+			}
+		}
+		else
+		{
+			if (GetActorLocation().Z >= ZLocationClosed)
+			{
+				DoorClosed = true;
+				DoorMoving = false;
+				SetActorLocation({ GetActorLocation().X, GetActorLocation().Y, ZLocationClosed });
+			}
 		}
 	}
 }
 
-void ADoorActor::NotifyActorBeginOverlap(AActor* OtherActor)
+void ADoorActor::OnTrigger(AActor* OverlappedActor, AActor* OtherActor)
 {
-	if(!OtherActor->IsA(ABrawlerCharacter::StaticClass())) return;
-	
-	const ABrawlerCharacter* BrawlerCharacter = Cast<ABrawlerCharacter>(OtherActor);
-	if(IsValid(BrawlerCharacter) && BrawlerCharacter->IsPlayer() && !IsClosing() && !IsClosed()) CloseDoorEvent();
+	if (OtherActor->Tags.Contains("Player") && !IsMoving()) {
+		MoveDoorEvent();
+		if (TriggerOnce) {
+            EntranceTrigger->OnActorBeginOverlap.RemoveDynamic(this, &ADoorActor::OnTrigger);
+		}
+	}
 }
 
-void ADoorActor::OpenDoorEvent()
+void ADoorActor::MoveDoorEvent()
 {
-	DoorClosing = false;
+	DoorMoving = true;
 }
 
-void ADoorActor::CloseDoorEvent()
+bool ADoorActor::IsMoving() const
 {
-	DoorClosing = true;
-	BlockBoxComponent->SetCollisionResponseToAllChannels(ECR_Block);
-}
-
-bool ADoorActor::IsClosing() const
-{
-	return DoorClosing;
+	return DoorMoving;
 }
 
 bool ADoorActor::IsClosed() const
