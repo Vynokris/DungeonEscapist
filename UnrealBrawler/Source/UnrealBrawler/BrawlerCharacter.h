@@ -54,6 +54,7 @@ private:
     
     UPROPERTY(EditAnywhere, Category = "Character Movement: Rolling") float RollVelocity = 1000;
 
+    int   CharacterScore     = 0;
     bool  CharacterIsPlayer  = true;
     int   Health             = 0;
     int   KillCount          = 0;
@@ -103,6 +104,7 @@ public:
 
     UFUNCTION(BlueprintCallable) void OpenPauseMenu();
 
+    UFUNCTION(BlueprintCallable) int  GetScore()	     const;
     UFUNCTION(BlueprintCallable) int  IsPlayer()	     const;
     UFUNCTION(BlueprintCallable) int  IsEnemy()		     const;
     UFUNCTION(BlueprintCallable) int  GetHealth()	     const;

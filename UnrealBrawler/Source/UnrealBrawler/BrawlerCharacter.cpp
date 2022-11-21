@@ -89,6 +89,7 @@ void ABrawlerCharacter::BeginPlay()
         UserInterface->AddToViewport();
         UserInterface->ShowMainMenuEvent();
         UserInterface->GetCounterComponent()->SetupCounterComponent(this);
+        UserInterface->GetScoreComponent()->SetupScoreComponent(this);
     }
     
     // If the character is controlled by AI, treat this character as an enemy.
@@ -405,6 +406,7 @@ void ABrawlerCharacter::EnemyKilledEvent()
 {
     KillCount++;
     UserInterface->GetCounterComponent()->UpdateCounterEvent(FText::AsNumber(GetKillCount()));
+    UserInterface->GetScoreComponent()->UpdateScoreEvent(FText::AsNumber(GetScore() + FMath::RandRange(100, 1000)));
 }
 
 void ABrawlerCharacter::DropEquipmentEvent(const EEquipmentType& EquipmentType)
@@ -432,10 +434,16 @@ void ABrawlerCharacter::OpenPauseMenu()
     if(UserInterface->GetPauseMenu()->IsVisible()) return;
     UserInterface->ShowPauseMenuEvent();
 }
+
 #pragma endregion
 
 
 #pragma region Getter & Setter
+int ABrawlerCharacter::GetScore() const
+{
+    return CharacterScore;
+}
+
 int ABrawlerCharacter::IsPlayer() const
 {
     return CharacterIsPlayer;

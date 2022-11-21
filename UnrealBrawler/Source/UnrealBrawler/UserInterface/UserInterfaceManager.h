@@ -8,6 +8,7 @@
 #include "Widget/HealthBarComponent.h"
 #include "Widget/KillCOunterComponent.h"
 #include "Widget/PauseWidget.h"
+#include "Widget/ScoreComponent.h"
 #include "UserInterfaceManager.generated.h"
 
 class UBrawlerInstance;
@@ -26,6 +27,7 @@ public:
 	// Components.
 	UPROPERTY(EditAnywhere, Category = "Menu UI", meta = (BindWidget)) UUserWidget* KillCounterComponent = nullptr;
 	UPROPERTY(EditAnywhere, Category = "Menu UI", meta = (BindWidget)) UUserWidget* HealthBarComponent   = nullptr;
+	UPROPERTY(EditAnywhere, Category = "Menu UI", meta = (BindWidget)) UUserWidget* ScoreComponent		 = nullptr;
 	
 private:
 	void UpdateNavigation(const UUserWidget* UserWidget) const;
@@ -43,6 +45,7 @@ public:
 
 	UKillCounterComponent* GetCounterComponent()   const;
 	UHealthBarComponent*   GetHealthBarComponent() const;
+	UScoreComponent*	   GetScoreComponent()	   const;
 	
 	UFUNCTION(BlueprintCallable) void QuitGameEvent();
 	UFUNCTION(BlueprintCallable) void PlayGameEvent();

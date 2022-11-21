@@ -2,6 +2,7 @@
 #include "Components/Button.h"
 #include "Kismet/GameplayStatics.h"
 #include "UnrealBrawler/BrawlerInstance.h"
+#include "UnrealBrawler/Utils/DebugUtils.h"
 
 #pragma region Setup
 bool UUserInterfaceManager::Initialize()
@@ -71,6 +72,13 @@ void UUserInterfaceManager::PlayGameEvent()
 
 void UUserInterfaceManager::ShowMainMenuEvent()
 {
+    bool IsCommingFromPause = false;
+    if(GetPauseMenu()->IsVisible())
+    {
+        HidePauseMenuEvent();
+        IsCommingFromPause = true;
+    }
+    
     HideGameUI();
     UMenuWidget* MainMenuWidget = GetMainMenu();
     if(IsValid(MainMenuWidget))
@@ -82,7 +90,7 @@ void UUserInterfaceManager::ShowMainMenuEvent()
         if(IsValid(GetWorld()))
         {
             UBrawlerInstance* BrawlerInstance = CastChecked<UBrawlerInstance>(UGameplayStatics::GetGameInstance(GetWorld()));
-            if(BrawlerInstance->GetGameRestart())
+            if(BrawlerInstance->GetGameRestart() || IsCommingFromPause)
             {
                 UGameplayStatics::OpenLevel(this, FName(*GetWorld()->GetName()), false);
                 BrawlerInstance->SetGameRestart(false);
@@ -188,12 +196,14 @@ void UUserInterfaceManager::HideWinMenuEvent()
 void UUserInterfaceManager::ShowGameUI()
 {
     if(IsValid(KillCounterComponent)) KillCounterComponent->SetVisibility(ESlateVisibility::Visible);
+    if(IsValid(ScoreComponent)) ScoreComponent->SetVisibility(ESlateVisibility::Visible);
     if(IsValid(HealthBarComponent)) HealthBarComponent->SetVisibility(ESlateVisibility::Visible);
 }
 
 void UUserInterfaceManager::HideGameUI()
 {
     if(IsValid(KillCounterComponent)) KillCounterComponent->SetVisibility(ESlateVisibility::Hidden);
+    if(IsValid(ScoreComponent)) ScoreComponent->SetVisibility(ESlateVisibility::Hidden);
     if(IsValid(HealthBarComponent)) HealthBarComponent->SetVisibility(ESlateVisibility::Hidden);
 }
 #pragma endregion
@@ -245,6 +255,11 @@ UKillCounterComponent* UUserInterfaceManager::GetCounterComponent() const
 UHealthBarComponent* UUserInterfaceManager::GetHealthBarComponent() const
 {
     return IsValid(HealthBarComponent) ? Cast<UHealthBarComponent>(HealthBarComponent) : nullptr;
+}
+
+UScoreComponent* UUserInterfaceManager::GetScoreComponent() const
+{
+    return IsValid(ScoreComponent) ? Cast<UScoreComponent>(ScoreComponent) : nullptr;
 }
 
 UOverWidget* UUserInterfaceManager::GetOverMenu() const
