@@ -22,7 +22,7 @@ void AAiManager::BeginPlay()
     Super::BeginPlay();
 
     if (EntranceTrigger)
-        Cast<ATriggerBox>(EntranceTrigger)->OnActorEndOverlap.AddDynamic(this, &AAiManager::StartWaves);
+        EntranceTrigger->OnActorEndOverlap.AddDynamic(this, &AAiManager::StartWaves);
 
     // Find the scene navigation mesh bounds.
     TArray<AActor*> FoundActors;
@@ -54,7 +54,7 @@ void AAiManager::StartWaves(AActor* OverlappedActor, AActor* OtherActor)
     {
         WavesStarted = true;
         if (EntranceTrigger)
-            Cast<ATriggerBox>(EntranceTrigger)->OnActorEndOverlap.RemoveDynamic(this, &AAiManager::StartWaves);
+            EntranceTrigger->OnActorEndOverlap.RemoveDynamic(this, &AAiManager::StartWaves);
     }
 }
 
