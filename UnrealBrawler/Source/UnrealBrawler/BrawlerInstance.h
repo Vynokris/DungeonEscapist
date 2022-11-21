@@ -12,14 +12,14 @@ class UNREALBRAWLER_API UBrawlerInstance : public UGameInstance
 
 private:
 	bool IsGameRestart = false;
-	bool IsGameWin = false;
+	bool IsGameWin     = false;
 
 protected:
 	virtual void Init() override;
 	virtual void Shutdown() override;
 	virtual void StartGameInstance() override;
 	
-public:
+public:	
 	bool GetGameRestart() const;
 	void SetGameRestart(const bool& IsRestart);
 
