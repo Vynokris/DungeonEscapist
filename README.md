@@ -7,10 +7,10 @@
 **The second goal of this project was to learn how to use UnrealEngine C++ API.**
 
 ## Information
-Project start : 24/10/2022\
-Project end : 21/11/2022\
-Version : 1.0 - GOLD\
-Date last version : 21/11/2022\
+Project start : 24/10/2022 <br>
+Project end : 21/11/2022 <br>
+Version : 1.0 - GOLD <br>
+Date last version : 21/11/2022
 
 ## Building
 ## Create an executable
