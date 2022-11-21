@@ -13,6 +13,7 @@
 #include "UnrealBrawlerGameModeBase.h"
 #include "Components/WidgetComponent.h"
 #include "BrawlerCharacter.generated.h"
+class AHeartActor;
 
 UCLASS()
 class UNREALBRAWLER_API ABrawlerCharacter : public ACharacter
@@ -34,6 +35,7 @@ private:
     UPROPERTY(EditAnywhere,     Category = "Character") int   AttackDamage              = 1;
     UPROPERTY(EditAnywhere,     Category = "Character") float RollInvincibilityDuration = 0.5;
     UPROPERTY(EditAnywhere,     Category = "Character") int   InvincibilityDuration     = 2;
+    UPROPERTY(EditDefaultsOnly, Category = "Character") TSubclassOf<AHeartActor>             HeartActor = nullptr;
     UPROPERTY(EditDefaultsOnly, Category = "Character") TArray<TSubclassOf<AEquipmentActor>> PlayerDefaultEquipment;
     UPROPERTY(EditDefaultsOnly, Category = "Character") TArray<TSubclassOf<AEquipmentActor>> EnemyDefaultEquipment;
     
@@ -88,6 +90,7 @@ public:
     virtual void BeginPlay() override;
     
     UFUNCTION(BlueprintCallable) void TakeDamageEvent(const int& Amount);
+    UFUNCTION(BlueprintCallable) void HealEvent(const int& Amount);
     UFUNCTION(BlueprintCallable) void StartAttackingEvent();
     UFUNCTION(BlueprintCallable) void StopAttackingEvent();
     UFUNCTION(BlueprintCallable) void AttackBlockedEvent();
@@ -98,6 +101,7 @@ public:
     UFUNCTION(BlueprintCallable) void StartInvincibilityEvent(const float& Duration = -1);
     UFUNCTION(BlueprintCallable) void StopInvincibilityEvent();
     UFUNCTION(BlueprintCallable) void DeathEvent();
+    UFUNCTION(BlueprintCallable) void DeathAnimationEndEvent();
     UFUNCTION(BlueprintCallable) void EnemyKilledEvent();
     UFUNCTION(BlueprintCallable) void DropEquipmentEvent(const EEquipmentType& EquipmentType);
     UFUNCTION(BlueprintCallable) void PickupEquipmentEvent(AEquipmentActor* NewEquipment);
