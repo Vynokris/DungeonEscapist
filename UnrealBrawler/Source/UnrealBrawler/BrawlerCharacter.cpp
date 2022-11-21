@@ -8,16 +8,8 @@
 #include "Kismet/GameplayStatics.h"
 #include "UserInterface/Widget/HealthBarComponent.h"
 #include "UserInterface/Widget/KillCOunterComponent.h"
-#include "BrawlerCharacter.h"
-
-#include "AI/EnemyAiController.h"
-#include "Components/CapsuleComponent.h"
-#include "Blueprint/WidgetTree.h"
-#include "NiagaraFunctionLibrary.h"
-#include "BehaviorTree/BlackboardComponent.h"
-#include "Kismet/GameplayStatics.h"
-#include "UserInterface/Widget/HealthBarComponent.h"
-#include "UserInterface/Widget/KillCOunterComponent.h"
+#include "Actors/HeartActor.h"
+#include "Utils/DebugUtils.h"
 
 #define PLAYER_STENCIL_VAL 1
 #define ENEMY_STENCIL_VAL 2
@@ -281,6 +273,16 @@ void ABrawlerCharacter::TakeDamageEvent(const int& Amount)
     }
 }
 
+void ABrawlerCharacter::HealEvent(const int& Amount)
+{
+    if (IsDead()) return;
+    Health += Amount;
+    Health  = FMath::Clamp(Health, 0, GetMaxHealth());
+
+    // Update UI according to new health value
+    UserInterface->GetHealthBarComponent()->UpdateHealthEvent(this, GetHealth(), GetMaxHealth());
+}
+
 void ABrawlerCharacter::StartAttackingEvent()
 {
     // Make sure the player isn't dead and has a weapon before attacking.
@@ -399,6 +401,19 @@ void ABrawlerCharacter::DeathEvent()
         HealthBarWidgetComponent->DestroyComponent();
         Cast<AEnemyAiController>(Controller)->GetBlackboard()->SetValueAsBool("ShouldAttack", false);
         Controller->UnPossess();
+    }
+}
+
+void ABrawlerCharacter::DeathAnimationEndEvent()
+{
+    if (IsEnemy())
+    {
+        // Have a chance to spawn a heart upon death.
+        if (FMath::RandRange(0, 99) < 50)
+        {
+            const FVector Location = GetActorLocation();
+            GetWorld()->SpawnActor(HeartActor, &Location);
+        }
     }
 }
 
