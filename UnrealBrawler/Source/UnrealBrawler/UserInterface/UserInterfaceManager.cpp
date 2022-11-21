@@ -71,6 +71,13 @@ void UUserInterfaceManager::PlayGameEvent()
 
 void UUserInterfaceManager::ShowMainMenuEvent()
 {
+    bool IsCommingFromWin = false;
+    if(GetWinMenu()->IsVisible())
+    {
+        HideWinMenuEvent();
+        IsCommingFromWin = true;
+    }
+
     bool IsCommingFromPause = false;
     if(GetPauseMenu()->IsVisible())
     {
@@ -89,7 +96,7 @@ void UUserInterfaceManager::ShowMainMenuEvent()
         if(IsValid(GetWorld()))
         {
             UBrawlerInstance* BrawlerInstance = CastChecked<UBrawlerInstance>(UGameplayStatics::GetGameInstance(GetWorld()));
-            if(BrawlerInstance->GetGameRestart() || IsCommingFromPause)
+            if(BrawlerInstance->GetGameRestart() || IsCommingFromPause || IsCommingFromWin)
             {
                 UGameplayStatics::OpenLevel(this, FName(*GetWorld()->GetName()), false);
                 BrawlerInstance->SetGameRestart(false);
