@@ -16,7 +16,6 @@ public:
     UPROPERTY(EditAnywhere, Category = "Health UI", meta = (BindWidget)) class UProgressBar* HealthBar;
     UPROPERTY(EditAnywhere, Category = "Health UI", meta = (BindWidget)) class UTextBlock* CurrentHealthText;
     UPROPERTY(EditAnywhere, Category = "Health UI", meta = (BindWidget)) class UTextBlock* TotalHealthText;
-    UPROPERTY(EditAnywhere, Category = "Health UI", meta = (BindWidget)) class UTextBlock* SeparatorText;
     
 protected:
     virtual bool Initialize() override;
@@ -31,5 +30,4 @@ public:
     UProgressBar* GetHealthBar() const;
     UTextBlock* GetCurrentHealthText() const;
     UTextBlock* GetTotalHealthText() const;
-    UTextBlock* GetSeparatorText() const;
 };

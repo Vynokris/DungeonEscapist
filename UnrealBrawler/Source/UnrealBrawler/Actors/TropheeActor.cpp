@@ -24,13 +24,18 @@ ATropheeActor::ATropheeActor()
 
 	BoxComponent = CreateDefaultSubobject<UBoxComponent>("TropheeBox");
 	BoxComponent->SetupAttachment(RootComponent);
-	BoxComponent->SetCollisionResponseToAllChannels(ECR_Block);
+	BoxComponent->SetCollisionResponseToAllChannels(ECR_Overlap);
+	BoxComponent->SetGenerateOverlapEvents(true);
 
 	Tags.Add("Trophee");
 }
 
 void ATropheeActor::BeginPlay()
 {
+	MeshComponent->SetCollisionResponseToAllChannels(ECR_Ignore);
+	BoxComponent->SetCollisionResponseToAllChannels(ECR_Overlap);
+	BoxComponent->SetGenerateOverlapEvents(true);
+	
 	Super::BeginPlay();
 }
 #pragma endregion
@@ -48,6 +53,12 @@ void ATropheeActor::Tick(float DeltaTime)
 void ATropheeActor::NotifyActorBeginOverlap(AActor* OtherActor)
 {
 	Super::NotifyActorBeginOverlap(OtherActor);
+
+	if (OtherActor->Tags.Contains("Player"))
+	{
+		// TODO -> Show win game event + check instance is gameWin
+		Destroy();
+	}
 }
 #pragma endregion
 
