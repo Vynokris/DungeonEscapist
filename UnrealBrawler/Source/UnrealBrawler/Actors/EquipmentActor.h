@@ -19,6 +19,8 @@ class UNREALBRAWLER_API AEquipmentActor : public AActor
 
 private:
     ABrawlerCharacter* ParentCharacter = nullptr;
+    
+public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Equipment Properties", meta = (AllowPrivateAccess = "true")) TEnumAsByte<EEquipmentType> EquipmentType          = Weapon;
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Equipment Properties", meta = (AllowPrivateAccess = "true")) UShapeComponent*            BoxComponent           = nullptr;
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Equipment Properties", meta = (AllowPrivateAccess = "true")) UStaticMeshComponent*       MeshComponent          = nullptr;

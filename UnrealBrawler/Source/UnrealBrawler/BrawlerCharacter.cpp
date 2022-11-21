@@ -8,6 +8,16 @@
 #include "Kismet/GameplayStatics.h"
 #include "UserInterface/Widget/HealthBarComponent.h"
 #include "UserInterface/Widget/KillCOunterComponent.h"
+#include "BrawlerCharacter.h"
+
+#include "AI/EnemyAiController.h"
+#include "Components/CapsuleComponent.h"
+#include "Blueprint/WidgetTree.h"
+#include "NiagaraFunctionLibrary.h"
+#include "BehaviorTree/BlackboardComponent.h"
+#include "Kismet/GameplayStatics.h"
+#include "UserInterface/Widget/HealthBarComponent.h"
+#include "UserInterface/Widget/KillCOunterComponent.h"
 
 #define PLAYER_STENCIL_VAL 1
 #define ENEMY_STENCIL_VAL 2
@@ -67,7 +77,6 @@ void ABrawlerCharacter::BeginPlay()
         Health = PlayerMaxHealth;
 		GetMesh()->SetCustomDepthStencilValue(PLAYER_STENCIL_VAL);
         Tags.Add("Player");
-        SetActorLabel("Player");
 
         // Give default equipment to the player.
         for (TSubclassOf<AEquipmentActor> EquipmentPiece : PlayerDefaultEquipment)
@@ -107,7 +116,7 @@ void ABrawlerCharacter::BeginPlay()
             if (EquipmentPiece) Cast<AEquipmentActor>(GetWorld()->SpawnActor(EquipmentPiece))->GetPickedUp(this);
 
         // Scale the enemy depending on its health.
-        if(EnemyMaxHealth > 1) SetActorScale3D(GetActorScale() + FVector(EnemyMaxHealth * 0.05f));
+        if(EnemyMaxHealth > 1) SetActorScale3D(GetActorScale() + FVector(EnemyMaxHealth * 0.005f));
     }
     
     UserInterface->GetHealthBarComponent()->SetupHealthComponent(this);
