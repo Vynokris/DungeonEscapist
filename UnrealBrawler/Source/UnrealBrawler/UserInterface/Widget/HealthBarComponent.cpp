@@ -37,10 +37,8 @@ void UHealthBarComponent::SetupHealthComponent(AActor* Actor)
 
     if(BrawlerCharacter->IsEnemy())
     {
-        GetCurrentHealthText()->SetVisibility(ESlateVisibility::Hidden);
-        GetTotalHealthText  ()->SetVisibility(ESlateVisibility::Hidden);
-        GetSeparatorText    ()->SetVisibility(ESlateVisibility::Hidden);
-        GetHealthBar        ()->SetFillColorAndOpacity(FLinearColor(255,0,0));
+        GetHealthBar()->SetFillColorAndOpacity(FLinearColor(255,0,0));
+        
         if (IsValid(BrawlerCharacter->GetHealthBarWidgetComponent()))
             BrawlerCharacter->GetHealthBarWidgetComponent()->SetWidget(this);
         else
@@ -78,10 +76,5 @@ UTextBlock* UHealthBarComponent::GetCurrentHealthText() const
 UTextBlock* UHealthBarComponent::GetTotalHealthText() const
 {
     return IsValid(TotalHealthText) ? TotalHealthText : nullptr;
-}
-
-UTextBlock* UHealthBarComponent::GetSeparatorText() const
-{
-    return IsValid(SeparatorText) ? SeparatorText : nullptr;
 }
 #pragma endregion
