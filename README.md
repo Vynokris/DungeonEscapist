@@ -27,7 +27,7 @@ The goal was to create a 3D third-person brawler game in C++ using UnrealEngine 
 
 ## Asset Credits
 
-Thanks to [kaylousberg](https://kaylousberg.com)'s free assets available on their store!
+Thanks to [kaylousberg](https://kaylousberg.com) for their free assets available on their store!
 
 <br>
 
